@@ -4,10 +4,11 @@ import System        ( getArgs )
 import System.Random ( randomRIO )
 
 evilRegExp :: Int -> RegExp Char
-evilRegExp n = parse . concat $ replicate n "a?" ++ replicate n "a"
+evilRegExp n = parse $ "a?" ++ bounds ++ "a" ++ bounds
+ where bounds = "{" ++ show n ++ "," ++ show n ++ "}"
 
 regExp :: Int -> RegExp Char
-regExp n = parse $ "(a|b)*a" ++ concat (replicate n "(a|b)") ++ "a(a|b)*"
+regExp n = parse $ "(a|b)*a(a|b){" ++ show n ++ "," ++ show n ++ "}a(a|b)*"
 
 aNbN :: RegExp Char
 aNbN = epsilon .+. (symbol 'a' .*. aNbN .*. symbol 'b')
