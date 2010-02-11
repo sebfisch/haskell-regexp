@@ -1,4 +1,4 @@
-Pretty, Fast Regular Expressions in Haskell
-===========================================
+Regular Expressions in Haskell
+==============================
 
 to be continued

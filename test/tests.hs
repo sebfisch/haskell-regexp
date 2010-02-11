@@ -28,15 +28,15 @@ aNbNcN = epsilon .+. abc 1
   r .*. s = Labeled (isEmpty r && isEmpty s) Inactive (r:*:s)
   r .+. s = Labeled (isEmpty r || isEmpty s) Inactive (r:+:s)
 
-main = do -- n <- (read.head) `fmap` getArgs
-          s <- head `fmap` getArgs
+main = do n <- (read.head) `fmap` getArgs
 
-          print $ accept aNbNcN s
+--           s <- head `fmap` getArgs
+--           print $ accept aNbNcN s
 
---           s <- randomAB (n*n)
---           putStrLn s
---           mapM_ print $ accepting (regExp n) s
---           print $ accept (regExp n) s
+          s <- randomAB (n*n)
+          putStrLn s
+          mapM_ print $ accepting (regExp n) s
+          print $ accept (regExp n) s
 
 --           mapM_ print $ accepting (evilRegExp n) (replicate (2*n) 'a')
 --           print $ accept (evilRegExp n) (replicate (2*n) 'a')

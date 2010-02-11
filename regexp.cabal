@@ -1,7 +1,7 @@
 Name:          regexp
 Version:       0.1
 Cabal-Version: >= 1.6
-Synopsis:      Pretty, Fast Regular Expressions in Haskell
+Synopsis:      Regular Expressions in Haskell
 Description:   to be supplied
 Category:      Text, Parsing
 License:       BSD3
@@ -13,7 +13,7 @@ Homepage:      http://github.com/sebfisch/haskell-regexp
 Build-Type:    Simple
 Stability:     experimental
 
-Extra-Source-Files: README.markdown, tests.hs
+Extra-Source-Files: README.markdown, test/tests.hs
 
 Library
   Build-Tools:      happy >= 1.17
