@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 
+module RegExp where
+
 import System        ( getArgs )
 import System.Random ( randomRIO )
 
@@ -45,6 +47,17 @@ infixr 6 :+:, .+.
 
 (.+.) :: RegExp a -> RegExp a -> RegExp a
 r@(Labeled d k _) .+. s@(Labeled e l _) = Labeled (d||e) (max k l) (r:+:s)
+
+plus :: RegExp a -> RegExp a
+plus r = r .*. star r
+
+optional :: RegExp a -> RegExp a
+optional r = epsilon .+. r
+
+bounded :: RegExp a -> (Int,Int) -> RegExp a
+bounded r (n,m) =
+  foldr (.*.) (foldr (.*.) epsilon (replicate (m-n) (optional r)))
+              (replicate n r)
 
 -- auxiliary functions
 
@@ -126,12 +139,30 @@ regExp n = star aOrB .*. symbol 'a'
        .*. symbol 'a' .*. star aOrB
  where aOrB = symbol 'a' .+. symbol 'b'
 
-main = do n <- (read.head) `fmap` getArgs
+aNbN :: RegExp Char
+aNbN = epsilon .+. (symbol 'a' .*. aNbN .*. symbol 'b')
+ where
+  r .*. s = Labeled (isEmpty r && isEmpty s) Inactive (r:*:s)
+  r .+. s = Labeled (isEmpty r || isEmpty s) Inactive (r:+:s)
 
-          s <- randomAB (n*n)
-          putStrLn s
-          mapM_ print $ accepting (regExp n) s
-          print $ accept (regExp n) s
+aNbNcN :: RegExp Char
+aNbNcN = epsilon .+. abc 1
+ where
+  abc n   = symbol 'a' .*. (pow 'b' n .*. pow 'c' n .+. abc (n+1))
+  pow a n = foldr (.*.) epsilon (replicate n (symbol a))
+
+  r .*. s = Labeled (isEmpty r && isEmpty s) Inactive (r:*:s)
+  r .+. s = Labeled (isEmpty r || isEmpty s) Inactive (r:+:s)
+
+main = do -- n <- (read.head) `fmap` getArgs
+          s <- head `fmap` getArgs
+
+          print $ accept aNbNcN s
+
+--           s <- randomAB (n*n)
+--           putStrLn s
+--           mapM_ print $ accepting (regExp n) s
+--           print $ accept (regExp n) s
 
 --           mapM_ print $ accepting (evilRegExp n) (replicate (2*n) 'a')
 --           print $ accept (evilRegExp n) (replicate (2*n) 'a')
