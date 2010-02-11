@@ -4,14 +4,10 @@ import System        ( getArgs )
 import System.Random ( randomRIO )
 
 evilRegExp :: Int -> RegExp Char
-evilRegExp n = foldr (.*.) epsilon $ replicate n (epsilon.+.a) ++ replicate n a
- where a = symbol 'a'
+evilRegExp n = parse . concat $ replicate n "a?" ++ replicate n "a"
 
 regExp :: Int -> RegExp Char
-regExp n = star aOrB .*. symbol 'a'
-       .*. foldr (.*.) epsilon (replicate n aOrB)
-       .*. symbol 'a' .*. star aOrB
- where aOrB = symbol 'a' .+. symbol 'b'
+regExp n = parse $ "(a|b)*a" ++ concat (replicate n "(a|b)") ++ "a(a|b)*"
 
 aNbN :: RegExp Char
 aNbN = epsilon .+. (symbol 'a' .*. aNbN .*. symbol 'b')
