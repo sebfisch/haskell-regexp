@@ -1,136 +1,139 @@
-{-# LANGUAGE FlexibleInstances #-}
-
-import Prelude hiding ( flip, last )
-
-import Data.Monoid
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 
 import System        ( getArgs )
 import System.Random ( randomRIO )
 
-data RegExp a = Epsilon
-              | Symbol a
-              | Star (RegExp a)
-              | RegExp a :+: RegExp a
-              | RegExp a :*: RegExp a
+import Control.Monad ( foldM )
 
-data Status a = Active a | Inactive a
+data RE s a = Epsilon
+            | Symbol a
+            | Star (s (RE s a))
+            | s (RE s a) :*: s (RE s a)
+            | s (RE s a) :+: s (RE s a)
 
-isActive :: Status a -> Bool
-isActive (Active _)   = True
-isActive (Inactive _) = False
+type RegExp a = Labeled (RE Labeled a)
 
-symbol :: Status a -> a
-symbol (Active a)   = a
-symbol (Inactive a) = a
+data Labeled a = Labeled Bool Status a
 
-accept :: Eq a => RegExp (Status a) -> [a] -> Bool
-accept r []     = hasEpsilon r
-accept r (c:cs) = isFinal . foldl next (activateFirst c r) $ cs
+data Status = Inactive | Active Bool
+ deriving (Eq,Ord)
 
-accepting :: Eq a => RegExp (Status a) -> [a] -> [RegExp (Status a)]
+unlabeled :: Labeled a -> a
+unlabeled (Labeled _ _ a) = a
+
+-- smart constructors
+
+epsilon :: RegExp a
+epsilon = Labeled True Inactive Epsilon
+
+symbol :: a -> RegExp a
+symbol a = Labeled False Inactive (Symbol a)
+
+star :: RegExp a -> RegExp a
+star r@(Labeled _ s _) = Labeled True s (Star r)
+
+infixr 7 :*:, .*.
+
+(.*.) :: RegExp a -> RegExp a -> RegExp a
+r@(Labeled d k _) .*. s@(Labeled e l _) = Labeled (d&&e) (status k l) (r:*:s)
+ where
+  status _          (Active True) = Active True
+  status (Active a) _             = Active (a&&e)
+  status Inactive   b             = b
+
+infixr 6 :+:, .+.
+
+(.+.) :: RegExp a -> RegExp a -> RegExp a
+r@(Labeled d k _) .+. s@(Labeled e l _) = Labeled (d||e) (max k l) (r:+:s)
+
+-- auxiliary functions
+
+isEmpty :: RegExp a -> Bool
+isEmpty (Labeled e _ _) = e
+
+isActive :: RegExp a -> Bool
+isActive (Labeled _ (Active _) _) = True
+isActive _                        = False
+
+isFinal :: RegExp a -> Bool
+isFinal (Labeled _ (Active a) _) = a
+isFinal _                        = False
+
+activateFirst :: Eq a => a -> RegExp a -> RegExp a
+activateFirst a x =
+  case unlabeled x of
+    Epsilon              -> epsilon
+    Symbol b | a==b      -> Labeled False (Active True) (Symbol b)
+             | otherwise -> Labeled False Inactive (Symbol b)
+    Star r               -> star (activateFirst a r)
+    r :*: s  | isEmpty r -> activateFirst a r .*. activateFirst a s
+             | otherwise -> activateFirst a r .*. s
+    r :+: s              -> activateFirst a r .+. activateFirst a s
+
+-- matching
+
+accept :: Eq a => RegExp a -> [a] -> Bool
+accept r []     = isEmpty r
+accept r (c:cs) = maybe False isFinal
+                . foldM (\s -> active . next s) (activateFirst c r) $ cs
+
+active :: RegExp a -> Maybe (RegExp a)
+active s | isActive s = Just s
+         | otherwise  = Nothing
+
+accepting :: Eq a => RegExp a -> [a] -> [RegExp a]
 accepting r []     = [r]
-accepting r (c:cs) = scanl next (activateFirst c r) $ cs
+accepting r (c:cs) = scan (\s -> active . next s) (activateFirst c r) $ cs
 
-isFinal :: RegExp (Status a) -> Bool
-isFinal = any isActive . last
+next :: Eq a => RegExp a -> a -> RegExp a
+next x a | isActive x = step (unlabeled x)
+         | otherwise  = x
+ where
+  step Epsilon                = epsilon
+  step (Symbol b)             = symbol b
+  step (Star r)   | isFinal r = activateFirst a (star (next r a))
+                  | otherwise = star (next r a)
+  step (r:*:s)    | isFinal r = next r a .*. activateFirst a (next s a)
+                  | otherwise = next r a .*. next s a
+  step (r:+:s)                = next r a .+. next s a
 
-last :: RegExp a -> [a]
-last = first . flip
+-- pretty printing
 
-first :: RegExp a -> [a]
-first = foldMapFirst (:[])
+instance Show (RegExp Char)
+ where
+  showsPrec p x =
+   case unlabeled x of
+    Epsilon  -> id
+    Symbol _ -> showString (showSymbol x)
+    Star r   -> showsPrec 3 r . showString "*"
+    r:*:s    -> showParen (p>2) (showsPrec 2 r . showsPrec 2 s)
+    r:+:s    -> showParen (p>1) (showsPrec 1 r . showString "|" . showsPrec 1 s)
 
-next :: Eq a => RegExp (Status a) -> a -> RegExp (Status a)
-
-next Epsilon    _             = Epsilon
-
-next (Symbol a) _             = Symbol (Inactive (symbol a))
-
-next (Star r)   b | isFinal r = activateFirst b s
-                  | otherwise = s
- where s = Star (next r b)
-
-next (r :+: s)  b             = next r b :+: next s b
-
-next (r :*: s)  b | isFinal r = next r b :*: activateFirst b t
-                  | otherwise = next r b :*: t
- where t = next s b
-
-activateFirst :: Eq a => a -> RegExp (Status a) -> RegExp (Status a)
-activateFirst a = mapFirst activate
- where activate b | a == symbol b = Active a
-       activate b                 = b
-
--- Boilerplate code
-
-flip :: RegExp a -> RegExp a
-flip Epsilon    = Epsilon
-flip (Symbol a) = Symbol a
-flip (Star r)   = Star (flip r)
-flip (r :+: s)  = flip r :+: flip s
-flip (r :*: s)  = flip s :*: flip r
-
-hasEpsilon :: RegExp a -> Bool
-hasEpsilon Epsilon    = True
-hasEpsilon (Symbol _) = False
-hasEpsilon (Star _)   = True
-hasEpsilon (r :+: s)  = hasEpsilon r || hasEpsilon s
-hasEpsilon (r :*: s)  = hasEpsilon r && hasEpsilon s
-
-mapFirst :: (a -> a) -> RegExp a -> RegExp a
-mapFirst _ Epsilon    = Epsilon
-mapFirst f (Symbol a) = Symbol (f a)
-mapFirst f (Star r)   = Star (mapFirst f r)
-mapFirst f (r :+: s)  = mapFirst f r :+: mapFirst f s 
-mapFirst f (r :*: s)  = mapFirst f r :*: t
- where t | hasEpsilon r = mapFirst f s
-         | otherwise    = s
-
-foldMapFirst :: Monoid m => (a -> m) -> RegExp a -> m
-foldMapFirst _ Epsilon    = mempty
-foldMapFirst f (Symbol a) = f a
-foldMapFirst f (Star r)   = foldMapFirst f r
-foldMapFirst f (r :+: s)  = foldMapFirst f r `mappend` foldMapFirst f s
-foldMapFirst f (r :*: s)  = foldMapFirst f r `mappend` t
- where t | hasEpsilon r = foldMapFirst f s
-         | otherwise    = mempty
-
-instance Show (RegExp (Status Char)) where
-  showsPrec _ Epsilon = id
-
-  showsPrec _ (Symbol (Active c)) = showString $ red [c]
-
-  showsPrec _ (Symbol (Inactive c)) = showString [c]
-
-  showsPrec _ (Star r) = showsPrec 3 r . showString "*"
-
-  showsPrec p (r :*: s) =
-    showParen (p>2) (showsPrec 2 r . showsPrec 2 s)
-
-  showsPrec p (r :+: s) =
-    showParen (p>1) (showsPrec 1 r . showString "|" . showsPrec 1 s)
-
-red :: String -> String
-red s = "\ESC[91m" ++ s ++ "\ESC[0m"
+showSymbol :: RegExp Char -> String
+showSymbol r | isActive r = "\ESC[91m" ++ a : "\ESC[0m"
+             | otherwise  = [a]
+ where Symbol a = unlabeled r
 
 -- Tests
 
-evilRegExp :: Int -> RegExp (Status Char)
-evilRegExp n = foldr (:*:) Epsilon $ replicate n (Epsilon:+:a) ++ replicate n a
- where a = Symbol (Inactive 'a')
+evilRegExp :: Int -> RegExp Char
+evilRegExp n = foldr (.*.) epsilon $ replicate n (epsilon.+.a) ++ replicate n a
+ where a = symbol 'a'
 
-regExp :: Int -> RegExp (Status Char)
-regExp n = Star aOrB :*: Symbol (Inactive 'a')
-       :*: foldr (:*:) Epsilon (replicate n aOrB)
-       :*: Symbol (Inactive 'a') :*: Star aOrB
- where aOrB = Symbol (Inactive 'a') :+: Symbol (Inactive 'b')
+regExp :: Int -> RegExp Char
+regExp n = star aOrB .*. symbol 'a'
+       .*. foldr (.*.) epsilon (replicate n aOrB)
+       .*. symbol 'a' .*. star aOrB
+ where aOrB = symbol 'a' .+. symbol 'b'
 
 main = do n <- (read.head) `fmap` getArgs
+
           s <- randomAB (n*n)
           putStrLn s
           mapM_ print $ accepting (regExp n) s
           print $ accept (regExp n) s
 
+--           mapM_ print $ accepting (evilRegExp n) (replicate (2*n) 'a')
 --           print $ accept (evilRegExp n) (replicate (2*n) 'a')
 
 randomAB :: Int -> IO String
@@ -144,3 +147,10 @@ randomAB n = do c <- randomRIO ('a','b')
 --                system $ "echo \""++s++"\" | sed s/"
 --                      ++ "\\(a\\|b\\)*a" ++ concat (replicate n "\\(a\\|b\\)")
 --                      ++ "a\\(a\\|b\\)*/x/ > /dev/null"
+
+-- library function
+
+scan :: (a -> b -> Maybe a) -> a -> [b] -> [a]
+scan _ x []     = [x]
+scan f x (y:ys) = x : maybe [] (\z -> scan f z ys) (f x y)
+
