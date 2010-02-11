@@ -1,0 +1,27 @@
+Name:          regexp
+Version:       0.1
+Cabal-Version: >= 1.6
+Synopsis:      Pretty, Fast Regular Expressions in Haskell
+Description:   to be supplied
+Category:      Text, Parsing
+License:       BSD3
+License-File:  LICENSE
+Author:        Thomas Wilke, Frank Huch, Sebastian Fischer
+Maintainer:    Sebastian Fischer
+Bug-Reports:   http://github.com/sebfisch/haskell-regexp/issues
+Homepage:      http://github.com/sebfisch/haskell-regexp
+Build-Type:    Simple
+Stability:     experimental
+
+Extra-Source-Files: README.markdown, tests.hs
+
+Library
+  Build-Tools:      happy >= 1.17
+  Build-Depends:    base >= 3 && < 5, array >= 0.1
+  Exposed-Modules:  Text.RegExp
+  Other-Modules:    Text.RegExp.Data,
+                    Text.RegExp.Parser
+
+Source-Repository head
+  type:     git
+  location: git://github.com/sebfisch/haskell-regexp.git

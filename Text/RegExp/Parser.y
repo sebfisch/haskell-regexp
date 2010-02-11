@@ -1,11 +1,45 @@
 {
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 
-module Parser ( parse ) where
+module Text.RegExp.Parser ( parse ) where
 
-import RegExp hiding ( scan )
+import Text.RegExp.Data hiding ( scan )
+
 import Data.String
+}
 
+%name parseTokens
+%tokentype { Token }
+%error { parseError }
+
+%token
+       sym    { Sym $$ }
+       '*'    { Ast }
+       '.'    { Dot }
+       '|'    { Bar }
+       '('    { L }
+       ')'    { R }
+       '+'    { Pls }
+       '?'    { Que }
+       bounds { Bounds $$ }
+
+%right '|'
+%right '.'
+%right '*' '+' '?' bounds
+
+%%
+
+RegExp : {- empty -}       { epsilon }
+       | sym               { symbol $1 }
+       | RegExp '*'        { star $1 }
+       | RegExp '.' RegExp { $1 .*. $3 }
+       | RegExp '|' RegExp { $1 .+. $3 }
+       | '(' RegExp ')'    { $2 }
+       | RegExp '+'        { plus $1 }
+       | RegExp '?'        { optional $1 }
+       | RegExp bounds     { bounded $1 $2 }
+
+{
 instance IsString (RegExp Char)
  where fromString = parse
 
@@ -60,34 +94,3 @@ dotFollows _   = True
 parseError :: [Token] -> a
 parseError _ = error "cannot parse regular expression"
 }
-
-%name parseTokens
-%tokentype { Token }
-%error { parseError }
-
-%token
-       sym    { Sym $$ }
-       '*'    { Ast }
-       '.'    { Dot }
-       '|'    { Bar }
-       '('    { L }
-       ')'    { R }
-       '+'    { Pls }
-       '?'    { Que }
-       bounds { Bounds $$ }
-
-%right '|'
-%right '.'
-%right '*' '+' '?' bounds
-
-%%
-
-RegExp : {- empty -}       { epsilon }
-       | sym               { symbol $1 }
-       | RegExp '*'        { star $1 }
-       | RegExp '.' RegExp { $1 .*. $3 }
-       | RegExp '|' RegExp { $1 .+. $3 }
-       | '(' RegExp ')'    { $2 }
-       | RegExp '+'        { plus $1 }
-       | RegExp '?'        { optional $1 }
-       | RegExp bounds     { bounded $1 $2 }
