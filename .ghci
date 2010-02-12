@@ -1,5 +1,5 @@
 -- generate parser from happy specification on GHCi startup
 
-:def _genparser \_ -> return ":! cd Text/RegExp; happy Parser.y"
+:def _genparser \_ -> return ":! happy Text/RegExp/Parser.y"
 :_genparser
 :undef _genparser
