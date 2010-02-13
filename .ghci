@@ -2,3 +2,7 @@
 
 :def genparser \_ -> return ":! happy Text/RegExp/Parser.y"
 :genparser
+
+-- enable overloaded strings
+
+:set -XOverloadedStrings

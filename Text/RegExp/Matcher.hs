@@ -10,7 +10,7 @@ matchings r = concatMap matching . zip [0..] . process r
  where
   matching (end,s) = map (\start -> (start,end-start)) (finalIndices s)
 
-(=~) :: RegExp Char -> String -> [(Index,Int)]
+(=~) :: String -> RegExp Char -> [(Index,Int)]
 (=~) = flip matchings
 
 process :: Eq a => RegExp a -> [a] -> [RegExp a]
