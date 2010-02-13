@@ -95,7 +95,7 @@ process []            = []
 process ('\\':c:cs)
   | isSymClassChar c  = Cls ('\\':[c], symClassPred c) : process cs
 
-process ('\\':_)      = error "TODO: implement escaping"
+process ('\\':c:cs)   = Sym c : process cs
 
 process ('{':cs)      = case reads cs of
                           (n,'}':s1) : _ -> Bnd (n,n) : process s1
@@ -123,7 +123,8 @@ processCls ('\\':c:cs)
   | isSymClassChar c    = ('\\':c:s, \x -> symClassPred c x || p x, xs)
  where (s,p,xs) = processCls cs
 
-processCls ('\\':_)     = error "TODO: implement escaping"
+processCls ('\\':c:cs)  = ('\\':c:s, \x -> x == c || p x, xs)
+ where (s,p,xs) = processCls cs
 
 processCls (c:'-':e:cs) | e /= ']'
                         = (c:'-':e:s, \d -> (c<=d && d<=e) || p d, xs)
