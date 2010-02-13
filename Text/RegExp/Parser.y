@@ -13,31 +13,31 @@ import Data.String
 %error { parseError }
 
 %token
-       sym    { Sym $$ }
-       '*'    { Ast }
-       '.'    { Dot }
-       '|'    { Bar }
-       '('    { L }
-       ')'    { R }
-       '+'    { Pls }
-       '?'    { Que }
-       bounds { Bounds $$ }
+       sym { Sym $$ }
+       '*' { Ast }
+       seq { Seq }
+       '|' { Bar }
+       '(' { L }
+       ')' { R }
+       '+' { Pls }
+       '?' { Que }
+       bnd { Bnd $$ }
 
 %right '|'
-%right '.'
-%right '*' '+' '?' bounds
+%right seq
+%right '*' '+' '?' bnd
 
 %%
 
 RegExp : {- empty -}       { epsilon }
        | sym               { symbol $1 }
        | RegExp '*'        { star $1 }
-       | RegExp '.' RegExp { $1 .*. $3 }
+       | RegExp seq RegExp { $1 .*. $3 }
        | RegExp '|' RegExp { $1 .+. $3 }
        | '(' RegExp ')'    { $2 }
        | RegExp '+'        { plus $1 }
        | RegExp '?'        { optional $1 }
-       | RegExp bounds     { bounded $1 $2 }
+       | RegExp bnd        { bounded $1 $2 }
 
 {
 instance IsString (RegExp Char)
@@ -46,22 +46,23 @@ instance IsString (RegExp Char)
 parse :: String -> RegExp Char
 parse = parseTokens . scan
 
-data Token = Sym Char | Ast | Dot | Bar | L | R
-           | Pls | Que | Bounds (Int,Int)
+data Token = Sym Char | Ast | Seq | Bar | L | R
+           | Pls | Que | Bnd (Int,Int)
 
 scan :: String -> [Token]
-scan = insertDots . process
+scan = insertSeqs . process
  where
   process []            = []
 
-  process ('\\':'d':cs) = error "TODO: implement backslash"
+  process ('\\':cs) = error "TODO: implement backslash"
 
   process ('{':cs)      = case reads cs of
+                            (n,'}':s1) : _ -> Bnd (n,n) : process s1
                             (n,',':s1) : _ ->
                                 case reads s1 of
-                                  (m,'}':s2) : _ -> Bounds (n,m) : process s2
-                                  _ -> parseError []
-                            _ -> parseError []
+                                  (m,'}':s2) : _ -> Bnd (n,m) : process s2
+                                  _ -> token '{' : process cs
+                            _ -> token '{' : process cs
 
   process (c:cs)        = token c : process cs
 
@@ -74,12 +75,12 @@ token '?'  = Que
 token '+'  = Pls
 token c    = Sym c
 
-insertDots :: [Token] -> [Token]
-insertDots []                     = []
-insertDots [t]                    = [t]
-insertDots (a:ts@(b:_))
-  | dotFollows a && dotPrecedes b = a : Dot : insertDots ts
-  | otherwise                     = a : insertDots ts
+insertSeqs :: [Token] -> [Token]
+insertSeqs []                     = []
+insertSeqs [t]                    = [t]
+insertSeqs (a:ts@(b:_))
+  | dotFollows a && dotPrecedes b = a : Seq : insertSeqs ts
+  | otherwise                     = a : insertSeqs ts
 
 dotPrecedes :: Token -> Bool
 dotPrecedes (Sym _) = True
