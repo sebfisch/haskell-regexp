@@ -5,10 +5,10 @@ import System.Random ( randomRIO )
 
 evilRegExp :: Int -> RegExp Char
 evilRegExp n = parse $ "a?" ++ bounds ++ "a" ++ bounds
- where bounds = "{" ++ show n ++ "," ++ show n ++ "}"
+ where bounds = "{" ++ show n ++ "}"
 
 regExp :: Int -> RegExp Char
-regExp n = parse $ "a(a|b){" ++ show n ++ "," ++ show n ++ "}a"
+regExp n = parse $ "a.{" ++ show n ++ "}a"
 
 aNbN :: RegExp Char
 aNbN = epsilon .+. (symbol 'a' .*. aNbN .*. symbol 'b')

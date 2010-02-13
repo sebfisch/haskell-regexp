@@ -3,7 +3,7 @@
 module Text.RegExp.Data where
 
 data RE s a = Epsilon
-            | Symbol a
+            | Symbol String (a -> Bool)
             | Star (s (RE s a))
             | s (RE s a) :*: s (RE s a)
             | s (RE s a) :+: s (RE s a)
@@ -54,8 +54,11 @@ mergeIndices is@(i:is') js@(j:js') = case compare i j of
 epsilon :: RegExp a
 epsilon = Labeled True Inactive Epsilon
 
-symbol :: a -> RegExp a
-symbol a = Labeled False Inactive (Symbol a)
+char :: Char -> RegExp Char
+char c = symbol [c] (c==)
+
+symbol :: String -> (a -> Bool) -> RegExp a
+symbol s = Labeled False Inactive . Symbol s
 
 star :: RegExp a -> RegExp a
 star r@(Labeled _ s _) = Labeled True s (Star r)
@@ -92,13 +95,13 @@ instance Show (RegExp Char)
  where
   showsPrec p x =
    case unlabeled x of
-    Epsilon  -> id
-    Symbol _ -> showString (showSymbol x)
-    Star r   -> showsPrec 3 r . showString "*"
-    r:*:s    -> showParen (p>2) (showsPrec 2 r . showsPrec 2 s)
-    r:+:s    -> showParen (p>1) (showsPrec 1 r . showString "|" . showsPrec 1 s)
+    Epsilon    -> id
+    Symbol _ _ -> showString (showSymbol x)
+    Star r     -> showsPrec 3 r . showString "*"
+    r :*: s    -> showParen (p>2) (showsPrec 2 r.showsPrec 2 s)
+    r :+: s    -> showParen (p>1) (showsPrec 1 r.showString "|".showsPrec 1 s)
 
 showSymbol :: RegExp Char -> String
-showSymbol r | isActive r = "\ESC[91m" ++ a : "\ESC[0m"
-             | otherwise  = [a]
- where Symbol a = unlabeled r
+showSymbol r | isActive r = "\ESC[91m" ++ s ++ "\ESC[0m"
+             | otherwise  = s
+ where Symbol s _ = unlabeled r
