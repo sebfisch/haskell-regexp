@@ -3,7 +3,7 @@
 
 module Text.RegExp.Parser ( parse ) where
 
-import Text.RegExp.Data hiding ( scan )
+import Text.RegExp.Data
 
 import Data.String
 }
