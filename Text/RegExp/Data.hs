@@ -2,8 +2,6 @@
 
 module Text.RegExp.Data where
 
-import Control.Monad ( foldM )
-
 data RE s a = Epsilon
             | Symbol a
             | Star (s (RE s a))
@@ -68,44 +66,6 @@ isActive _                        = False
 isFinal :: RegExp a -> Bool
 isFinal (Labeled _ (Active a) _) = a
 isFinal _                        = False
-
-activateFirst :: Eq a => a -> RegExp a -> RegExp a
-activateFirst a x =
-  case unlabeled x of
-    Epsilon              -> epsilon
-    Symbol b | a==b      -> Labeled False (Active True) (Symbol b)
-             | otherwise -> Labeled False Inactive (Symbol b)
-    Star r               -> star (activateFirst a r)
-    r :*: s  | isEmpty r -> activateFirst a r .*. activateFirst a s
-             | otherwise -> activateFirst a r .*. s
-    r :+: s              -> activateFirst a r .+. activateFirst a s
-
--- matching
-
-accept :: Eq a => RegExp a -> [a] -> Bool
-accept r []     = isEmpty r
-accept r (c:cs) = maybe False isFinal
-                . foldM (\s -> active . next s) (activateFirst c r) $ cs
-
-active :: RegExp a -> Maybe (RegExp a)
-active s | isActive s = Just s
-         | otherwise  = Nothing
-
-accepting :: Eq a => RegExp a -> [a] -> [RegExp a]
-accepting r []     = [r]
-accepting r (c:cs) = scan (\s -> active . next s) (activateFirst c r) $ cs
-
-next :: Eq a => RegExp a -> a -> RegExp a
-next x a | isActive x = step (unlabeled x)
-         | otherwise  = x
- where
-  step Epsilon                = epsilon
-  step (Symbol b)             = symbol b
-  step (Star r)   | isFinal r = activateFirst a (star (next r a))
-                  | otherwise = star (next r a)
-  step (r:*:s)    | isFinal r = next r a .*. activateFirst a (next s a)
-                  | otherwise = next r a .*. next s a
-  step (r:+:s)                = next r a .+. next s a
 
 -- pretty printing
 

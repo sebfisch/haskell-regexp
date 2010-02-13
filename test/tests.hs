@@ -8,7 +8,7 @@ evilRegExp n = parse $ "a?" ++ bounds ++ "a" ++ bounds
  where bounds = "{" ++ show n ++ "," ++ show n ++ "}"
 
 regExp :: Int -> RegExp Char
-regExp n = parse $ "(a|b)*a(a|b){" ++ show n ++ "," ++ show n ++ "}a(a|b)*"
+regExp n = parse $ "a(a|b){" ++ show n ++ "," ++ show n ++ "}a"
 
 aNbN :: RegExp Char
 aNbN = epsilon .+. (symbol 'a' .*. aNbN .*. symbol 'b')
@@ -32,10 +32,10 @@ main = do n <- (read.head) `fmap` getArgs
 
           s <- randomAB (n*n)
           putStrLn s
-          mapM_ print $ accepting (regExp n) s
+          mapM_ print $ process (regExp n) s
           print $ accept (regExp n) s
 
---           mapM_ print $ accepting (evilRegExp n) (replicate (2*n) 'a')
+--           mapM_ print $ process (evilRegExp n) (replicate (2*n) 'a')
 --           print $ accept (evilRegExp n) (replicate (2*n) 'a')
 
 randomAB :: Int -> IO String

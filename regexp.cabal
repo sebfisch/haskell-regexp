@@ -20,7 +20,8 @@ Library
   Build-Depends:    base >= 3 && < 5, array >= 0.1
   Exposed-Modules:  Text.RegExp
   Other-Modules:    Text.RegExp.Data,
-                    Text.RegExp.Parser
+                    Text.RegExp.Parser,
+                    Text.RegExp.Matcher
 
 Source-Repository head
   type:     git
