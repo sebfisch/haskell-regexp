@@ -14,5 +14,6 @@ expression and do not generate the DFA completely but on the fly while
 parsing. This leads to a linear-time deterministic algorithm with
 constant space requirements. More specifically, the run time is
 limited by the product of the sizes of the regular expression and the
-string.
+string and the memory is limited by the size of the regular
+expression.
 
