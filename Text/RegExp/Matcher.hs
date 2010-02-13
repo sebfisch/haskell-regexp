@@ -11,7 +11,7 @@ matchings r = concatMap matching . zip [0..] . process r
   matching (end,s) = map (\start -> (start,end-start)) (finalIndices s)
 
 (=~) :: RegExp Char -> String -> [(Index,Int)]
-(=~) = matchings
+(=~) = flip matchings
 
 process :: Eq a => RegExp a -> [a] -> [RegExp a]
 process r = scanl next r . zip [0..]
