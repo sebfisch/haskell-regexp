@@ -123,7 +123,7 @@ processCls ('\\':c:cs)
   | isSymClassChar c    = ('\\':c:s, \x -> symClassPred c x || p x, xs)
  where (s,p,xs) = processCls cs
 
-processCls ('\\':c:cs)  = ('\\':c:s, \x -> x == c || p x, xs)
+processCls ('\\':c:cs)  = ('\\':c:s, \x -> x==c || p x, xs)
  where (s,p,xs) = processCls cs
 
 processCls (c:'-':e:cs) | e /= ']'
