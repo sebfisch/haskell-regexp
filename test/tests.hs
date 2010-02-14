@@ -1,17 +1,19 @@
 import Text.RegExp
+import Text.RegExp.Data
+import Text.RegExp.Matcher
 
 import System        ( getArgs )
 import System.Random ( randomRIO )
 
 evilRegExp :: Int -> RegExp Char
-evilRegExp n = parse $ "a?" ++ bounds ++ "a" ++ bounds
+evilRegExp n = fromString $ "a?" ++ bounds ++ "a" ++ bounds
  where bounds = "{" ++ show n ++ "}"
 
 regExp :: Int -> RegExp Char
-regExp n = parse $ "a.{" ++ show n ++ "}a"
+regExp n = fromString $ "a.{" ++ show n ++ "}a"
 
 aNbN :: RegExp Char
-aNbN = epsilon .+. (symbol 'a' .*. aNbN .*. symbol 'b')
+aNbN = epsilon .+. (char 'a' .*. aNbN .*. char 'b')
  where
   r .*. s = Labeled (isEmpty r && isEmpty s) Inactive (r:*:s)
   r .+. s = Labeled (isEmpty r || isEmpty s) Inactive (r:+:s)
@@ -19,8 +21,8 @@ aNbN = epsilon .+. (symbol 'a' .*. aNbN .*. symbol 'b')
 aNbNcN :: RegExp Char
 aNbNcN = epsilon .+. abc 1
  where
-  abc n   = symbol 'a' .*. (pow 'b' n .*. pow 'c' n .+. abc (n+1))
-  pow a n = foldr (.*.) epsilon (replicate n (symbol a))
+  abc n   = char 'a' .*. (pow 'b' n .*. pow 'c' n .+. abc (n+1))
+  pow a n = foldr (.*.) epsilon (replicate n (char a))
 
   r .*. s = Labeled (isEmpty r && isEmpty s) Inactive (r:*:s)
   r .+. s = Labeled (isEmpty r || isEmpty s) Inactive (r:+:s)

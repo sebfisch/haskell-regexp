@@ -2,14 +2,42 @@ module Text.RegExp.Matcher where
 
 import Text.RegExp.Data
 
+-- | Checks whether a regular expression matches (a subword of) the
+--   given word. For example, @accept (fromString \"b|abc\") \"ab\"@
+--   yields @True@ because the second character in the given string
+--   can be matched against @b@.
+-- 
 accept :: RegExp a -> [a] -> Bool
-accept r = not . null . matchings r
+accept r xs = isEmpty r || (not . null . matchings r $ xs)
 
+-- | Returns a list of non-empty matchings for a regular expression in
+--   a given word. A matching is a pair of two numbers, where the
+--   first is the index (>= 0) where the matched subword starts and
+--   the second is the length (>= 1) of the matched subword.
+-- 
+--   Not only the longest but all (non-emoty) matchings are returned
+--   in a specific order. The list returned by 'matchings' is sorted
+--   by the sum of index and length where smaller indices precede
+--   larger indices if the corresponding sums with the length are
+--   equal. For example, the call 
+--   @matchings (fromString \"b|abc|c\") \"abc\"@ yields
+--   @[(1,1),(0,3),(2,1)]@. The first matching
+--   @(1,1)@ is the chararacter @b@, the second the complete word
+--   @abc@ and the third is the character @c@. The @b@ is returned
+--   first because it ends first and @abc@ is returned before @c@
+--   because they both end at the same position but @abc@ starts
+--   earlier.
+-- 
 matchings :: RegExp a -> [a] -> [(Index,Int)]
 matchings r = concatMap matching . zip [0..] . process r
  where
   matching (end,s) = map (\start -> (start,end-start)) (finalIndices s)
 
+-- | Flipped version of 'matchings' specialised for strings. Useful in
+--   combination with the 'OverloadedStrings' language extension to
+--   use string literals as regular expressions. For example, the call
+--   @\"abc\" =~ \"b|abc|c\"@ yields @[(1,1),(0,3),(2,1)]@.
+-- 
 (=~) :: String -> RegExp Char -> [(Index,Int)]
 (=~) = flip matchings
 

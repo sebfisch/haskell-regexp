@@ -1,6 +1,9 @@
 Regular Expressions in Haskell
 ==============================
 
+This library provides a simple and fast regular expression matcher
+that is implemented in Haskell without binding to external libraries.
+
 There are different ways to implement regular expression
 matching. Backtracking algorithms are simple but need bookkeeping
 overhead for nondeterministic search. One can use [deterministic
