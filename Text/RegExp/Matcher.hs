@@ -15,7 +15,7 @@ accept r xs = isEmpty r || (not . null . matchings r $ xs)
 --   first is the index (>= 0) where the matched subword starts and
 --   the second is the length (>= 1) of the matched subword.
 -- 
---   Not only the longest but all (non-emoty) matchings are returned
+--   Not only the longest but all (non-empty) matchings are returned
 --   in a specific order. The list returned by 'matchings' is sorted
 --   by the sum of index and length where smaller indices precede
 --   larger indices if the corresponding sums with the length are
