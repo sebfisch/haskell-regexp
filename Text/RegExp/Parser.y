@@ -1,7 +1,7 @@
 {
 {-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
 
-module Text.RegExp.Parser ( parse ) where
+module Text.RegExp.Parser () where
 
 import Text.RegExp.Data
 
