@@ -38,7 +38,9 @@ module Text.RegExp (
 
   -- * Matching
 
-  Index, accept, matchings, (=~)
+  Matching, matchingIndex, matchingLength, 
+
+  accept, matchings, (=~)
 
   ) where
 

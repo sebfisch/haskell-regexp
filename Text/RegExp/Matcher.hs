@@ -2,6 +2,27 @@ module Text.RegExp.Matcher where
 
 import Text.RegExp.Data
 
+-- | Subwords of words that match a regular expression are represented
+--   as values of type 'Matching'.
+-- 
+data Matching = Matching {
+
+  -- | Index of the matching subword in the queried word.
+  matchingIndex :: Int,
+
+  -- | Length of the matching subword.
+  matchingLength :: Int
+
+  }
+
+instance Show Matching
+ where
+  showsPrec _ m = showString "<at:" . shows (matchingIndex m)
+                . showString " len:" . shows (matchingLength m)
+                . showString ">"
+
+  showList = showString . unlines . map show
+
 -- | Checks whether a regular expression matches (a subword of) the
 --   given word. For example, @accept (fromString \"b|abc\") \"ab\"@
 --   yields @True@ because the second character in the given string
@@ -16,35 +37,28 @@ accept r xs = isEmpty r || (not . null . matchings r $ xs)
 --   the second is the length (>= 1) of the matched subword.
 -- 
 --   Not only the longest but all (non-empty) matchings are returned
---   in a specific order. The list returned by 'matchings' is sorted
---   by the sum of index and length where smaller indices precede
---   larger indices if the corresponding sums with the length are
---   equal. For example, the call 
---   @matchings (fromString \"b|abc|c\") \"abc\"@ yields
---   @[(1,1),(0,3),(2,1)]@. The first matching
---   @(1,1)@ is the chararacter @b@, the second the complete word
---   @abc@ and the third is the character @c@. The @b@ is returned
---   first because it ends first and @abc@ is returned before @c@
---   because they both end at the same position but @abc@ starts
---   earlier.
+--   in a specific order. The 'matchings' are sorted by the sum of
+--   'matchingIndex' and 'matchingLength' where smaller indices
+--   precede larger indices if the corresponding sums with the length
+--   are equal.
 -- 
-matchings :: RegExp a -> [a] -> [(Index,Int)]
+matchings :: RegExp a -> [a] -> [Matching]
 matchings r = concatMap matching . zip [0..] . process r
  where
-  matching (end,s) = map (\start -> (start,end-start)) (finalIndices s)
+  matching (end,s) = map (\start -> Matching start (end-start)) (finalIndices s)
 
 -- | Flipped version of 'matchings' specialised for strings. Useful in
 --   combination with the 'OverloadedStrings' language extension to
 --   use string literals as regular expressions. For example, the call
 --   @\"abc\" =~ \"b|abc|c\"@ yields @[(1,1),(0,3),(2,1)]@.
 -- 
-(=~) :: String -> RegExp Char -> [(Index,Int)]
+(=~) :: String -> RegExp Char -> [Matching]
 (=~) = flip matchings
 
 process :: RegExp a -> [a] -> [RegExp a]
 process r = scanl next r . zip [0..]
 
-next :: RegExp a -> (Index,a) -> RegExp a
+next :: RegExp a -> (Int,a) -> RegExp a
 next x (i,a) = activateFirst a [i] (step x)
  where
   step y | isActive y = shift (unlabeled y)
@@ -56,7 +70,7 @@ next x (i,a) = activateFirst a [i] (step x)
   shift (r :*: s)    = step r .*. activateFirst a (finalIndices r) (step s)
   shift (r :+: s)    = step r .+. step s
 
-activateFirst :: a -> [Index] -> RegExp a -> RegExp a
+activateFirst :: a -> [Int] -> RegExp a -> RegExp a
 activateFirst _ [] x = x
 activateFirst a is x =
   case unlabeled x of

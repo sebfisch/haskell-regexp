@@ -21,13 +21,8 @@ data Labeled a = Labeled Bool Status a
 unlabeled :: Labeled a -> a
 unlabeled (Labeled _ _ a) = a
 
-data Status = Inactive | Active [Index]
+data Status = Inactive | Active [Int]
  deriving Eq
-
--- | Indices of substrings that match a regular expression are
---   represented as integers.
--- 
-type Index = Int
 
 isEmpty :: RegExp a -> Bool
 isEmpty (Labeled e _ _) = e
@@ -38,10 +33,10 @@ status (Labeled _ s _) = s
 isActive :: RegExp a -> Bool
 isActive = (Inactive/=) . status
 
-finalIndices :: RegExp a -> [Index]
+finalIndices :: RegExp a -> [Int]
 finalIndices = indices . status
 
-indices :: Status -> [Index]
+indices :: Status -> [Int]
 indices Inactive    = []
 indices (Active is) = is
 
@@ -50,7 +45,7 @@ mergeStatus Inactive    y           = y
 mergeStatus x           Inactive    = x
 mergeStatus (Active is) (Active js) = Active (mergeIndices is js)
 
-mergeIndices :: [Index] -> [Index] -> [Index]
+mergeIndices :: [Int] -> [Int] -> [Int]
 mergeIndices []         js         = js
 mergeIndices is         []         = is
 mergeIndices is@(i:is') js@(j:js') = case compare i j of
