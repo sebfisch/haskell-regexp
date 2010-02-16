@@ -72,6 +72,7 @@ leftmostLongestMatching r = searchLL . process r . zip (map (Min . Just) [0..])
    `mplus` return m
 
 newtype Min a = Min { getMin :: Maybe a }
+ deriving Eq
 
 instance Ord a => Monoid (Min a)
  where
@@ -89,10 +90,10 @@ instance Ord a => Monoid (Min a)
 (=~) :: String -> RegExp (Min Int) Char -> Maybe Matching
 (=~) = flip leftmostLongestMatching
 
-process :: Monoid m => RegExp m a -> [(m,a)] -> [RegExp m a]
-process r = scanl next r
+process :: (Monoid m, Eq m) => RegExp m a -> [(m,a)] -> [RegExp m a]
+process = scanl next
 
-next :: Monoid m => RegExp m a -> (m,a) -> RegExp m a
+next :: (Monoid m, Eq m) => RegExp m a -> (m,a) -> RegExp m a
 next x (m,a) = activateFirst a m (step x)
  where
   step y | isActive y = shift (unlabeled y)
@@ -100,22 +101,20 @@ next x (m,a) = activateFirst a m (step x)
 
   shift Epsilon      = epsilon
   shift (Symbol s p) = symbol s p
-  shift (Star r)     = case status r of
-                         Nothing -> star (step r)
-                         Just n  -> star (activateFirst a n (step r))
-  shift (r :*: s)    = case status r of
-                         Nothing -> step r .*. step s
-                         Just n  -> step r .*. activateFirst a n (step s)
+  shift (Star r)     = star (activateFirst a (activeLabel r) (step r))
+  shift (r :*: s)    = step r .*. activateFirst a (activeLabel r) (step s)
   shift (r :+: s)    = step r .+. step s
 
-activateFirst :: Monoid m => a -> m -> RegExp m a -> RegExp m a
-activateFirst a m x =
-  case unlabeled x of
-    Epsilon                -> epsilon
-    Symbol s p | p a       -> let n = mappend m (activeLabel x)
-                               in Labeled False (Just n) (Symbol s p)
-               | otherwise -> Labeled False Nothing (Symbol s p)
-    Star r                 -> star (activateFirst a m r)
-    r :*: s    | isEmpty r -> activateFirst a m r .*. activateFirst a m s
-               | otherwise -> activateFirst a m r .*. s
-    r :+: s                -> activateFirst a m r .+. activateFirst a m s
+activateFirst :: (Monoid m, Eq m) => a -> m -> RegExp m a -> RegExp m a
+activateFirst a m x
+  | m == mempty = x
+  | otherwise =
+      case unlabeled x of
+        Epsilon                -> epsilon
+        Symbol s p | p a       -> let n = mappend m (activeLabel x)
+                                   in Labeled False (Just n) (Symbol s p)
+                   | otherwise -> Labeled False Nothing (Symbol s p)
+        Star r                 -> star (activateFirst a m r)
+        r :*: s    | isEmpty r -> activateFirst a m r .*. activateFirst a m s
+                   | otherwise -> activateFirst a m r .*. s
+        r :+: s                -> activateFirst a m r .+. activateFirst a m s

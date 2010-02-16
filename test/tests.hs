@@ -2,23 +2,20 @@ import Text.RegExp
 import Text.RegExp.Data
 import Text.RegExp.Matcher
 
+-- import Text.RegExp.Simple
+
 import System        ( getArgs )
 import System.Random ( randomRIO )
 
-evilRegExp :: Monoid m => Int -> RegExp m Char
-evilRegExp n = fromString $ "a?" ++ bounds ++ "a" ++ bounds
- where bounds = "{" ++ show n ++ "}"
+evilRegExp n = bounded (optional (char 'a')) (n,n) .*. bounded (char 'a') (n,n)
 
-regExp :: Monoid m => Int -> RegExp m Char
-regExp n = fromString $ "a.{" ++ show n ++ "}a"
+regExp n = char 'a' .*. bounded (symbol "." (const True)) (n,n) .*. char 'a'
 
-aNbN :: Monoid m => RegExp m Char
 aNbN = epsilon .+. (char 'a' .*. aNbN .*. char 'b')
  where
   r .*. s = Labeled (isEmpty r && isEmpty s) Nothing (r:*:s)
   r .+. s = Labeled (isEmpty r || isEmpty s) Nothing (r:+:s)
 
-aNbNcN :: Monoid m => RegExp m Char
 aNbNcN = epsilon .+. abc 1
  where
   abc n   = char 'a' .*. (pow 'b' n .*. pow 'c' n .+. abc (n+1))

@@ -21,7 +21,8 @@ Library
   Exposed-Modules:      Text.RegExp
   Other-Modules:        Text.RegExp.Data,
                         Text.RegExp.Parser,
-                        Text.RegExp.Matcher
+                        Text.RegExp.Matcher,
+                        Text.RegExp.Simple
   Extensions:           FlexibleInstances,
                         TypeSynonymInstances,
                         NoMonomorphismRestriction
