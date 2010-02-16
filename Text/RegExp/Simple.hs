@@ -19,7 +19,7 @@ isActive :: RegExp a -> Bool
 isActive = isJust . status
 
 final :: Maybe Bool -> Bool
-final = maybe False id
+final = fromMaybe False
 
 isFinal :: RegExp a -> Bool
 isFinal = final . status

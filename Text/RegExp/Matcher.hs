@@ -57,6 +57,9 @@ allMatchings r = collect . process r . zip (map singleton [0..])
   matching (end,s) = do start <- toList (activeLabel s)
                         return $ Matching start (end-start)
 
+-- | Returns 'Just' the leftmost longest match for a regular
+--   expression in a given word and 'Nothing' if none exists.
+-- 
 leftmostLongestMatching :: RegExp (Min Int) a -> [a] -> Maybe Matching
 leftmostLongestMatching r = searchLL . process r . zip (map (Min . Just) [0..])
  where

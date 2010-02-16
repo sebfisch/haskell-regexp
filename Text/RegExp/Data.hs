@@ -28,7 +28,7 @@ isActive :: RegExp m a -> Bool
 isActive = isJust . status
 
 label :: Monoid m => Maybe m -> m
-label = maybe mempty id
+label = fromMaybe mempty
 
 activeLabel :: Monoid m => RegExp m a -> m
 activeLabel = label . status
