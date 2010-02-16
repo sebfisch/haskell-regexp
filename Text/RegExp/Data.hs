@@ -11,12 +11,7 @@ import Data.Monoid
 --   strings but particular applications may match against things
 --   other than characters.
 -- 
-type RegExp m a = Labeled m (RE m a)
-
-data Labeled m a = Labeled {
-  isEmpty   :: Bool,
-  status    :: Maybe m,
-  unlabeled :: a }
+data RegExp m a = RegExp {isEmpty :: Bool, status :: Maybe m, regExp :: RE m a}
 
 data RE m a = Epsilon
             | Symbol String (a -> Bool)
@@ -40,7 +35,7 @@ activeLabel = label . status
 --   'optional' components like @a?@.
 -- 
 epsilon :: RegExp m a
-epsilon = Labeled True Nothing Epsilon
+epsilon = RegExp True Nothing Epsilon
 
 -- | Matches the given character.
 -- 
@@ -52,14 +47,14 @@ char c = symbol [c] (c==)
 --   irrelevant for the matching algorithm.
 -- 
 symbol :: String -> (a -> Bool) -> RegExp m a
-symbol s = Labeled False Nothing . Symbol s
+symbol s = RegExp False Nothing . Symbol s
 
 -- | Matches zero or more occurrences of the given regular
 --   expression. For example @a*@ matches the character @a@ zero or
 --   more times.
 -- 
 star :: RegExp m a -> RegExp m a
-star r@(Labeled _ s _) = Labeled True s (Star r)
+star r@(RegExp _ s _) = RegExp True s (Star r)
 
 infixr 7 :*:, .*.
 
@@ -68,7 +63,7 @@ infixr 7 :*:, .*.
 --   well, in sequence like in @a?b*c@.
 -- 
 (.*.) :: Monoid m => RegExp m a -> RegExp m a -> RegExp m a
-r@(Labeled d k _) .*. s@(Labeled e l _) = Labeled (d&&e) (status k l) (r :*: s)
+r@(RegExp d k _) .*. s@(RegExp e l _) = RegExp (d&&e) (status k l) (r :*: s)
  where
   status Nothing Nothing     = Nothing
   status _        _      | e = mappend k l
@@ -80,7 +75,7 @@ infixr 6 :+:, .+.
 --   matches either the character @a@ or @b@.
 -- 
 (.+.) :: Monoid m => RegExp m a -> RegExp m a -> RegExp m a
-r@(Labeled d k _) .+. s@(Labeled e l _) = Labeled (d||e) (mappend k l) (r :+: s)
+r@(RegExp d k _) .+. s@(RegExp e l _) = RegExp (d||e) (mappend k l) (r :+: s)
 
 -- | Matches one or more occurrences of the given regular
 --   expression. For example @a+@ matches the character @a@ one or
@@ -117,7 +112,7 @@ bounded r (n,m) =
 instance Show (RegExp m Char)
  where
   showsPrec p x =
-   case unlabeled x of
+   case regExp x of
     Epsilon    -> id
     Symbol _ _ -> showString (showSymbol x)
     Star r     -> showsPrec 3 r . showString "*"
@@ -127,4 +122,4 @@ instance Show (RegExp m Char)
 showSymbol :: RegExp m Char -> String
 showSymbol r | isActive r = "\ESC[91m" ++ s ++ "\ESC[0m"
              | otherwise  = s
- where Symbol s _ = unlabeled r
+ where Symbol s _ = regExp r

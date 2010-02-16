@@ -13,16 +13,16 @@ regExp n = char 'a' .*. bounded (symbol "." (const True)) (n,n) .*. char 'a'
 
 aNbN = epsilon .+. (char 'a' .*. aNbN .*. char 'b')
  where
-  r .*. s = Labeled (isEmpty r && isEmpty s) Nothing (r:*:s)
-  r .+. s = Labeled (isEmpty r || isEmpty s) Nothing (r:+:s)
+  r .*. s = RegExp (isEmpty r && isEmpty s) Nothing (r:*:s)
+  r .+. s = RegExp (isEmpty r || isEmpty s) Nothing (r:+:s)
 
 aNbNcN = epsilon .+. abc 1
  where
   abc n   = char 'a' .*. (pow 'b' n .*. pow 'c' n .+. abc (n+1))
   pow a n = foldr (.*.) epsilon (replicate n (char a))
 
-  r .*. s = Labeled (isEmpty r && isEmpty s) Nothing (r:*:s)
-  r .+. s = Labeled (isEmpty r || isEmpty s) Nothing (r:+:s)
+  r .*. s = RegExp (isEmpty r && isEmpty s) Nothing (r:*:s)
+  r .+. s = RegExp (isEmpty r || isEmpty s) Nothing (r:+:s)
 
 main = do n <- (read.head) `fmap` getArgs
 

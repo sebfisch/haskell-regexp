@@ -2,12 +2,7 @@ module Text.RegExp.Simple where
 
 import Data.Maybe
 
-type RegExp a = Labeled (RE a)
-
-data Labeled a = Labeled {
-  isEmpty   :: Bool,
-  status    :: Maybe Bool,
-  unlabeled :: a }
+data RegExp a = RegExp { isEmpty :: Bool, status :: Maybe Bool, regExp :: RE a }
 
 data RE a = Epsilon
           | Symbol (a -> Bool)
@@ -32,21 +27,21 @@ maybeOr (Just x) (Just y) = Just (x||y)
 -- smart constructors
 
 epsilon :: RegExp a
-epsilon = Labeled True Nothing Epsilon
+epsilon = RegExp True Nothing Epsilon
 
 char :: Char -> RegExp Char
 char = symbol . (==)
 
 symbol :: (a -> Bool) -> RegExp a
-symbol = Labeled False Nothing . Symbol
+symbol = RegExp False Nothing . Symbol
 
 star :: RegExp a -> RegExp a
-star r@(Labeled _ s _) = Labeled True s (Star r)
+star r@(RegExp _ s _) = RegExp True s (Star r)
 
 infixr 7 .*.
 
 (.*.) :: RegExp a -> RegExp a -> RegExp a
-r@(Labeled d k _) .*. s@(Labeled e l _) = Labeled (d&&e) (status k l) (r :*: s)
+r@(RegExp d k _) .*. s@(RegExp e l _) = RegExp (d&&e) (status k l) (r :*: s)
  where
   status Nothing Nothing     = Nothing
   status _        _      | e = maybeOr k l
@@ -55,7 +50,7 @@ r@(Labeled d k _) .*. s@(Labeled e l _) = Labeled (d&&e) (status k l) (r :*: s)
 infixr 6 .+.
 
 (.+.) :: RegExp a -> RegExp a -> RegExp a
-r@(Labeled d k _) .+. s@(Labeled e l _) = Labeled (d||e) (maybeOr k l) (r :+: s)
+r@(RegExp d k _) .+. s@(RegExp e l _) = RegExp (d||e) (maybeOr k l) (r :+: s)
 
 plus :: RegExp a -> RegExp a
 plus r = r .*. star r
@@ -76,7 +71,7 @@ accept r xs = isEmpty r || any isFinal (scanl next r xs)
 next :: RegExp a -> a -> RegExp a
 next x a = activateFirst a True (step x)
  where
-  step y | isActive y = shift (unlabeled y)
+  step y | isActive y = shift (regExp y)
          | otherwise  = y
 
   shift Epsilon    = epsilon
@@ -88,12 +83,11 @@ next x a = activateFirst a True (step x)
 activateFirst :: a -> Bool -> RegExp a -> RegExp a
 activateFirst _ False x = x
 activateFirst a m     x =
-  case unlabeled x of
+  case regExp x of
     Epsilon              -> epsilon
-    Symbol p | p a       -> Labeled False (Just m) (Symbol p)
-             | otherwise -> Labeled False Nothing (Symbol p)
+    Symbol p | p a       -> RegExp False (Just m) (Symbol p)
+             | otherwise -> RegExp False Nothing (Symbol p)
     Star r               -> star (activateFirst a m r)
     r :*: s  | isEmpty r -> activateFirst a m r .*. activateFirst a m s
              | otherwise -> activateFirst a m r .*. s
     r :+: s              -> activateFirst a m r .+. activateFirst a m s
-

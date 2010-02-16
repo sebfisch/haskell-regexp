@@ -99,7 +99,7 @@ process = scanl next
 next :: (Monoid m, Eq m) => RegExp m a -> (m,a) -> RegExp m a
 next x (m,a) = activateFirst a m (step x)
  where
-  step y | isActive y = shift (unlabeled y)
+  step y | isActive y = shift (regExp y)
          | otherwise  = y
 
   shift Epsilon      = epsilon
@@ -111,12 +111,12 @@ next x (m,a) = activateFirst a m (step x)
 activateFirst :: (Monoid m, Eq m) => a -> m -> RegExp m a -> RegExp m a
 activateFirst a m x
   | m == mempty = x
-  | otherwise =
-      case unlabeled x of
+  | otherwise   =
+      case regExp x of
         Epsilon                -> epsilon
         Symbol s p | p a       -> let n = mappend m (activeLabel x)
-                                   in Labeled False (Just n) (Symbol s p)
-                   | otherwise -> Labeled False Nothing (Symbol s p)
+                                   in RegExp False (Just n) (Symbol s p)
+                   | otherwise -> RegExp False Nothing (Symbol s p)
         Star r                 -> star (activateFirst a m r)
         r :*: s    | isEmpty r -> activateFirst a m r .*. activateFirst a m s
                    | otherwise -> activateFirst a m r .*. s
