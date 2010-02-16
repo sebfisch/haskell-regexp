@@ -28,6 +28,8 @@
 -- 
 module Text.RegExp (
 
+  module Data.Monoid,
+
   -- * Constructing regular expressions
 
   RegExp, fromString,
@@ -40,10 +42,11 @@ module Text.RegExp (
 
   Matching, matchingIndex, matchingLength, 
 
-  accept, matchings, (=~)
+  accept, allMatchings, leftmostLongestMatching, (=~)
 
   ) where
 
+import Data.Monoid
 import qualified Data.String
 
 import Text.RegExp.Data
@@ -84,6 +87,6 @@ import Text.RegExp.Matcher
 --    * @a{4,7}@ matches four to seven occurrences of @a@, @a{2}@
 --      matches two.
 -- 
-fromString :: String -> RegExp Char
+fromString :: Monoid m => String -> RegExp m Char
 fromString = Data.String.fromString
 

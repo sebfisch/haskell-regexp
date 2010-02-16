@@ -5,4 +5,4 @@ import System.Environment ( getArgs )
 
 main = do r:_ <- getArgs
           s   <- getContents
-          print $ matchings (fromString r) s
+          print (s =~ fromString r)

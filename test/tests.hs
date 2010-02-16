@@ -5,40 +5,40 @@ import Text.RegExp.Matcher
 import System        ( getArgs )
 import System.Random ( randomRIO )
 
-evilRegExp :: Int -> RegExp Char
+evilRegExp :: Monoid m => Int -> RegExp m Char
 evilRegExp n = fromString $ "a?" ++ bounds ++ "a" ++ bounds
  where bounds = "{" ++ show n ++ "}"
 
-regExp :: Int -> RegExp Char
+regExp :: Monoid m => Int -> RegExp m Char
 regExp n = fromString $ "a.{" ++ show n ++ "}a"
 
-aNbN :: RegExp Char
+aNbN :: Monoid m => RegExp m Char
 aNbN = epsilon .+. (char 'a' .*. aNbN .*. char 'b')
  where
-  r .*. s = Labeled (isEmpty r && isEmpty s) Inactive (r:*:s)
-  r .+. s = Labeled (isEmpty r || isEmpty s) Inactive (r:+:s)
+  r .*. s = Labeled (isEmpty r && isEmpty s) Nothing (r:*:s)
+  r .+. s = Labeled (isEmpty r || isEmpty s) Nothing (r:+:s)
 
-aNbNcN :: RegExp Char
+aNbNcN :: Monoid m => RegExp m Char
 aNbNcN = epsilon .+. abc 1
  where
   abc n   = char 'a' .*. (pow 'b' n .*. pow 'c' n .+. abc (n+1))
   pow a n = foldr (.*.) epsilon (replicate n (char a))
 
-  r .*. s = Labeled (isEmpty r && isEmpty s) Inactive (r:*:s)
-  r .+. s = Labeled (isEmpty r || isEmpty s) Inactive (r:+:s)
+  r .*. s = Labeled (isEmpty r && isEmpty s) Nothing (r:*:s)
+  r .+. s = Labeled (isEmpty r || isEmpty s) Nothing (r:+:s)
 
 main = do n <- (read.head) `fmap` getArgs
 
 --           s <- head `fmap` getArgs
 --           print $ accept aNbNcN s
 
-          s <- randomAB (n*n)
-          putStrLn s
-          mapM_ print $ process (regExp n) s
-          print $ accept (regExp n) s
+--           s <- randomAB (n*n)
+--           putStrLn s
+--           mapM_ print $ process (regExp n) (zip (repeat (Any True)) s)
+--           print $ accept (regExp n) s
 
 --           mapM_ print $ process (evilRegExp n) (replicate (2*n) 'a')
---           print $ accept (evilRegExp n) (replicate (2*n) 'a')
+          print $ accept (evilRegExp n) (replicate (2*n) 'a')
 
 randomAB :: Int -> IO String
 randomAB 0 = return ""

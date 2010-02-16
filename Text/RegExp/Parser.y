@@ -1,10 +1,13 @@
 {
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE NoMonomorphismRestriction,
+             FlexibleInstances,
+             TypeSynonymInstances #-}
 
 module Text.RegExp.Parser () where
 
 import Text.RegExp.Data
 
+import Data.Monoid
 import Data.String
 import Data.Char ( isSpace, toLower, isAlphaNum, isDigit )
 
@@ -46,10 +49,11 @@ RegExp : {- empty -}       { epsilon }
        | '.'               { symbol "." (const True) }
 
 {
-instance IsString (RegExp Char)
+
+instance Monoid m => IsString (RegExp m Char)
  where fromString = parse
 
-parse :: String -> RegExp Char
+parse :: Monoid m => String -> RegExp m Char
 parse = parseTokens . scan
 
 data Token = Seq | Sym Char | Ast | Bar | L | R
