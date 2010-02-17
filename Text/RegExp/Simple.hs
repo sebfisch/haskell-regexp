@@ -63,8 +63,8 @@ optional r = epsilon .+. r
 
 bounded :: RegExp a -> (Int,Int) -> RegExp a
 bounded _ (0,0) = epsilon
-bounded r (0,m) = bounded r (0,  m-1) .*. optional r
-bounded r (n,m) = bounded r (n-1,m-1) .*. r
+bounded r (0,m) = optional r .*. bounded r (0,m-1)
+bounded r (n,m) = r .*. bounded r (n-1,m-1)
 
 -- matching
 
