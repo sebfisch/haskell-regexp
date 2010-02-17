@@ -1,7 +1,5 @@
 module Text.RegExp.Simple where
 
-import Data.Maybe
-
 data RegExp a = RegExp { isEmpty :: Bool, status :: Maybe Bool, regExp :: RE a }
 
 data RE a = Epsilon
@@ -11,13 +9,16 @@ data RE a = Epsilon
           | RegExp a :+: RegExp a
 
 isActive :: RegExp a -> Bool
-isActive = isJust . status
+isActive r = case status r of
+               Nothing -> False
+               Just _  -> True
 
 final :: Maybe Bool -> Bool
-final = fromMaybe False
+final Nothing  = False
+final (Just b) = b
 
 isFinal :: RegExp a -> Bool
-isFinal = final . status
+isFinal r = final (status r)
 
 maybeOr :: Maybe Bool -> Maybe Bool -> Maybe Bool
 maybeOr Nothing  b        = b
@@ -30,18 +31,19 @@ epsilon :: RegExp a
 epsilon = RegExp True Nothing Epsilon
 
 char :: Char -> RegExp Char
-char = symbol . (==)
+char c = symbol (c==)
 
 symbol :: (a -> Bool) -> RegExp a
-symbol = RegExp False Nothing . Symbol
+symbol p = RegExp False Nothing (Symbol p)
 
 star :: RegExp a -> RegExp a
-star r@(RegExp _ s _) = RegExp True s (Star r)
+star (RegExp e s r) = RegExp True s (Star (RegExp e s r))
 
 infixr 7 .*.
 
 (.*.) :: RegExp a -> RegExp a -> RegExp a
-r@(RegExp d k _) .*. s@(RegExp e l _) = RegExp (d&&e) (status k l) (r :*: s)
+(RegExp d k r) .*. (RegExp e l s) =
+  RegExp (d&&e) (status k l) (RegExp d k r :*: RegExp e l s)
  where
   status Nothing Nothing     = Nothing
   status _        _      | e = maybeOr k l
@@ -50,7 +52,8 @@ r@(RegExp d k _) .*. s@(RegExp e l _) = RegExp (d&&e) (status k l) (r :*: s)
 infixr 6 .+.
 
 (.+.) :: RegExp a -> RegExp a -> RegExp a
-r@(RegExp d k _) .+. s@(RegExp e l _) = RegExp (d||e) (maybeOr k l) (r :+: s)
+(RegExp d k r) .+. (RegExp e l s) =
+  RegExp (d||e) (maybeOr k l) (RegExp d k r :+: RegExp e l s)
 
 plus :: RegExp a -> RegExp a
 plus r = r .*. star r
