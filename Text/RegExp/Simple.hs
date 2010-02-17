@@ -62,14 +62,17 @@ optional :: RegExp a -> RegExp a
 optional r = epsilon .+. r
 
 bounded :: RegExp a -> (Int,Int) -> RegExp a
-bounded r (n,m) =
-  foldr (.*.) (foldr (.*.) epsilon (replicate (m-n) (optional r)))
-              (replicate n r)
+bounded _ (0,0) = epsilon
+bounded r (0,m) = bounded r (0,  m-1) .*. optional r
+bounded r (n,m) = bounded r (n-1,m-1) .*. r
 
 -- matching
 
 accept :: RegExp a -> [a] -> Bool
-accept r xs = isEmpty r || any isFinal (scanl next r xs)
+accept r xs = isEmpty r || go r xs
+ where
+  go s []     = isFinal s
+  go s (x:xs) = isFinal s || go (next s x) xs
 
 next :: RegExp a -> a -> RegExp a
 next x a = activateFirst a True (step x)
