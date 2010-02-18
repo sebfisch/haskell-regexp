@@ -1,15 +1,15 @@
-import Text.RegExp
-import Text.RegExp.Data
-import Text.RegExp.Matcher
+-- import Text.RegExp
+-- import Text.RegExp.Data
+-- import Text.RegExp.Matcher
 
--- import Text.RegExp.Simple
+import Text.RegExp.Simple
 
 import System        ( getArgs )
 import System.Random ( randomRIO )
 
 evilRegExp n = bounded (optional (char 'a')) (n,n) .*. bounded (char 'a') (n,n)
 
-regExp n = char 'a' .*. bounded (symbol "." (const True)) (n,n) .*. char 'a'
+regexp n = char 'a' .*. bounded (symbol "." (const True)) (n,n) .*. char 'a'
 
 aNbN = epsilon .+. (char 'a' .*. aNbN .*. char 'b')
  where
@@ -29,13 +29,13 @@ main = do n <- (read.head) `fmap` getArgs
 --           s <- head `fmap` getArgs
 --           print $ accept aNbNcN s
 
---           s <- randomAB (n*n)
+          s <- randomAB (n*n)
 --           putStrLn s
---           mapM_ print $ process (regExp n) (zip (repeat (Any True)) s)
---           print $ accept (regExp n) s
+--           mapM_ print $ process (regexp n) (zip (repeat (Any True)) s)
+          print $ accept (regexp n) s
 
 --           mapM_ print $ process (evilRegExp n) (replicate (2*n) 'a')
-          print $ accept (evilRegExp n) (replicate (2*n) 'a')
+--           print $ accept (evilRegExp n) (replicate (2*n) 'a')
 
 randomAB :: Int -> IO String
 randomAB 0 = return ""
