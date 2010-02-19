@@ -1,8 +1,8 @@
--- import Text.RegExp
--- import Text.RegExp.Data
--- import Text.RegExp.Matcher
+import Text.RegExp
+import Text.RegExp.Data
+import Text.RegExp.Matcher
 
-import Text.RegExp.Simple
+-- import Text.RegExp.Simple
 
 import System        ( getArgs )
 import System.Random ( randomRIO )
@@ -29,13 +29,13 @@ main = do n <- (read.head) `fmap` getArgs
 --           s <- head `fmap` getArgs
 --           print $ accept aNbNcN s
 
---           s <- randomAB (n*n)
---           putStrLn s
---           mapM_ print $ process (regexp n) (zip (repeat (Any True)) s)
---           print $ accept (regexp n) s
+          s <- randomAB (n*n)
+          putStrLn s
+          mapM_ print $ process (regexp n) (zip (repeat (Any True)) s)
+          print $ accept (regexp n) s
 
 --           mapM_ print $ process (evilRegExp n) (replicate (2*n) 'a')
-          print $ accept (evilRegExp n) (replicate (2*n) 'a')
+--           print $ accept (evilRegExp n) (replicate (2*n) 'a')
 
 randomAB :: Int -> IO String
 randomAB 0 = return ""
