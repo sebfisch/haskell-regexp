@@ -9,40 +9,40 @@ data RE a = Epsilon
           | Star (RegExp a)
           | RegExp a :*: RegExp a
           | RegExp a :+: RegExp a
- 
+
 isActive :: RegExp a -> Bool
 isActive r = case status r of
                Nothing -> False
                Just _  -> True
- 
+
 final :: Maybe Bool -> Bool
 final Nothing  = False
 final (Just b) = b
- 
+
 isFinal :: RegExp a -> Bool
 isFinal r = final (status r)
- 
+
 maybeOr :: Maybe Bool -> Maybe Bool -> Maybe Bool
 maybeOr Nothing  b        = b
 maybeOr a        Nothing  = a
 maybeOr (Just x) (Just y) = Just (x||y)
- 
+
 -- smart constructors
- 
+
 epsilon :: RegExp a
 epsilon = RegExp True Nothing Epsilon
- 
+
 char :: Char -> RegExp Char
 char c = symbol [c] (c==)
- 
+
 symbol :: String -> (a -> Bool) -> RegExp a
 symbol s p = RegExp False Nothing (Symbol s p)
- 
+
 star :: RegExp a -> RegExp a
 star (RegExp e s r) = RegExp True s (Star (RegExp e s r))
- 
+
 infixr 7 .*.
- 
+
 (.*.) :: RegExp a -> RegExp a -> RegExp a
 (RegExp d k r) .*. (RegExp e l s) =
   RegExp (d&&e) (status k l) (RegExp d k r :*: RegExp e l s)
@@ -50,9 +50,9 @@ infixr 7 .*.
   status Nothing Nothing     = Nothing
   status _        _      | e = maybeOr k l
   status _        _          = Just (final l)
- 
+
 infixr 6 .+.
- 
+
 (.+.) :: RegExp a -> RegExp a -> RegExp a
 (RegExp d k r) .+. (RegExp e l s) =
   RegExp (d||e) (maybeOr k l) (RegExp d k r :+: RegExp e l s)
