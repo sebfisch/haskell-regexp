@@ -77,18 +77,18 @@ accept r xs = isEmpty r || go r xs
   go s (x:xs) = isFinal s || go (next s x) xs
 
 next :: RegExp a -> a -> RegExp a
-next x a = step True x
+next x a = pass True x
  where
-  step b y | b || isActive y = shift b (regExp y)
-           | otherwise       = y
+  pass b y | b || isActive y = shift b (regExp y)
+           | otherwise  = y
 
   shift b Epsilon      = epsilon
   shift b (Symbol s p) = RegExp False
                                 (if b && p a then Just True else Nothing)
                                 (Symbol s p)
-  shift b (Star r)     = star (step (b || isFinal r) r)
-  shift b (r :*: s)    = step b r .*. step (b && isEmpty r || isFinal r) s
-  shift b (r :+: s)    = step b r .+. step b s
+  shift b (Star r)     = star (pass (b || isFinal r) r)
+  shift b (r :*: s)    = pass b r .*. pass (b && isEmpty r || isFinal r) s
+  shift b (r :+: s)    = pass b r .+. pass b s
 
 
 instance Show (RegExp Char)

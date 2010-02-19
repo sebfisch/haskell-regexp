@@ -1,0 +1,153 @@
+regexp:
+
+matches:
+does not match:
+regexp:
+abc
+matches:
+abc
+does not match:
+ab
+regexp:
+a*
+matches:
+
+a
+aaa
+ba
+bab
+b
+does not match:
+regexp:
+ab*
+matches:
+a
+ab
+abb
+aba
+does not match:
+
+b
+regexp:
+(ab)*c
+matches:
+c
+does not match:
+
+regexp:
+(ab)c
+matches:
+ababc
+does not match:
+ababac
+regexp:
+ba?a?aab
+matches:
+baab
+baaab
+baaaab
+does not match:
+bb
+bab
+baaaaab
+regexp:
+c(ab*)*c
+matches:
+cc
+cac
+caac
+cabc
+cabbc
+cabac
+cababc
+does not match:
+cbc
+cbbc
+cbac
+regexp:
+c(a*b)*c
+matches:
+cc
+cbc
+cbbc
+cabc
+caabc
+cababc
+cabbc
+does not match:
+cac
+caac
+cbac
+regexp:
+c([^ac]*a)*c
+matches:
+cc
+cac
+caac
+cbac
+cbbac
+cbaaac
+cbbabac
+does not match:
+cbc
+cbabc
+cbbabbbc
+regexp:
+ba*ab
+matches:
+bab
+baab
+baaab
+does not match:
+bb
+regexp:
+c(a|b)*c
+matches:
+cc
+cac
+cbc
+cabc
+cabac
+does not match:
+cdc
+regexp:
+d(ab*a|ac*b)*d
+matches:
+dd
+daad
+dabd
+dabad
+dacbd
+dabbaaccbd
+does not match:
+dad
+dacd
+daaad
+dabbd
+dabacd
+regexp:
+
+matches:
+does not match:
+regexp:
+
+matches:
+does not match:
+regexp:
+
+matches:
+does not match:
+regexp:
+
+matches:
+does not match:
+regexp:
+
+matches:
+does not match:
+regexp:
+
+matches:
+does not match:
+end of tests
+

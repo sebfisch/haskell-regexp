@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 -- |
 -- Module      : Text.RegExp
 -- Copyright   : Thomas Wilke, Frank Huch, and Sebastian Fischer
@@ -90,3 +92,5 @@ import Text.RegExp.Matcher
 fromString :: Monoid m => String -> RegExp m Char
 fromString = Data.String.fromString
 
+instance Monoid m => Data.String.IsString (RegExp m Char)
+ where fromString = parse

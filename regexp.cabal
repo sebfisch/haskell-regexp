@@ -32,8 +32,18 @@ Library
                         NoMonomorphismRestriction
 
 Executable match-regexp
+  Build-Tools:          happy >= 1.17
   Main-Is:              match-regexp.hs
   Hs-Source-Dirs:       . test
+  Other-Modules:        Text.RegExp.Parser
+  if flag(prof)
+    GHC-Options:        -prof -auto-all
+
+Executable test-regexp-correctness
+  Build-Tools:          happy >= 1.17
+  Main-Is:              test-regexp-correctness.hs
+  Hs-Source-Dirs:       . test
+  Other-Modules:        Text.RegExp.Parser
   if flag(prof)
     GHC-Options:        -prof -auto-all
 
