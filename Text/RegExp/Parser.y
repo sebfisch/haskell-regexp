@@ -3,6 +3,7 @@
 
 module Text.RegExp.Parser ( parse ) where
 
+import Data.Semiring
 import Text.RegExp.Data
 -- import Text.RegExp.Simple
 
@@ -45,7 +46,7 @@ RegExp : {- empty -}       { epsilon }
        | RegExp '?'        { optional $1 }
        | RegExp bnd        { bounded $1 $2 }
        | cls               { uncurry symbol $1 }
-       | '.'               { symbol "." (const True) }
+       | '.'               { anySymbol }
 
 {
 

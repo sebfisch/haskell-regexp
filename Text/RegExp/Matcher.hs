@@ -1,41 +1,49 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Text.RegExp.Matcher where
 
-import Text.RegExp.Data
-
 import Data.Monoid
-import Data.Set ( Set, singleton, toList )
 
-import Control.Monad
+import Data.Set ( Set )
+import qualified Data.Set as Set
+
+import Data.Semiring
+import Text.RegExp.Data
 
 -- | Subwords of words that match a regular expression are represented
 --   as values of type 'Matching'.
 -- 
 data Matching = Matching {
-
+ 
   -- | Index of the matching subword in the queried word.
   matchingIndex :: Int,
-
+ 
   -- | Length of the matching subword.
   matchingLength :: Int
-
+ 
   }
-
+ 
 instance Show Matching
  where
   showsPrec _ m = showString "<at:" . shows (matchingIndex m)
                 . showString " len:" . shows (matchingLength m)
                 . showString ">"
-
+ 
   showList = showString . unlines . map show
 
--- | Checks whether a regular expression matches (a subword of) the
---   given word. For example, @accept (fromString \"b|abc\") \"ab\"@
---   yields @True@ because the second character in the given string
---   can be matched against @b@.
+-- | Checks whether a regular expression matches the given word. For
+--   example, @accept (fromString \"b|abc\") \"b\"@ yields @True@
+--   because the first alternative of @b|abc@ matches the string
+--   @\"b\"@.
 -- 
-accept :: RegExp Any a -> [a] -> Bool
-accept r xs = isEmpty r || anyFinal (process r (zip (repeat (Any True)) xs))
- where anyFinal = getAny . mconcat . map activeLabel
+accept :: (forall s. Semiring s => RegExp s a) -> [a] -> Bool
+accept r = process r
+
+-- | Computes in how many ways a word can be matched against a regular
+--   expression.
+-- 
+matchingCount :: (forall s. Semiring s => RegExp s a) -> [a] -> Int
+matchingCount r = process r
 
 -- | Returns a list of all non-empty matchings for a regular
 --   expression in a given word. A matching is a pair of two numbers,
@@ -43,81 +51,29 @@ accept r xs = isEmpty r || anyFinal (process r (zip (repeat (Any True)) xs))
 --   starts and the second is the length (>= 1) of the matched
 --   subword.
 -- 
---   Not only the longest but all (non-empty) matchings are returned
---   in a specific order. 'allMatchings' are sorted by the sum of
---   'matchingIndex' and 'matchingLength' where smaller indices
---   precede larger indices if the corresponding sums with the length
---   are equal.
--- 
-allMatchings :: RegExp (Set Int) a -> [a] -> [Matching]
-allMatchings r = collect . process r . zip (map singleton [0..])
+allMatchings :: (forall s. Semiring s => RegExp s a) -> [a] -> [Matching]
+allMatchings r = map (matching . map getSum . fromTuple) . Set.toList
+               . process (weightSymbols (subLengths [1])
+                          (symbols .*. delim .*. r .*. delim .*. symbols))
  where
-  collect = concatMap matching . zip [0..]
+  symbols          = star anySymbol
+  delim            = weight (subLengths [0,0])
+  matching [i,l,_] = Matching i l
 
-  matching (end,s) = do start <- toList (activeLabel s)
-                        return $ Matching start (end-start)
+subLengths :: [a] -> Set (Tuple (Sum a))
+subLengths = Set.singleton . tuple . map Sum
 
--- | Returns 'Just' the leftmost longest match for a regular
---   expression in a given word and 'Nothing' if none exists.
--- 
-leftmostLongestMatching :: RegExp (Min Int) a -> [a] -> Maybe Matching
-leftmostLongestMatching r = searchLL . process r . zip (map (Min . Just) [0..])
+-- matching algorithm
+
+process :: Semiring s => RegExp s a -> [a] -> s
+process r []     = empty r
+process r (x:xs) = final $ foldl (next zero) (next one r x) xs
+
+next :: Semiring s => s -> RegExp s a -> a -> RegExp s a
+next t x a = pass $ regExp x
  where
-  searchLL = foldl matching Nothing . zip [0..]
-
-  matching Nothing  (end,s) = do start <- getMin $ activeLabel s
-                                 return $ Matching start (end-start)
-  matching (Just m) (end,s) =
-    do start <- getMin $ activeLabel s
-       guard (start < matchingIndex m || (start == matchingIndex m &&
-                                          end-start > matchingLength m))
-       return $ Matching start (end-start)
-   `mplus` return m
-
-newtype Min a = Min { getMin :: Maybe a }
- deriving Eq
-
-instance Ord a => Monoid (Min a)
- where
-  mempty      = Min Nothing
-  mappend m n = case getMin m of
-                  Nothing -> n
-                  Just x  -> case getMin n of
-                               Nothing -> m
-                               Just y  -> Min (Just (min x y))
-
--- | Flipped version of 'leftmostLongestMatching' specialised for
---   strings. Useful in combination with the 'OverloadedStrings'
---   language extension to use string literals as regular expressions.
--- 
-(=~) :: String -> RegExp (Min Int) Char -> Maybe Matching
-(=~) = flip leftmostLongestMatching
-
-process :: (Monoid m, Eq m) => RegExp m a -> [(m,a)] -> [RegExp m a]
-process = scanl next
-
-next :: (Monoid m, Eq m) => RegExp m a -> (m,a) -> RegExp m a
-next x (m,a) = activateFirst a m (step x)
- where
-  step y | isActive y = shift (regExp y)
-         | otherwise  = y
-
-  shift Epsilon      = epsilon
-  shift (Symbol s p) = symbol s p
-  shift (Star r)     = star (activateFirst a (activeLabel r) (step r))
-  shift (r :*: s)    = step r .*. activateFirst a (activeLabel r) (step s)
-  shift (r :+: s)    = step r .+. step s
-
-activateFirst :: (Monoid m, Eq m) => a -> m -> RegExp m a -> RegExp m a
-activateFirst a m x
-  | m == mempty = x
-  | otherwise   =
-      case regExp x of
-        Epsilon                -> epsilon
-        Symbol s p | p a       -> let n = mappend m (activeLabel x)
-                                   in RegExp False (Just n) (Symbol s p)
-                   | otherwise -> RegExp False Nothing (Symbol s p)
-        Star r                 -> star (activateFirst a m r)
-        r :*: s    | isEmpty r -> activateFirst a m r .*. activateFirst a m s
-                   | otherwise -> activateFirst a m r .*. s
-        r :+: s                -> activateFirst a m r .+. activateFirst a m s
+  pass (Weight w)   = weight w
+  pass (Symbol s p) = RegExp zero (if p a then t else zero) (Symbol s p)
+  pass (Star r)     = star (next (t .+. final r) r a)
+  pass (r :*: s)    = next t r a .*. next (t .*. empty r .+. final r) s a
+  pass (r :+: s)    = next t r a .+. next t s a

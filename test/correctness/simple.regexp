@@ -14,84 +14,90 @@ matches:
 
 a
 aaa
+does not match:
 ba
 bab
 b
-does not match:
 regexp:
 ab*
 matches:
 a
 ab
 abb
-aba
 does not match:
 
 b
+aba
 regexp:
 (ab)*c
 matches:
 c
+abc
+ababc
 does not match:
 
+ac
+ab
+bc
 regexp:
 (ab)c
 matches:
-ababc
+abc
 does not match:
+ababc
 ababac
 regexp:
-ba?a?aab
+a?a?aa
 matches:
-baab
-baaab
-baaaab
+aa
+aaa
+aaaa
 does not match:
+
+a
+aaaaa
+regexp:
+(ab*)*
+matches:
+
+a
+aa
+ab
+abb
+aba
+abab
+does not match:
+b
 bb
+ba
+regexp:
+(a*b)*
+matches:
+
+b
+bb
+ab
+aab
+abab
+abb
+does not match:
+a
+aa
+ba
+regexp:
+([^ac]*a)*
+matches:
+
+a
+aa
+ba
+bba
+baaa
+bbaba
+does not match:
+b
 bab
-baaaaab
-regexp:
-c(ab*)*c
-matches:
-cc
-cac
-caac
-cabc
-cabbc
-cabac
-cababc
-does not match:
-cbc
-cbbc
-cbac
-regexp:
-c(a*b)*c
-matches:
-cc
-cbc
-cbbc
-cabc
-caabc
-cababc
-cabbc
-does not match:
-cac
-caac
-cbac
-regexp:
-c([^ac]*a)*c
-matches:
-cc
-cac
-caac
-cbac
-cbbac
-cbaaac
-cbbabac
-does not match:
-cbc
-cbabc
-cbbabbbc
+bbabbb
 regexp:
 ba*ab
 matches:
@@ -101,30 +107,30 @@ baaab
 does not match:
 bb
 regexp:
-c(a|b)*c
+(a|b)*
 matches:
-cc
-cac
-cbc
-cabc
-cabac
+
+a
+b
+ab
+aba
 does not match:
-cdc
+d
 regexp:
-d(ab*a|ac*b)*d
+(ab*a|ac*b)*
 matches:
-dd
-daad
-dabd
-dabad
-dacbd
-dabbaaccbd
+
+aa
+ab
+aba
+acb
+abbaaccb
 does not match:
-dad
-dacd
-daaad
-dabbd
-dabacd
+a
+ac
+aaa
+abb
+abac
 regexp:
 
 matches:

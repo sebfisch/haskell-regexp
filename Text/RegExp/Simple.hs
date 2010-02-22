@@ -2,7 +2,7 @@
 
 module Text.RegExp.Simple where
 
-data RegExp a = RegExp { isEmpty :: Bool, status :: Maybe Bool, regExp :: RE a }
+data RegExp a = RegExp { empty :: Bool, final :: Bool, regExp :: RE a }
 
 data RE a = Epsilon
           | Symbol String (a -> Bool)
@@ -10,52 +10,31 @@ data RE a = Epsilon
           | RegExp a :*: RegExp a
           | RegExp a :+: RegExp a
 
-isActive :: RegExp a -> Bool
-isActive r = case status r of
-               Nothing -> False
-               Just _  -> True
-
-final :: Maybe Bool -> Bool
-final Nothing  = False
-final (Just b) = b
-
-isFinal :: RegExp a -> Bool
-isFinal r = final (status r)
-
-maybeOr :: Maybe Bool -> Maybe Bool -> Maybe Bool
-maybeOr Nothing  b        = b
-maybeOr a        Nothing  = a
-maybeOr (Just x) (Just y) = Just (x||y)
-
 -- smart constructors
 
 epsilon :: RegExp a
-epsilon = RegExp True Nothing Epsilon
+epsilon = RegExp True False Epsilon
 
 char :: Char -> RegExp Char
 char c = symbol [c] (c==)
 
 symbol :: String -> (a -> Bool) -> RegExp a
-symbol s p = RegExp False Nothing (Symbol s p)
+symbol s p = RegExp False False (Symbol s p)
 
 star :: RegExp a -> RegExp a
 star (RegExp e s r) = RegExp True s (Star (RegExp e s r))
 
-infixr 7 .*.
-
-(.*.) :: RegExp a -> RegExp a -> RegExp a
-(RegExp d k r) .*. (RegExp e l s) =
-  RegExp (d&&e) (status k l) (RegExp d k r :*: RegExp e l s)
- where
-  status Nothing Nothing     = Nothing
-  status _        _      | e = maybeOr k l
-  status _        _          = Just (final l)
-
 infixr 6 .+.
 
 (.+.) :: RegExp a -> RegExp a -> RegExp a
-(RegExp d k r) .+. (RegExp e l s) =
-  RegExp (d||e) (maybeOr k l) (RegExp d k r :+: RegExp e l s)
+(RegExp d v r) .+. (RegExp e w s) =
+  RegExp (d||e) (v||w) (RegExp d v r :+: RegExp e w s)
+
+infixr 7 .*.
+
+(.*.) :: RegExp a -> RegExp a -> RegExp a
+(RegExp d v r) .*. (RegExp e w s) =
+  RegExp (d&&e) (v&&e || w) (RegExp d v r :*: RegExp e w s)
 
 plus :: RegExp a -> RegExp a
 plus r = r .*. star r
@@ -71,25 +50,20 @@ bounded r (n,m) = r .*. bounded r (n-1,m-1)
 -- matching
 
 accept :: RegExp a -> [a] -> Bool
-accept r xs = isEmpty r || go r xs
+accept r []     = empty r
+accept r (x:xs) = final (go (next True r x) xs)
  where
-  go s []     = isFinal s
-  go s (x:xs) = isFinal s || go (next s x) xs
+  go s []     = s
+  go s (y:ys) = go (next False s y) ys
 
-next :: RegExp a -> a -> RegExp a
-next x a = pass True x
+next :: Bool -> RegExp a -> a -> RegExp a
+next t x a = pass (regExp x)
  where
-  pass b y | b || isActive y = shift b (regExp y)
-           | otherwise  = y
-
-  shift b Epsilon      = epsilon
-  shift b (Symbol s p) = RegExp False
-                                (if b && p a then Just True else Nothing)
-                                (Symbol s p)
-  shift b (Star r)     = star (pass (b || isFinal r) r)
-  shift b (r :*: s)    = pass b r .*. pass (b && isEmpty r || isFinal r) s
-  shift b (r :+: s)    = pass b r .+. pass b s
-
+  pass Epsilon      = epsilon
+  pass (Symbol s p) = RegExp False (if p a then t else False) (Symbol s p)
+  pass (Star r)     = star (next (t || final r) r a)
+  pass (r :*: s)    = next t r a .*. next (t && empty r || final r) s a
+  pass (r :+: s)    = next t r a .+. next t s a
 
 instance Show (RegExp Char)
  where
@@ -102,6 +76,6 @@ instance Show (RegExp Char)
     r :+: s    -> showParen (p>1) (showsPrec 1 r.showString "|".showsPrec 1 s)
 
 showSymbol :: RegExp Char -> String
-showSymbol r | isActive r = "\ESC[91m" ++ s ++ "\ESC[0m"
-             | otherwise  = s
+showSymbol r | final r   = "\ESC[91m" ++ s ++ "\ESC[0m"
+             | otherwise = s
  where Symbol s _ = regExp r

@@ -30,7 +30,7 @@
 -- 
 module Text.RegExp (
 
-  module Data.Monoid,
+  module Data.Semiring,
 
   -- * Constructing regular expressions
 
@@ -38,17 +38,15 @@ module Text.RegExp (
 
   -- ** Smart constructors
 
-  epsilon, char, symbol, star, (.*.), (.+.), plus, optional, bounded,
+  epsilon, char, symbol, star, plus, optional, bounded,
 
   -- * Matching
 
-  Matching, matchingIndex, matchingLength, 
-
-  accept, allMatchings, leftmostLongestMatching, (=~)
+  accept
 
   ) where
 
-import Data.Monoid
+import Data.Semiring
 import qualified Data.String
 
 import Text.RegExp.Data
@@ -89,8 +87,8 @@ import Text.RegExp.Matcher
 --    * @a{4,7}@ matches four to seven occurrences of @a@, @a{2}@
 --      matches two.
 -- 
-fromString :: Monoid m => String -> RegExp m Char
+fromString :: Semiring s => String -> RegExp s Char
 fromString = Data.String.fromString
 
-instance Monoid m => Data.String.IsString (RegExp m Char)
+instance Semiring s => Data.String.IsString (RegExp s Char)
  where fromString = parse

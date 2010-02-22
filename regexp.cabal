@@ -22,7 +22,8 @@ Flag prof
 Library
   Build-Tools:          happy >= 1.17
   Build-Depends:        base >= 3 && < 5, array >= 0.1, containers == 0.2.*
-  Exposed-Modules:      Text.RegExp
+  Exposed-Modules:      Text.RegExp,
+                        Data.Semiring
   Other-Modules:        Text.RegExp.Data,
                         Text.RegExp.Parser,
                         Text.RegExp.Matcher,

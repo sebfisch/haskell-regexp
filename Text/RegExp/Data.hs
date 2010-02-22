@@ -3,30 +3,35 @@
 module Text.RegExp.Data where
 
 import Data.Maybe
-import Data.Monoid
+import Data.Semiring
 
 -- | Regular expressions are represented as values of type 'RegExp'
---   @m@ @a@ and can be matched against lists of type @[a]@. Usually,
---   regular expressions of type 'RegExp' @m@ 'Char' are used to match
+--   @w@ @a@ and can be matched against lists of type @[a]@. Usually,
+--   regular expressions of type 'RegExp' @w@ 'Char' are used to match
 --   strings but particular applications may match against things
 --   other than characters.
 -- 
-data RegExp m a = RegExp {isEmpty :: Bool, status :: Maybe m, regExp :: RE m a}
+data RegExp w a = RegExp { empty :: w, final :: w, regExp :: RE w a }
 
-data RE m a = Epsilon
+data RE w a = Weight w
             | Symbol String (a -> Bool)
-            | Star (RegExp m a)
-            | RegExp m a :*: RegExp m a
-            | RegExp m a :+: RegExp m a
+            | Star (RegExp w a)
+            | RegExp w a :+: RegExp w a
+            | RegExp w a :*: RegExp w a
 
-isActive :: RegExp m a -> Bool
-isActive = isJust . status
+isSymbol :: RegExp s a -> Bool
+isSymbol r = case regExp r of
+               Symbol _ _ -> True
+               _          -> False
 
-label :: Monoid m => Maybe m -> m
-label = fromMaybe mempty
-
-activeLabel :: Monoid m => RegExp m a -> m
-activeLabel = label . status
+weightSymbols :: Semiring w => w -> RegExp w a -> RegExp w a
+weightSymbols w x | isSymbol x = weight w .*. x
+                  | otherwise  = attach (regExp x)
+ where
+  attach (Weight w) = weight w
+  attach (Star r)   = star (weightSymbols w r)
+  attach (r :+: s)  = weightSymbols w r .+. weightSymbols w s
+  attach (r :*: s)  = weightSymbols w r .*. weightSymbols w s
 
 -- smart constructors
 
@@ -34,54 +39,55 @@ activeLabel = label . status
 --   representation but is used to implement other constructs such as
 --   'optional' components like @a?@.
 -- 
-epsilon :: RegExp m a
-epsilon = RegExp True Nothing Epsilon
+epsilon :: Semiring w => RegExp w a
+epsilon = weight one
+
+-- | Matches the empty word. 'weight' is like 'epsilon' but has a
+--   specific user-defined weight. Weights can be elements of any
+--   'Semiring'.
+-- 
+weight :: CommutativeMonoid w => w -> RegExp w a
+weight w = RegExp w zero (Weight w)
 
 -- | Matches the given character.
 -- 
-char :: Char -> RegExp m Char
+char :: CommutativeMonoid w => Char -> RegExp w Char
 char c = symbol [c] (c==)
 
 -- | Matches a symbol that satisfies the given predicate. The first
 --   argument is used when printing regular expressions but is
 --   irrelevant for the matching algorithm.
 -- 
-symbol :: String -> (a -> Bool) -> RegExp m a
-symbol s = RegExp False Nothing . Symbol s
+symbol :: CommutativeMonoid w => String -> (a -> Bool) -> RegExp w a
+symbol s = RegExp zero zero . Symbol s
+
+-- | Matches an arbitrary symbol.
+-- 
+anySymbol :: Semiring s => RegExp s a
+anySymbol = symbol "." (const True)
 
 -- | Matches zero or more occurrences of the given regular
 --   expression. For example @a*@ matches the character @a@ zero or
 --   more times.
 -- 
-star :: RegExp m a -> RegExp m a
-star r@(RegExp _ s _) = RegExp True s (Star r)
+star :: Semiring w => RegExp w a -> RegExp w a
+star r@(RegExp _ w _) = RegExp one w (Star r)
 
-infixr 7 :*:, .*.
-
--- | Matches two regular expressions in sequence. In their string
---   representation sequences of regular expressions are just written,
---   well, in sequence like in @a?b*c@.
--- 
-(.*.) :: Monoid m => RegExp m a -> RegExp m a -> RegExp m a
-r@(RegExp d k _) .*. s@(RegExp e l _) = RegExp (d&&e) (status k l) (r :*: s)
+instance CommutativeMonoid w => CommutativeMonoid (RegExp w a)
  where
-  status Nothing Nothing     = Nothing
-  status _        _      | e = mappend k l
-  status _        _          = Just (label l)
+  zero = symbol "[]" (const False)
+  r@(RegExp d v _) .+. s@(RegExp e w _) = RegExp (d.+.e) (v.+.w) (r:+:s)
 
-infixr 6 :+:, .+.
-
--- | Matches any of the given regular expressions. For example @a|b@
---   matches either the character @a@ or @b@.
--- 
-(.+.) :: Monoid m => RegExp m a -> RegExp m a -> RegExp m a
-r@(RegExp d k _) .+. s@(RegExp e l _) = RegExp (d||e) (mappend k l) (r :+: s)
+instance Semiring w => Semiring (RegExp w a)
+ where
+  one = epsilon
+  r@(RegExp d v _) .*. s@(RegExp e w _) = RegExp (d.*.e) (v.*.e.+.w) (r:*:s)
 
 -- | Matches one or more occurrences of the given regular
 --   expression. For example @a+@ matches the character @a@ one or
 --   more times.
 -- 
-plus :: Monoid m => RegExp m a -> RegExp m a
+plus :: Semiring w => RegExp w a -> RegExp w a
 plus r = r .*. star r
 
 -- | Matches the given regular expression or the empty
@@ -89,7 +95,7 @@ plus r = r .*. star r
 --   also be written @(|a)@, that is, as alternative between 'epsilon'
 --   and @a@.
 -- 
-optional :: Monoid m => RegExp m a -> RegExp m a
+optional :: Semiring w => RegExp w a -> RegExp w a
 optional r = epsilon .+. r
 
 -- | Matches a regular expression a given number of times. For
@@ -102,24 +108,24 @@ optional r = epsilon .+. r
 --   regular expressions. For example, @a{4,7}@ is translated into
 --   @aaaaa?a?a?@.
 -- 
-bounded :: Monoid m => RegExp m a -> (Int,Int) -> RegExp m a
+bounded :: Semiring w => RegExp w a -> (Int,Int) -> RegExp w a
 bounded r (n,m) =
   foldr (.*.) (foldr (.*.) epsilon (replicate (m-n) (optional r)))
               (replicate n r)
 
 -- pretty printing
 
-instance Show (RegExp m Char)
+instance (Eq w, Show w, CommutativeMonoid w) => Show (RegExp w Char)
  where
   showsPrec p x =
    case regExp x of
-    Epsilon    -> id
+    Weight w   -> shows w
     Symbol _ _ -> showString (showSymbol x)
     Star r     -> showsPrec 3 r . showString "*"
     r :*: s    -> showParen (p>2) (showsPrec 2 r.showsPrec 2 s)
     r :+: s    -> showParen (p>1) (showsPrec 1 r.showString "|".showsPrec 1 s)
 
-showSymbol :: RegExp m Char -> String
-showSymbol r | isActive r = "\ESC[91m" ++ s ++ "\ESC[0m"
-             | otherwise  = s
+showSymbol :: (Eq w, CommutativeMonoid w) => RegExp w Char -> String
+showSymbol r | final r /= zero = "\ESC[91m" ++ s ++ "\ESC[0m"
+             | otherwise       = s
  where Symbol s _ = regExp r

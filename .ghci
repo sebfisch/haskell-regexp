@@ -6,3 +6,8 @@
 -- enable overloaded strings
 
 :set -XOverloadedStrings
+
+-- load private modules
+
+:def loadprivate \_ -> return ":load Text/RegExp Text/RegExp/Data Text/RegExp/Matcher Data/Semiring"
+:loadprivate
