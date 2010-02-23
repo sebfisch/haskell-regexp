@@ -11,7 +11,7 @@ import Data.Semiring
 --   strings but particular applications may match against things
 --   other than characters.
 -- 
-data RegExp w a = RegExp { empty :: w, final :: w, regExp :: RE w a }
+data RegExp w a = RegExp { empty :: !w, final :: !w, regExp :: RE w a }
 
 data RE w a = Weight w
             | Symbol String (a -> Bool)

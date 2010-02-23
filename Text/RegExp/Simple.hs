@@ -2,7 +2,7 @@
 
 module Text.RegExp.Simple where
 
-data RegExp a = RegExp { empty :: Bool, final :: Bool, regExp :: RE a }
+data RegExp a = RegExp { empty :: !Bool, final :: !Bool, regExp :: RE a }
 
 data RE a = Epsilon
           | Symbol String (a -> Bool)
@@ -20,6 +20,9 @@ char c = symbol [c] (c==)
 
 symbol :: String -> (a -> Bool) -> RegExp a
 symbol s p = RegExp False False (Symbol s p)
+
+anySymbol :: RegExp a
+anySymbol = symbol "." (const True)
 
 star :: RegExp a -> RegExp a
 star (RegExp e s r) = RegExp True s (Star (RegExp e s r))
