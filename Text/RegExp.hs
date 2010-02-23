@@ -42,7 +42,7 @@ module Text.RegExp (
 
   -- * Matching
 
-  accept
+  accept, matchingCount, allMatchings
 
   ) where
 
