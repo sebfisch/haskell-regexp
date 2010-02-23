@@ -75,7 +75,7 @@ star r@(RegExp _ w _) = RegExp one w (Star r)
 
 instance CommutativeMonoid w => CommutativeMonoid (RegExp w a)
  where
-  zero = symbol "[]" (const False)
+  zero = weight zero
   r@(RegExp d v _) .+. s@(RegExp e w _) = RegExp (d.+.e) (v.+.w) (r:+:s)
 
 instance Semiring w => Semiring (RegExp w a)
