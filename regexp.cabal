@@ -28,8 +28,8 @@ Library
                         Text.RegExp.Parser,
                         Text.RegExp.Matcher,
                         Text.RegExp.Simple
-  Extensions:           FlexibleInstances,
-                        TypeSynonymInstances,
+  Extensions:           RankNTypes,
+                        FlexibleInstances,
                         NoMonomorphismRestriction
 
 Executable match-regexp
