@@ -63,7 +63,7 @@ next :: Bool -> RegExp a -> a -> RegExp a
 next t x a = pass (regExp x)
  where
   pass Epsilon      = epsilon
-  pass (Symbol s p) = RegExp False (if p a then t else False) (Symbol s p)
+  pass (Symbol s p) = RegExp False (t && p a) (Symbol s p)
   pass (Star r)     = star (next (t || final r) r a)
   pass (r :*: s)    = next t r a .*. next (t && empty r || final r) s a
   pass (r :+: s)    = next t r a .+. next t s a
