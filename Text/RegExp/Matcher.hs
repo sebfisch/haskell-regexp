@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes, BangPatterns, GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -funbox-strict-fields #-}
 
 module Text.RegExp.Matcher where
 
@@ -117,13 +118,15 @@ firstMatchingWord r =
 
 wholeWord :: Semiring w => RegExp w a -> [a] -> w
 wholeWord r []     = empty r
-wholeWord r (x:xs) = final . fst . foldl (next zero) (next one (r,0) x) $ xs
+wholeWord r (x:xs) = final . first
+                   . foldl (next zero) (next one (Pair r 0) x) $ xs
 
 subWords :: Semiring w => RegExp w a -> [a] -> w
-subWords r = foldr (.+.) zero . map (final . fst) . scanl (next one) (r,0)
+subWords r = foldr (.+.) zero . map (final . first)
+           . scanl (next one) (Pair r 0)
 
-next :: Semiring w => w -> (RegExp w a, Int) -> a -> (RegExp w a, Int)
-next w (x,!n) a = (pass w x, n+1)
+next :: Semiring w => w -> Pair (RegExp w a) Int -> a -> Pair (RegExp w a) Int
+next w (Pair x n) a = Pair (pass w x) (n+1)
  where
   pass t = shift t . regExp
 
@@ -132,3 +135,9 @@ next w (x,!n) a = (pass w x, n+1)
   shift t (Star r)     = star (pass (t .+. final r) r)
   shift t (r :*: s)    = pass t r .*. pass (t .*. empty r .+. final r) s
   shift t (r :+: s)    = pass t r .+. pass t s
+
+-- unboxed pairs for speed
+
+data Pair a b = Pair !a !b
+
+first (Pair x _) = x
