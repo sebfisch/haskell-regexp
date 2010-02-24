@@ -1,5 +1,4 @@
 {-# LANGUAGE RankNTypes, BangPatterns, GeneralizedNewtypeDeriving #-}
-{-# OPTIONS_GHC -funbox-strict-fields #-}
 
 module Text.RegExp.Matcher where
 
