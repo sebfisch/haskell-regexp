@@ -9,4 +9,4 @@ import Text.RegExp
 
 main = do r:_ <- getArgs
           s   <- getContents
-          print (accept (fromString r) s)
+          print (firstMatching (fromString r) s)

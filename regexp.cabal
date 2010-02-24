@@ -29,8 +29,10 @@ Library
                         Text.RegExp.Matcher,
                         Text.RegExp.Simple
   Extensions:           RankNTypes,
+                        BangPatterns,
                         FlexibleInstances,
-                        NoMonomorphismRestriction
+                        NoMonomorphismRestriction,
+                        GeneralizedNewtypeDeriving
 
 Executable match-regexp
   Build-Tools:          happy >= 1.17

@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes, BangPatterns, GeneralizedNewtypeDeriving #-}
 
 module Text.RegExp.Matcher where
 
@@ -6,6 +6,11 @@ import Data.Monoid
 
 import Data.Set ( Set )
 import qualified Data.Set as Set
+
+import Data.Sequence ( Seq )
+import qualified Data.Sequence as Seq
+
+import qualified Data.Foldable as Fold
 
 import Data.Semiring
 import Text.RegExp.Data
@@ -36,14 +41,41 @@ instance Show Matching
 --   because the first alternative of @b|abc@ matches the string
 --   @\"b\"@.
 -- 
-accept :: (forall s. Semiring s => RegExp s a) -> [a] -> Bool
-accept r = process r
+accept :: (forall w. Semiring w => RegExp w a) -> [a] -> Bool
+accept r = wholeWord r
+
+-- | Checks whether a regular expression matches a subword of the
+--   given word. For example, @accept (fromString \"b|abc\") \"ab\"@
+--   yields @True@ because the first alternative of @b|abc@ matches a
+--   subword of @\"ab\"@. Note that regular expressions that accept
+--   the empty word accept a subword of every word.
+-- 
+acceptSubword :: (forall w. Semiring w => RegExp w a) -> [a] -> Bool
+acceptSubword r xs = empty r || subWords r xs
 
 -- | Computes in how many ways a word can be matched against a regular
 --   expression.
 -- 
-matchingCount :: (forall s. Semiring s => RegExp s a) -> [a] -> Int
-matchingCount r = process r
+matchingCount :: (forall w. Semiring w => RegExp w a) -> [a] -> Int
+matchingCount r = wholeWord r
+
+newtype Match = Match { getMatch :: (First Int, Sum Int) }
+ deriving (Eq,Monoid)
+
+-- leftmost longest match is the smallest
+instance Ord Match
+ where compare (Match a) (Match b) =
+         case (getFirst (fst a), getFirst (fst b)) of
+           (Nothing,Nothing) -> compare (snd b) (snd a)
+           (Nothing,_      ) -> GT
+           (_      ,Nothing) -> LT
+           (Just i ,Just j ) -> compare (i,snd b) (j,snd a)
+
+match :: Int -> Int -> Match
+match i l = Match (First (Just i), Sum l)
+
+fromMatch :: Match -> Matching
+fromMatch (Match (First (Just i), Sum l)) = Matching i l
 
 -- | Returns a list of all non-empty matchings for a regular
 --   expression in a given word. A matching is a pair of two numbers,
@@ -51,29 +83,52 @@ matchingCount r = process r
 --   starts and the second is the length (>= 1) of the matched
 --   subword.
 -- 
-allMatchings :: (forall s. Semiring s => RegExp s a) -> [a] -> [Matching]
-allMatchings r = map (matching . map getSum . fromTuple) . Set.toList
-               . process (weightSymbols (subLengths [1])
-                          (symbols .*. delim .*. r .*. delim .*. symbols))
- where
-  symbols          = star anySymbol
-  delim            = weight (subLengths [0,0])
-  matching [i,l,_] = Matching i l
+allMatchings :: (forall w. Semiring w => RegExp w a) -> [a] -> [Matching]
+allMatchings r = map fromMatch . Set.toList
+               . subWords (weightSymbols (\i _ -> Set.singleton (match i 1)) r)
 
-subLengths :: [a] -> Set (Tuple (Sum a))
-subLengths = Set.singleton . tuple . map Sum
+-- | Returns the leftmost longest of all non-empty matchings for a
+--   regular expression in a given word. @firstMatching r@ computes
+--   the same result as @head . allMatchings r@ but more efficiently.
+-- 
+firstMatching :: (forall w. Semiring w => RegExp w a) -> [a] -> Maybe Matching
+firstMatching r = fmap fromMatch . getMin
+                . subWords (weightSymbols (\i _ -> Min (Just (match i 1))) r)
+
+-- | Returns the list of all subwords of a word that match the given
+--   regular expression in lexicographical (alphabetical) order.
+-- 
+allMatchingWords :: Ord a => (forall w. Semiring w => RegExp w a)
+                          -> [a] -> [[a]]
+allMatchingWords r =
+  map Fold.toList . Set.toList
+  . subWords (weightSymbols (\_ a -> Set.singleton (Seq.singleton a)) r)
+
+-- | Returns the leftmost longest subword of a word that matches the
+--   given regular expression.
+-- 
+firstMatchingWord :: Ord a => (forall w. Semiring w => RegExp w a)
+                           -> [a] -> Maybe [a]
+firstMatchingWord r =
+  fmap (Fold.toList . snd) . getMin
+  . subWords (weightSymbols (\i a -> Min (Just (match i 1, Seq.singleton a))) r)
 
 -- matching algorithm
 
-process :: Semiring s => RegExp s a -> [a] -> s
-process r []     = empty r
-process r (x:xs) = final $ foldl (next zero) (next one r x) xs
+wholeWord :: Semiring w => RegExp w a -> [a] -> w
+wholeWord r []     = empty r
+wholeWord r (x:xs) = final . fst . foldl (next zero) (next one (r,0) x) $ xs
 
-next :: Semiring s => s -> RegExp s a -> a -> RegExp s a
-next t x a = pass $ regExp x
+subWords :: Semiring w => RegExp w a -> [a] -> w
+subWords r = foldr (.+.) zero . map (final . fst) . scanl (next one) (r,0)
+
+next :: Semiring w => w -> (RegExp w a, Int) -> a -> (RegExp w a, Int)
+next w (x,!n) a = (pass w x, n+1)
  where
-  pass (Weight w)   = weight w
-  pass (Symbol s p) = RegExp zero (if p a then t else zero) (Symbol s p)
-  pass (Star r)     = star (next (t .+. final r) r a)
-  pass (r :*: s)    = next t r a .*. next (t .*. empty r .+. final r) s a
-  pass (r :+: s)    = next t r a .+. next t s a
+  pass t = shift t . regExp
+
+  shift _ (Weight w)   = weight w
+  shift t (Symbol s p) = RegExp zero (t .*. p n a) (Symbol s p)
+  shift t (Star r)     = star (pass (t .+. final r) r)
+  shift t (r :*: s)    = pass t r .*. pass (t .*. empty r .+. final r) s
+  shift t (r :+: s)    = pass t r .+. pass t s

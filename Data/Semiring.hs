@@ -1,5 +1,7 @@
 module Data.Semiring where
 
+import Control.Applicative
+
 import Data.Monoid
 
 import Data.Set ( Set )
@@ -20,6 +22,10 @@ class CommutativeMonoid m
 class CommutativeMonoid s => Semiring s
  where one   :: s
        (.*.) :: s -> s -> s
+
+fromBool :: Semiring s => Bool -> s
+fromBool False = zero
+fromBool True  = one
 
 instance CommutativeMonoid Bool
  where zero  = False
@@ -59,7 +65,23 @@ instance Ord a => CommutativeMonoid (Set a)
 
 instance (Ord a, Monoid a) => Semiring (Set a)
  where one   = Set.singleton mempty
-       s.*.t = Set.fromList [mappend m n | m <- Set.toList s, n <- Set.toList t]
+       s.*.t = Set.fromList $ liftA2 mappend (Set.toList s) (Set.toList t)
+
+newtype Min a = Min { getMin :: Maybe a }
+
+instance Ord a => CommutativeMonoid (Min a)
+ where
+  zero  = Min Nothing
+  a.+.b = Min (getMin a `plus` getMin b)
+   where
+    Nothing `plus` Nothing = Nothing
+    Nothing `plus` Just y  = Just y
+    Just x  `plus` Nothing = Just x
+    Just x  `plus` Just y  = Just (min x y)
+
+instance (Ord a, Monoid a) => Semiring (Min a)
+ where one   = Min (Just mempty)
+       a.*.b = Min $ liftA2 mappend (getMin a) (getMin b)
 
 newtype Tuple a = Tuple { getTuple :: Seq a }
  deriving (Ord, Eq, Show)

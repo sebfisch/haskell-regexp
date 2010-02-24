@@ -14,24 +14,19 @@ import Data.Semiring
 data RegExp w a = RegExp { empty :: !w, final :: !w, regExp :: RE w a }
 
 data RE w a = Weight w
-            | Symbol String (a -> Bool)
+            | Symbol String (Int -> a -> w)
             | Star (RegExp w a)
             | RegExp w a :+: RegExp w a
             | RegExp w a :*: RegExp w a
 
-isSymbol :: RegExp s a -> Bool
-isSymbol r = case regExp r of
-               Symbol _ _ -> True
-               _          -> False
-
-weightSymbols :: Semiring w => w -> RegExp w a -> RegExp w a
-weightSymbols w x | isSymbol x = weight w .*. x
-                  | otherwise  = attach (regExp x)
+weightSymbols :: Semiring w => (Int -> a -> w) -> RegExp w a -> RegExp w a
+weightSymbols g x = scale (regExp x)
  where
-  attach (Weight w) = weight w
-  attach (Star r)   = star (weightSymbols w r)
-  attach (r :+: s)  = weightSymbols w r .+. weightSymbols w s
-  attach (r :*: s)  = weightSymbols w r .*. weightSymbols w s
+  scale (Weight w)   = weight w
+  scale (Symbol s f) = RegExp zero zero $ Symbol s (\i x -> f i x .*. g i x)
+  scale (Star r)     = star (weightSymbols g r)
+  scale (r :+: s)    = weightSymbols g r .+. weightSymbols g s
+  scale (r :*: s)    = weightSymbols g r .*. weightSymbols g s
 
 -- smart constructors
 
@@ -51,15 +46,15 @@ weight w = RegExp w zero (Weight w)
 
 -- | Matches the given character.
 -- 
-char :: CommutativeMonoid w => Char -> RegExp w Char
+char :: Semiring w => Char -> RegExp w Char
 char c = symbol [c] (c==)
 
 -- | Matches a symbol that satisfies the given predicate. The first
 --   argument is used when printing regular expressions but is
 --   irrelevant for the matching algorithm.
 -- 
-symbol :: CommutativeMonoid w => String -> (a -> Bool) -> RegExp w a
-symbol s = RegExp zero zero . Symbol s
+symbol :: Semiring w => String -> (a -> Bool) -> RegExp w a
+symbol s p = RegExp zero zero $ Symbol s (\i x -> fromBool (p x))
 
 -- | Matches an arbitrary symbol.
 -- 

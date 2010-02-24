@@ -38,11 +38,17 @@ module Text.RegExp (
 
   -- ** Smart constructors
 
-  epsilon, char, symbol, star, plus, optional, bounded,
+  epsilon, char, symbol, weight, star, plus, optional, bounded,
 
   -- * Matching
 
-  accept, matchingCount, allMatchings
+  Matching, matchingIndex, matchingLength,
+
+  accept, acceptSubword, matchingCount,
+
+  allMatchings, firstMatching,
+
+  allMatchingWords, firstMatchingWord
 
   ) where
 
