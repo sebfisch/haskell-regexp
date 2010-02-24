@@ -135,7 +135,7 @@ next w (Pair x n) a = Pair (pass w x) (n+1)
   shift t (r :*: s)    = pass t r .*. pass (t .*. empty r .+. final r) s
   shift t (r :+: s)    = pass t r .+. pass t s
 
--- unboxed pairs for speed
+-- strict pairs for speed
 
 data Pair a b = Pair !a !b
 
