@@ -20,18 +20,18 @@ import Text.RegExp.Data
 -- 
 data Matching = Matching {
  
-  -- | Index of the matching subword in the queried word.
-  matchingIndex :: Int,
+  -- | First index of the matching subword in the queried word.
+  firstIndex :: Int,
  
-  -- | Length of the matching subword.
-  matchingLength :: Int
+  -- | Last index of the matching subword.
+  lastIndex :: Int
  
   }
  
 instance Show Matching
  where
-  showsPrec _ m = showString "<at:" . shows (matchingIndex m)
-                . showString " len:" . shows (matchingLength m)
+  showsPrec _ m = showString "<from:" . shows (firstIndex m)
+                . showString " to:" . shows (lastIndex m)
                 . showString ">"
  
   showList = showString . unlines . map show
@@ -59,7 +59,7 @@ acceptSubword r xs = empty r || subWords r xs
 matchingCount :: (forall w. Semiring w => RegExp w a) -> [a] -> Int
 matchingCount r = wholeWord r
 
-newtype Match = Match { getMatch :: (First Int, Sum Int) }
+newtype Match = Match { getMatch :: (First Int, Last Int) }
  deriving (Eq,Monoid)
 
 -- leftmost longest match is the smallest
@@ -72,10 +72,10 @@ instance Ord Match
            (Just i ,Just j ) -> compare (i,snd b) (j,snd a)
 
 match :: Int -> Int -> Match
-match i l = Match (First (Just i), Sum l)
+match i j = Match (First (Just i), Last (Just j))
 
 fromMatch :: Match -> Matching
-fromMatch (Match (First (Just i), Sum l)) = Matching i l
+fromMatch (Match (First (Just i), Last (Just j))) = Matching i j
 
 -- | Returns a list of all non-empty matchings for a regular
 --   expression in a given word. A matching is a pair of two numbers,
@@ -85,7 +85,7 @@ fromMatch (Match (First (Just i), Sum l)) = Matching i l
 -- 
 allMatchings :: (forall w. Semiring w => RegExp w a) -> [a] -> [Matching]
 allMatchings r = map fromMatch . Set.toList
-               . subWords (weightSymbols (\i _ -> Set.singleton (match i 1)) r)
+               . subWords (weightSymbols (\i _ -> Set.singleton (match i i)) r)
 
 -- | Returns the leftmost longest of all non-empty matchings for a
 --   regular expression in a given word. @firstMatching r@ computes
@@ -93,7 +93,7 @@ allMatchings r = map fromMatch . Set.toList
 -- 
 firstMatching :: (forall w. Semiring w => RegExp w a) -> [a] -> Maybe Matching
 firstMatching r = fmap fromMatch . getMin
-                . subWords (weightSymbols (\i _ -> Min (Just (match i 1))) r)
+                . subWords (weightSymbols (\i _ -> Min (Just (match i i))) r)
 
 -- | Returns the list of all subwords of a word that match the given
 --   regular expression in lexicographical (alphabetical) order.
@@ -111,7 +111,7 @@ firstMatchingWord :: Ord a => (forall w. Semiring w => RegExp w a)
                            -> [a] -> Maybe [a]
 firstMatchingWord r =
   fmap (Fold.toList . snd) . getMin
-  . subWords (weightSymbols (\i a -> Min (Just (match i 1, Seq.singleton a))) r)
+  . subWords (weightSymbols (\i a -> Min (Just (match i i, Seq.singleton a))) r)
 
 -- matching algorithm
 
