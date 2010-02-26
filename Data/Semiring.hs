@@ -4,11 +4,10 @@ import Control.Applicative
 
 import Data.Monoid
 
-import Data.Set ( Set )
-import qualified Data.Set as Set
+import qualified Data.Set as Set; import Data.Set ( Set )
 
-import Data.Sequence ( Seq, (><), ViewL(..), ViewR(..) )
 import qualified Data.Sequence as Seq
+import Data.Sequence ( Seq, (><), ViewL(..), ViewR(..) )
 
 import qualified Data.Foldable as Fold
 
