@@ -102,7 +102,8 @@ shiftW w r c | active r || w /= zero = shift w (reg r) c
 
 shift :: Semiring w => w -> Reg w c -> c -> RegW w c
 shift _ Eps       _ = epsW
-shift w (Sym f)   c = (symW f) { final_ = w .*. f c }
+shift w (Sym f)   c = let w' = w .*. f c
+                       in (symW f) { active = w' /= zero, final_ = w' }
 shift w (Alt p q) c = altW (shiftW w p c) (shiftW w q c)
 shift w (Seq p q) c = seqW (shiftW w p c)
                            (shiftW (w .*. empty p .+. final p) q c)
