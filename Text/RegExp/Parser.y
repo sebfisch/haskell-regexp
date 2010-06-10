@@ -3,9 +3,10 @@
 
 module Text.RegExp.Parser ( parse ) where
 
-import Data.Semiring
 import Text.RegExp.Data
--- import Text.RegExp.Simple
+  ( RegExp, eps, sym, psym, anySym, alt, rep, rep1, opt, brep )
+
+import qualified Text.RegExp.Data ( seq )
 
 import Data.Monoid
 import Data.String
@@ -36,17 +37,17 @@ import Data.Char ( isSpace, toLower, isAlphaNum, isDigit )
 
 %%
 
-RegExp : {- empty -}       { epsilon }
-       | sym               { char $1 }
-       | RegExp '*'        { star $1 }
-       | RegExp seq RegExp { $1 .*. $3 }
-       | RegExp '|' RegExp { $1 .+. $3 }
+RegExp : {- empty -}       { eps }
+       | sym               { sym $1 }
+       | RegExp '*'        { rep $1 }
+       | RegExp seq RegExp { Text.RegExp.Data.seq $1 $3 }
+       | RegExp '|' RegExp { alt $1 $3 }
        | '(' RegExp ')'    { $2 }
-       | RegExp '+'        { plus $1 }
-       | RegExp '?'        { optional $1 }
-       | RegExp bnd        { bounded $1 $2 }
-       | cls               { uncurry symbol $1 }
-       | '.'               { anySymbol }
+       | RegExp '+'        { rep1 $1 }
+       | RegExp '?'        { opt $1 }
+       | RegExp bnd        { brep $2 $1 }
+       | cls               { psym $1 }
+       | '.'               { anySym }
 
 {
 
@@ -54,7 +55,7 @@ parse = parseTokens . scan
 
 data Token = Seq | Sym Char | Ast | Bar | L | R
            | Pls | Que | Bnd (Int,Int)
-           | Cls (String, Char -> Bool) | Dot
+           | Cls (Char -> Bool) | Dot
 
 
 token :: Char -> Token
@@ -93,7 +94,7 @@ process :: String -> [Token]
 process []            = []
 
 process ('\\':c:cs)
-  | isSymClassChar c  = Cls ('\\':[c], symClassPred c) : process cs
+  | isSymClassChar c  = Cls (symClassPred c) : process cs
 
 process ('\\':c:cs)   = Sym c : process cs
 
@@ -105,10 +106,10 @@ process ('{':cs)      = case reads cs of
                                 _              -> token '{' : process cs
                           _              -> token '{' : process cs
 
-process ('[':'^':cs)  = Cls ("[^"++s, not.p) : process xs
+process ('[':'^':cs)  = Cls (not.p) : process xs
  where (s,p,xs) = processCls cs
 
-process ('['    :cs)  = Cls ('[':s, p) : process xs
+process ('['    :cs)  = Cls p : process xs
  where (s,p,xs) = processCls cs
 
 process (c:cs)        = token c : process cs

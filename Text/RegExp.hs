@@ -36,17 +36,13 @@ module Text.RegExp (
 
   RegExp, fromString,
 
-  -- ** Smart constructors
-
-  epsilon, char, symbol, weight, star, plus, optional, bounded,
+  eps, sym, psym, alt, seq, rep, rep1, opt, brep,
 
   -- * Matching
 
   Matching, firstIndex, lastIndex,
 
-  accept, acceptSubword, matchingCount,
-
-  firstMatching, firstMatchingWord
+  accept, matchingCount, leftmostLongest
 
   ) where
 
@@ -57,42 +53,44 @@ import Text.RegExp.Data
 import Text.RegExp.Parser
 import Text.RegExp.Matcher
 
--- | Parses a regular expression from its string representation. If
---   the 'OverloadedStrings' language extension is enabled, string
---   literals can be used as regular expressions without using
---   'fromString' explicitly. Implicit conversion is especially useful
---   in combination with ('=~') which takes a value of type @RegExp
---   Char@ as second argument.
+import Prelude hiding ( seq )
+
+-- |
+-- Parses a regular expression from its string representation. If the
+-- 'OverloadedStrings' language extension is enabled, string literals
+-- can be used as regular expressions without using 'fromString'
+-- explicitly. Implicit conversion is especially useful in combination
+-- with functions that take a value of type @RegExp Char@ as argument.
 -- 
---   Here are some examples of supported regular expressions along
---   with an explanation what they mean:
+-- Here are some examples of supported regular expressions along with
+-- an explanation what they mean:
 -- 
---    * @a@ matches the character @a@
+--  * @a@ matches the character @a@
 -- 
---    * @[abc]@ matches any of the characters @a@, @b@, or @c@. It is
---      equivalent to @(a|b|c)@, but @|@ can be used to specify
---      alternatives between arbitrary regular expressions, not only
---      characters.
+--  * @[abc]@ matches any of the characters @a@, @b@, or @c@. It is
+--    equivalent to @(a|b|c)@, but @|@ can be used to specify
+--    alternatives between arbitrary regular expressions, not only
+--    characters.
 -- 
---    * @[^abc]@ matches anything but the characters @a@, @b@, or @c@.
+--  * @[^abc]@ matches anything but the characters @a@, @b@, or @c@.
 -- 
---    * @\\d@ matches a digit and is equivalent to @[0-9]@. Moreover,
---      @\\D@ matches any non-digit character, @\\s@ and @\\S@ match
---      space and non-space characters and @\\w@ and @\\W@ match word
---      characters and non-word characters, that is, @\\w@ abbreviates
---      @[a-zA-Z_]@.
+--  * @\\d@ matches a digit and is equivalent to @[0-9]@. Moreover,
+--    @\\D@ matches any non-digit character, @\\s@ and @\\S@ match
+--    space and non-space characters and @\\w@ and @\\W@ match word
+--    characters and non-word characters, that is, @\\w@ abbreviates
+--    @[a-zA-Z_]@.
 -- 
---    * @a?@ matches the empty word or the character @a@, @a*@ matches
---      zero or more occurrences of @a@, and @a+@ matches one or more
---      @a@'s.
+--  * @a?@ matches the empty word or the character @a@, @a*@ matches
+--    zero or more occurrences of @a@, and @a+@ matches one or more
+--    @a@'s.
 -- 
---    * @.@ (the dot) matches one arbitrary character.
+--  * @.@ (the dot) matches one arbitrary character.
 -- 
---    * @a{4,7}@ matches four to seven occurrences of @a@, @a{2}@
---      matches two.
+--  * @a{4,7}@ matches four to seven occurrences of @a@, @a{2}@
+--    matches two.
 -- 
-fromString :: Semiring s => String -> RegExp s Char
+fromString :: String -> RegExp Char
 fromString = Data.String.fromString
 
-instance Semiring s => Data.String.IsString (RegExp s Char)
- where fromString = parse
+instance Data.String.IsString (RegExp Char) where
+  fromString = parse
