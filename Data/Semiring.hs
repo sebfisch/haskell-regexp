@@ -19,25 +19,29 @@ infixr 6 .+.
 infixr 7 .*.
 
 -- |
--- A semiring is an additive commutative monoid with identity @zero@:
+-- A semiring is an additive commutative monoid with identity 'zero':
 -- 
--- >         a .+. b  =  b .+. a
--- >      zero .+. a  =  a
--- > (a .+. b) .+. c  =  a .+. (b .+. c)
+-- >         a .+. b  ==  b .+. a
+-- >      zero .+. a  ==  a
+-- > (a .+. b) .+. c  ==  a .+. (b .+. c)
 -- 
--- A semiring is a multiplicative monoid with identity @one@:
+-- A semiring is a multiplicative monoid with identity 'one':
 -- 
--- > one .*. a  =  a  =  a .*. one
--- > (a .*. b) .*. c  =  a .*. (b .*. c)
+-- >        one .*. a  ==  a
+-- >        a .*. one  ==  a
+-- >  (a .*. b) .*. c  ==  a .*. (b .*. c)
 -- 
 -- Multiplication distributes over addition:
 -- 
--- > a .*. (b .+. c)  =  (a .*. b) .+. (a .*. c)
--- > (a .+. b) .*. c  =  (a .*. c) .+. (b .*. c)
+-- > a .*. (b .+. c)  ==  (a .*. b) .+. (a .*. c)
+-- > (a .+. b) .*. c  ==  (a .*. c) .+. (b .*. c)
 -- 
--- @zero@ annihilates a semiring with respect to multiplication:
+-- 'zero' annihilates a semiring with respect to multiplication:
 -- 
--- > zero .*. a  =  zero  =  a .*. zero
+-- > zero .*. a  ==  zero
+-- > a .*. zero  ==  zero
+-- 
+-- All laws should hold with respect to the required `Eq` instance.
 -- 
 -- For example, the Booleans form a semiring.
 -- 
@@ -50,7 +54,7 @@ infixr 7 .*.
 -- 
 --  * @False@ annihilates the Booleans with respect to conjunction.
 -- 
-class Semiring s where
+class Eq s => Semiring s where
   zero, one    :: s
   (.+.), (.*.) :: s -> s -> s
 
@@ -93,13 +97,13 @@ instance Num a => Semiring (Numeric a) where
 -- The distributive laws require that @mappend@ distributes over @min@
 -- in the underlying type:
 -- 
--- > a `mappend` (b `min` c)  =  (a `mappend` b) `min` (a `mappend` c)
--- > (a `min` b) `mappend` c  =  (a `mappend` c) `min` (b `mappend` c)
+-- > a `mappend` (b `min` c)  ==  (a `mappend` b) `min` (a `mappend` c)
+-- > (a `min` b) `mappend` c  ==  (a `mappend` c) `min` (b `mappend` c)
 -- 
--- By definition, @zero@ annihilates the semiring with respect to
+-- By definition, 'zero' annihilates the semiring with respect to
 -- multiplication.
 -- 
-newtype Min a = Min { getMin :: Maybe a }
+newtype Min a = Min { getMin :: Maybe a } deriving Eq
 
 instance (Ord a, Monoid a) => Semiring (Min a)
  where

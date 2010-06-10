@@ -1,123 +1,126 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Text.RegExp.Data where
 
 import Data.Maybe
 import Data.Semiring
 
--- | Regular expressions are represented as values of type 'RegExp'
---   @w@ @a@ and can be matched against lists of type @[a]@. Usually,
---   regular expressions of type 'RegExp' @w@ 'Char' are used to match
---   strings but particular applications may match against things
---   other than characters.
+import Prelude hiding ( seq )
+
+-- |
+-- Regular expressions are represented as values of type 'RegExp' @c@
+-- where @c@ is the character type of the underlying alphabet. Values
+-- of type @RegExp@ @c@ can be matched against lists of type @[c]@.
 -- 
-data RegExp w a = RegExp { empty :: !w, final :: !w, regExp :: RE w a }
+newtype RegExp c = RegExp (forall w . Semiring w => RegW w c)
 
-data RE w a = Weight w
-            | Symbol String (Int -> a -> w)
-            | Star (RegExp w a)
-            | RegExp w a :+: RegExp w a
-            | RegExp w a :*: RegExp w a
+data RegW w c = RegW { active :: !Bool,
+                       empty  :: !w, 
+                       final_ :: !w, 
+                       reg    :: Reg w c }
 
-weightSymbols :: Semiring w => (Int -> a -> w) -> RegExp w a -> RegExp w a
-weightSymbols g x = scale (regExp x)
- where
-  scale (Weight w)   = weight w
-  scale (Symbol s f) = RegExp zero zero $ Symbol s (\i x -> f i x .*. g i x)
-  scale (Star r)     = star (weightSymbols g r)
-  scale (r :+: s)    = weightSymbols g r .+. weightSymbols g s
-  scale (r :*: s)    = weightSymbols g r .*. weightSymbols g s
+final :: Semiring w => RegW w c -> w
+final r = if active r then final_ r else zero
 
--- smart constructors
+data Reg w c = Eps
+             | Sym (c -> w)
+             | Alt (RegW w c) (RegW w c)
+             | Seq (RegW w c) (RegW w c)
+             | Rep (RegW w c)
 
--- | Matches the empty word. 'epsilon' has no direct string
---   representation but is used to implement other constructs such as
---   'optional' components like @a?@.
+-- |
+-- Matches the empty word. 'eps' has no direct string representation
+-- but is used to implement other constructs such as optional
+-- components like @a?@.
 -- 
-epsilon :: Semiring w => RegExp w a
-epsilon = weight one
+eps :: RegExp c
+eps = RegExp epsW
 
--- | Matches the empty word. 'weight' is like 'epsilon' but has a
---   specific user-defined weight. Weights can be elements of any
---   'Semiring'.
--- 
-weight :: Semiring w => w -> RegExp w a
-weight w = RegExp w zero (Weight w)
+epsW :: Semiring w => RegW w c
+epsW = RegW False one zero Eps
 
 -- | Matches the given character.
 -- 
-char :: Semiring w => Char -> RegExp w Char
-char c = symbol [c] (c==)
+sym :: Char -> RegExp Char
+sym = psym . (==)
 
--- | Matches a symbol that satisfies the given predicate. The first
---   argument is used when printing regular expressions but is
---   irrelevant for the matching algorithm.
+-- | Matches a symbol that satisfies the given predicate.
 -- 
-symbol :: Semiring w => String -> (a -> Bool) -> RegExp w a
-symbol s p = RegExp zero zero $ Symbol s (\i x -> fromBool (p x))
+psym :: (c -> Bool) -> RegExp c
+psym p = RegExp (psymW p)
+
+psymW :: Semiring w => (c -> Bool) -> RegW w c
+psymW p = RegW False zero zero $ Sym (fromBool . p)
 
 -- | Matches an arbitrary symbol.
 -- 
-anySymbol :: Semiring s => RegExp s a
-anySymbol = symbol "." (const True)
+anySym :: RegExp c
+anySym = psym (const True)
+
+-- |
+-- Matches either of two regular expressions. For example @a+b@
+-- matches either the character @a@ or the character @b@.
+-- 
+alt :: RegExp c -> RegExp c -> RegExp c
+alt (RegExp p) (RegExp q) =
+  RegExp (RegW False (empty p .+. empty q) zero (Alt p q))
+
+altW :: Semiring w => RegW w c -> RegW w c -> RegW w c
+altW p q = RegW (active p || active q)
+                (empty p .+. empty q)
+                (final p .+. final q)
+                (Alt p q)
+
+-- |
+-- Matches the sequence of two regular expressions. For example the
+-- regular expressions @ab@ matches the word @ab@.
+-- 
+seq :: RegExp c -> RegExp c -> RegExp c
+seq (RegExp p) (RegExp q) =
+  RegExp (RegW False (empty p .*. empty q) zero (Seq p q))
+
+seqW :: Semiring w => RegW w c -> RegW w c -> RegW w c
+seqW p q = RegW (active p || active q)
+                (empty p .*. empty q)
+                (final p .*. empty q .+. final q)
+                (Seq p q)
 
 -- | Matches zero or more occurrences of the given regular
 --   expression. For example @a*@ matches the character @a@ zero or
 --   more times.
 -- 
-star :: Semiring w => RegExp w a -> RegExp w a
-star r@(RegExp _ w _) = RegExp one w (Star r)
+rep :: RegExp c -> RegExp c
+rep (RegExp r) = RegExp (RegW False one zero (Rep r))
 
-instance Semiring w => Semiring (RegExp w a)
- where
-  zero = weight zero
-  one  = epsilon
-  r@(RegExp d v _) .+. s@(RegExp e w _) = RegExp (d.+.e) (v.+.w) (r:+:s)
-  r@(RegExp d v _) .*. s@(RegExp e w _) = RegExp (d.*.e) (v.*.e.+.w) (r:*:s)
+repW :: Semiring w => RegW w c -> RegW w c
+repW r = RegW (active r) one (final r) (Rep r)
 
 -- | Matches one or more occurrences of the given regular
 --   expression. For example @a+@ matches the character @a@ one or
 --   more times.
 -- 
-plus :: Semiring w => RegExp w a -> RegExp w a
-plus r = r .*. star r
+rep1 :: RegExp c -> RegExp c
+rep1 r = r `seq` rep r
 
--- | Matches the given regular expression or the empty
---   word. 'optional' components are usually written @a?@ but could
---   also be written @(|a)@, that is, as alternative between 'epsilon'
---   and @a@.
+-- |
+-- Matches the given regular expression or the empty word. Optional
+-- expressions are usually written @a?@ but could also be written
+-- @(|a)@, that is, as alternative between 'eps' and @a@.
 -- 
-optional :: Semiring w => RegExp w a -> RegExp w a
-optional r = epsilon .+. r
+opt :: RegExp c -> RegExp c
+opt r = eps `alt` r
 
--- | Matches a regular expression a given number of times. For
---   example, the regular expression @a{4,7}@ matches the character
---   @a@ four to seven times. If the minimal and maximal occurences
---   are identical, one can be left out, that is, @a{2}@ matches two
---   occurrences of the character @a@.
+-- |
+-- Matches a regular expression a given number of times. For example,
+-- the regular expression @a{4,7}@ matches the character @a@ four to
+-- seven times. If the minimal and maximal occurences are identical,
+-- one can be left out, that is, @a{2}@ matches two occurrences of the
+-- character @a@.
 -- 
---   Numerical bounds are implemented via translation into ordinary
---   regular expressions. For example, @a{4,7}@ is translated into
---   @aaaaa?a?a?@.
+-- Numerical bounds are implemented via translation into ordinary
+-- regular expressions. For example, @a{4,7}@ is translated into
+-- @aaaaa?a?a?@.
 -- 
-bounded :: Semiring w => RegExp w a -> (Int,Int) -> RegExp w a
-bounded r (n,m) =
-  foldr (.*.) (foldr (.*.) epsilon (replicate (m-n) (optional r)))
-              (replicate n r)
-
--- pretty printing
-
-instance (Eq w, Show w, Semiring w) => Show (RegExp w Char)
- where
-  showsPrec p x =
-   case regExp x of
-    Weight w   -> shows w
-    Symbol _ _ -> showString (showSymbol x)
-    Star r     -> showsPrec 3 r . showString "*"
-    r :*: s    -> showParen (p>2) (showsPrec 2 r.showsPrec 2 s)
-    r :+: s    -> showParen (p>1) (showsPrec 1 r.showString "|".showsPrec 1 s)
-
-showSymbol :: (Eq w, Semiring w) => RegExp w Char -> String
-showSymbol r | final r /= zero = "\ESC[91m" ++ s ++ "\ESC[0m"
-             | otherwise       = s
- where Symbol s _ = regExp r
+brep :: (Int,Int) -> RegExp c -> RegExp c
+brep (n,m) r =
+  foldr seq (foldr seq eps (replicate (m-n) (opt r))) (replicate n r)
