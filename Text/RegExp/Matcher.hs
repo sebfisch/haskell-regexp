@@ -4,10 +4,7 @@ module Text.RegExp.Matcher where
 
 import Data.Monoid
 
-import qualified Data.Set as Set; import Data.Set ( Set )
-
 import qualified Data.Sequence as Seq; import Data.Sequence ( Seq )
-
 import qualified Data.Foldable as Fold
 
 import Data.Semiring
@@ -58,7 +55,7 @@ sub r = star anySymbol .*. r .*. star anySymbol
 --   expression.
 -- 
 matchingCount :: (forall w. Semiring w => RegExp w a) -> [a] -> Int
-matchingCount r = process r
+matchingCount r = getNumeric . process r
 
 newtype Match = Match { getMatch :: (First Int, Last Int) }
  deriving (Eq,Monoid)
@@ -78,18 +75,6 @@ match i j = Match (First (Just i), Last (Just j))
 fromMatch :: Match -> Matching
 fromMatch (Match (First (Just i), Last (Just j))) = Matching i j
 
--- | Returns a list of all non-empty matchings for a regular
---   expression in a given word. A matching is a pair of two numbers,
---   where the first is the index (>= 0) where the matched subword
---   starts and the second is the length (>= 1) of the matched
---   subword.
--- 
-allMatchings :: (forall w. Semiring w => RegExp w a) -> [a] -> [Matching]
-allMatchings r =
-  map fromMatch
-  . Set.toList
-  . process (sub (weightSymbols (\i _ -> Set.singleton (match i i)) r))
-
 -- | Returns the leftmost longest of all non-empty matchings for a
 --   regular expression in a given word. @firstMatching r@ computes
 --   the same result as @head . allMatchings r@ but more efficiently.
@@ -99,16 +84,6 @@ firstMatching r =
   fmap fromMatch
   . getMin
   . process (sub (weightSymbols (\i _ -> Min (Just (match i i))) r))
-
--- | Returns the list of all subwords of a word that match the given
---   regular expression in lexicographical (alphabetical) order.
--- 
-allMatchingWords :: Ord a => (forall w. Semiring w => RegExp w a)
-                          -> [a] -> [[a]]
-allMatchingWords r =
-  map Fold.toList
-  . Set.toList
-  . process (sub (weightSymbols (\_ a -> Set.singleton (Seq.singleton a)) r))
 
 -- | Returns the leftmost longest subword of a word that matches the
 --   given regular expression.

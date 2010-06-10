@@ -1,100 +1,116 @@
-module Data.Semiring where
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-import Control.Applicative
+-- | 
+-- Module      : Data.Semiring
+-- Copyright   : Thomas Wilke, Frank Huch, Sebastian Fischer
+-- License     : BSD3
+-- Maintainer  : Sebastian Fischer <mailto:mail@sebfisch.de>
+-- Stability   : experimental
+-- 
+-- This library provides a type class for semirings and instances for
+-- standard data types.
+-- 
+module Data.Semiring ( Semiring(..), fromBool, Numeric(..), Min(..) ) where
 
 import Data.Monoid
-
-import qualified Data.Set as Set; import Data.Set ( Set )
-
-import qualified Data.Sequence as Seq
-import Data.Sequence ( Seq, (><), ViewL(..), ViewR(..) )
-
-import qualified Data.Foldable as Fold
+import Control.Applicative
 
 infixr 6 .+.
 infixr 7 .*.
 
-class CommutativeMonoid m
- where zero  :: m
-       (.+.) :: m -> m -> m
+-- |
+-- A semiring is an additive commutative monoid with identity @zero@:
+-- 
+-- >         a .+. b  =  b .+. a
+-- >      zero .+. a  =  a
+-- > (a .+. b) .+. c  =  a .+. (b .+. c)
+-- 
+-- A semiring is a multiplicative monoid with identity @one@:
+-- 
+-- > one .*. a  =  a  =  a .*. one
+-- > (a .*. b) .*. c  =  a .*. (b .*. c)
+-- 
+-- Multiplication distributes over addition:
+-- 
+-- > a .*. (b .+. c)  =  (a .*. b) .+. (a .*. c)
+-- > (a .+. b) .*. c  =  (a .*. c) .+. (b .*. c)
+-- 
+-- @zero@ annihilates a semiring with respect to multiplication:
+-- 
+-- > zero .*. a  =  zero  =  a .*. zero
+-- 
+-- For example, the Booleans form a semiring.
+-- 
+--  * @False@ is an identity of disjunction which is commutative and
+--    associative,
+-- 
+--  * @True@ is an identity of conjunction which is associative,
+-- 
+--  * conjunction distributes over disjunction, and
+-- 
+--  * @False@ annihilates the Booleans with respect to conjunction.
+-- 
+class Semiring s where
+  zero, one    :: s
+  (.+.), (.*.) :: s -> s -> s
 
-class CommutativeMonoid s => Semiring s
- where one   :: s
-       (.*.) :: s -> s -> s
-
+-- | Auxiliary function to convert Booleans to an arbitrary semiring.
+-- 
 fromBool :: Semiring s => Bool -> s
 fromBool False = zero
 fromBool True  = one
 
-instance CommutativeMonoid Bool
- where zero  = False
-       (.+.) = (||)
+instance Semiring Bool where
+  zero = False; one = True; (.+.) = (||); (.*.) = (&&)
 
-instance Semiring Bool
- where one   = True
-       (.*.) = (&&)
+-- |
+-- Wrapper for numeric types.
+-- 
+-- Every numeric type that satisfies the semiring laws (as all
+-- predefined numeric types do) is a semiring.
+-- 
+newtype Numeric a = Numeric { getNumeric :: a } deriving (Eq,Show,Num)
 
-instance CommutativeMonoid Int
- where zero  = 0
-       (.+.) = (+)
+instance Num a => Semiring (Numeric a) where
+  zero = 0; one = 1; (.+.) = (+); (.*.) = (*)
 
-instance Semiring Int
- where one   = 1
-       (.*.) = (*)
-
-instance (CommutativeMonoid a, CommutativeMonoid b) => CommutativeMonoid (a,b)
- where zero                = (zero   , zero   )
-       (x1,y1) .+. (x2,y2) = (x1.+.x2, y1.+.y2)
-
-instance (Semiring a, Semiring b) => Semiring (a,b)
- where one                 = (one    , one    )
-       (x1,y1) .*. (x2,y2) = (x1.*.x2, y1.*.y2)
-
-instance CommutativeMonoid b => CommutativeMonoid (a -> b)
- where zero  = \_ -> zero
-       f.+.g = \x -> f x .+. g x
-
-instance Semiring b => Semiring (a -> b)
- where one   = \_ -> one
-       f.*.g = \x -> f x .*. g x
-
-instance Ord a => CommutativeMonoid (Set a)
- where zero  = Set.empty
-       (.+.) = Set.union
-
-instance (Ord a, Monoid a) => Semiring (Set a)
- where one   = Set.singleton mempty
-       s.*.t = Set.fromList $ liftA2 mappend (Set.toList s) (Set.toList t)
-
+-- |
+-- Adds a maximum element (infinity) to a totally ordered type.
+-- 
+-- A monoid with a total order is a semiring after adding a maximum
+-- element. The (lifted) minimum operation serves as addition and the
+-- underlying monoid is lifted into the multiplicative stucture.
+-- 
+-- The minimum operation is associative and commutative if the
+-- underlying ordering is total (and antisymmetric):
+-- 
+-- > a <= b || b <= a
+-- > a <= b && b <= a  ==>  a == b
+-- 
+-- The laws of the underlying monoid are preserved when lifting it
+-- into the multiplicative structure.
+-- 
+-- The distributive laws require that @mappend@ distributes over @min@
+-- in the underlying type:
+-- 
+-- > a `mappend` (b `min` c)  =  (a `mappend` b) `min` (a `mappend` c)
+-- > (a `min` b) `mappend` c  =  (a `mappend` c) `min` (b `mappend` c)
+-- 
+-- By definition, @zero@ annihilates the semiring with respect to
+-- multiplication.
+-- 
 newtype Min a = Min { getMin :: Maybe a }
 
-instance Ord a => CommutativeMonoid (Min a)
+instance (Ord a, Monoid a) => Semiring (Min a)
  where
-  zero  = Min Nothing
-  a.+.b = Min (getMin a `plus` getMin b)
+  zero = Min Nothing
+  one  = Min (Just mempty)
+
+  a .+. b = Min (getMin a `plus` getMin b)
    where
     Nothing `plus` Nothing = Nothing
     Nothing `plus` Just y  = Just y
     Just x  `plus` Nothing = Just x
     Just x  `plus` Just y  = Just (min x y)
 
-instance (Ord a, Monoid a) => Semiring (Min a)
- where one   = Min (Just mempty)
-       a.*.b = Min $ liftA2 mappend (getMin a) (getMin b)
-
-newtype Tuple a = Tuple { getTuple :: Seq a }
- deriving (Ord, Eq, Show)
-
-tuple :: [a] -> Tuple a
-tuple = Tuple . Seq.fromList
-
-fromTuple :: Tuple a -> [a]
-fromTuple = Fold.toList . getTuple
-
-instance Monoid a => Monoid (Tuple a)
- where
-  mempty = Tuple (Seq.singleton mempty)
-
-  mappend (Tuple s) (Tuple t) =
-    Tuple (case (Seq.viewr s, Seq.viewl t) of
-             (xs :> x, y :< ys) -> xs >< Seq.singleton (mappend x y) >< ys)
+  a .*. b = Min $ liftA2 mappend (getMin a) (getMin b)

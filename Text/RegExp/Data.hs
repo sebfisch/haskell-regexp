@@ -41,7 +41,7 @@ epsilon = weight one
 --   specific user-defined weight. Weights can be elements of any
 --   'Semiring'.
 -- 
-weight :: CommutativeMonoid w => w -> RegExp w a
+weight :: Semiring w => w -> RegExp w a
 weight w = RegExp w zero (Weight w)
 
 -- | Matches the given character.
@@ -68,14 +68,11 @@ anySymbol = symbol "." (const True)
 star :: Semiring w => RegExp w a -> RegExp w a
 star r@(RegExp _ w _) = RegExp one w (Star r)
 
-instance CommutativeMonoid w => CommutativeMonoid (RegExp w a)
- where
-  zero = weight zero
-  r@(RegExp d v _) .+. s@(RegExp e w _) = RegExp (d.+.e) (v.+.w) (r:+:s)
-
 instance Semiring w => Semiring (RegExp w a)
  where
-  one = epsilon
+  zero = weight zero
+  one  = epsilon
+  r@(RegExp d v _) .+. s@(RegExp e w _) = RegExp (d.+.e) (v.+.w) (r:+:s)
   r@(RegExp d v _) .*. s@(RegExp e w _) = RegExp (d.*.e) (v.*.e.+.w) (r:*:s)
 
 -- | Matches one or more occurrences of the given regular
@@ -110,7 +107,7 @@ bounded r (n,m) =
 
 -- pretty printing
 
-instance (Eq w, Show w, CommutativeMonoid w) => Show (RegExp w Char)
+instance (Eq w, Show w, Semiring w) => Show (RegExp w Char)
  where
   showsPrec p x =
    case regExp x of
@@ -120,7 +117,7 @@ instance (Eq w, Show w, CommutativeMonoid w) => Show (RegExp w Char)
     r :*: s    -> showParen (p>2) (showsPrec 2 r.showsPrec 2 s)
     r :+: s    -> showParen (p>1) (showsPrec 1 r.showString "|".showsPrec 1 s)
 
-showSymbol :: (Eq w, CommutativeMonoid w) => RegExp w Char -> String
+showSymbol :: (Eq w, Semiring w) => RegExp w Char -> String
 showSymbol r | final r /= zero = "\ESC[91m" ++ s ++ "\ESC[0m"
              | otherwise       = s
  where Symbol s _ = regExp r

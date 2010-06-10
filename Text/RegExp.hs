@@ -46,9 +46,7 @@ module Text.RegExp (
 
   accept, acceptSubword, matchingCount,
 
-  allMatchings, firstMatching,
-
-  allMatchingWords, firstMatchingWord
+  firstMatching, firstMatchingWord
 
   ) where
 

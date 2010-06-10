@@ -1,8 +1,12 @@
-Name:          regexp
-Version:       0.1
+Name:          weighted-regexp
+Version:       1.0
 Cabal-Version: >= 1.6
-Synopsis:      Regular Expressions in Haskell
-Description:   to be supplied
+Synopsis:      Weighted Regular Expression Matcher
+Description:
+
+        Haskell implementation of a weighted regular expression
+        matcher with linear worst-case time and space bounds.
+
 Category:      Text, Parsing
 License:       BSD3
 License-File:  LICENSE
@@ -13,12 +17,6 @@ Homepage:      http://github.com/sebfisch/haskell-regexp
 Build-Type:    Simple
 Stability:     experimental
 
-Extra-Source-Files:     README.markdown, test/tests.hs
-
-Flag prof
-  Description:          Enable profiling support
-  Default:              False
-
 Library
   Build-Tools:          happy >= 1.17
   Build-Depends:        base >= 3 && < 5, array >= 0.1, containers == 0.2.*
@@ -26,29 +24,12 @@ Library
                         Data.Semiring
   Other-Modules:        Text.RegExp.Data,
                         Text.RegExp.Parser,
-                        Text.RegExp.Matcher,
-                        Text.RegExp.Simple
+                        Text.RegExp.Matcher
   Extensions:           RankNTypes,
                         BangPatterns,
                         FlexibleInstances,
                         NoMonomorphismRestriction,
                         GeneralizedNewtypeDeriving
-
-Executable match-regexp
-  Build-Tools:          happy >= 1.17
-  Main-Is:              match-regexp.hs
-  Hs-Source-Dirs:       . test
-  Other-Modules:        Text.RegExp.Parser
-  if flag(prof)
-    GHC-Options:        -prof -auto-all
-
-Executable test-regexp-correctness
-  Build-Tools:          happy >= 1.17
-  Main-Is:              test-regexp-correctness.hs
-  Hs-Source-Dirs:       . test
-  Other-Modules:        Text.RegExp.Parser
-  if flag(prof)
-    GHC-Options:        -prof -auto-all
 
 Source-Repository head
   type:     git
