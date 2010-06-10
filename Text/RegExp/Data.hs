@@ -28,6 +28,16 @@ data Reg w c = Eps
              | Seq (RegW w c) (RegW w c)
              | Rep (RegW w c)
 
+indexed :: RegExp c -> RegExp (Int,c)
+indexed (RegExp x) = RegExp (indexedW x)
+ where indexedW (RegW a e f r) =
+         case r of
+           Eps     -> RegW a e f Eps
+           Sym g   -> RegW a e f (Sym (\ (i,c) -> index i .*. g c))
+           Alt p q -> RegW a e f (Alt (indexedW p) (indexedW q))
+           Seq p q -> RegW a e f (Seq (indexedW p) (indexedW q))
+           Rep p   -> RegW a e f (Rep (indexedW p))
+
 -- |
 -- Matches the empty word. 'eps' has no direct string representation
 -- but is used to implement other constructs such as optional
@@ -44,13 +54,16 @@ epsW = RegW False one zero Eps
 sym :: Char -> RegExp Char
 sym = psym . (==)
 
+symW :: Semiring w => (c -> w) -> RegW w c
+symW f = RegW False zero zero $ Sym f
+
 -- | Matches a symbol that satisfies the given predicate.
 -- 
 psym :: (c -> Bool) -> RegExp c
 psym p = RegExp (psymW p)
 
 psymW :: Semiring w => (c -> Bool) -> RegW w c
-psymW p = RegW False zero zero $ Sym (fromBool . p)
+psymW p = symW (fromBool . p)
 
 -- | Matches an arbitrary symbol.
 -- 

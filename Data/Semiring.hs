@@ -58,6 +58,15 @@ class Eq s => Semiring s where
   zero, one    :: s
   (.+.), (.*.) :: s -> s -> s
 
+  -- | 
+  -- The 'index' function is used to incorporate positional
+  -- information into regular expression matching. It has a sensible
+  -- default implementation. Semirings that do not need positional
+  -- information need not define the 'index' function.
+  -- 
+  index :: Int -> s
+  index _ = one
+
 -- | Auxiliary function to convert Booleans to an arbitrary semiring.
 -- 
 fromBool :: Semiring s => Bool -> s

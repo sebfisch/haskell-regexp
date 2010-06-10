@@ -10,8 +10,11 @@ import qualified Data.Foldable as Fold
 import Data.Semiring
 import Text.RegExp.Data
 
--- | Subwords of words that match a regular expression are represented
---   as values of type 'Matching'.
+import Prelude hiding ( seq )
+
+-- |
+-- Subwords of words that match a regular expression are represented
+-- as values of type 'Matching'.
 -- 
 data Matching = Matching {
  
@@ -31,85 +34,76 @@ instance Show Matching
  
   showList = showString . unlines . map show
 
--- | Checks whether a regular expression matches the given word. For
---   example, @accept (fromString \"b|abc\") \"b\"@ yields @True@
---   because the first alternative of @b|abc@ matches the string
---   @\"b\"@.
+-- |
+-- Checks whether a regular expression matches the given word. For
+-- example, @accept (fromString \"b|abc\") \"b\"@ yields @True@
+-- because the first alternative of @b|abc@ matches the string
+-- @\"b\"@.
 -- 
-accept :: (forall w. Semiring w => RegExp w a) -> [a] -> Bool
-accept r = process r
+accept :: RegExp c -> [c] -> Bool
+accept r = match r
 
--- | Checks whether a regular expression matches a subword of the
---   given word. For example, @accept (fromString \"b|abc\") \"ab\"@
---   yields @True@ because the first alternative of @b|abc@ matches a
---   subword of @\"ab\"@. Note that regular expressions that accept
---   the empty word accept a subword of every word.
+-- |
+-- Computes in how many ways a word can be matched against a regular
+-- expression.
 -- 
-acceptSubword :: (forall w. Semiring w => RegExp w a) -> [a] -> Bool
-acceptSubword r = process (sub r)
+matchingCount :: RegExp c -> [c] -> Int
+matchingCount r = getNumeric . match r
 
-sub :: Semiring w => RegExp w a -> RegExp w a
-sub r = star anySymbol .*. r .*. star anySymbol
-
--- | Computes in how many ways a word can be matched against a regular
---   expression.
--- 
-matchingCount :: (forall w. Semiring w => RegExp w a) -> [a] -> Int
-matchingCount r = getNumeric . process r
-
-newtype Match = Match { getMatch :: (First Int, Last Int) }
+newtype LL = LL { getLL :: (First Int, Last Int) }
  deriving (Eq,Monoid)
 
+leftlong :: Int -> Int -> LL
+leftlong i j = LL (First (Just i), Last (Just j))
+
+fromLL :: LL -> Matching
+fromLL (LL (First (Just i), Last (Just j))) = Matching i j
+
 -- leftmost longest match is the smallest
-instance Ord Match
- where compare (Match a) (Match b) =
+instance Ord LL
+ where compare (LL a) (LL b) =
          case (getFirst (fst a), getFirst (fst b)) of
            (Nothing,Nothing) -> compare (snd b) (snd a)
            (Nothing,_      ) -> GT
            (_      ,Nothing) -> LT
            (Just i ,Just j ) -> compare (i,snd b) (j,snd a)
 
-match :: Int -> Int -> Match
-match i j = Match (First (Just i), Last (Just j))
-
-fromMatch :: Match -> Matching
-fromMatch (Match (First (Just i), Last (Just j))) = Matching i j
-
--- | Returns the leftmost longest of all non-empty matchings for a
---   regular expression in a given word. @firstMatching r@ computes
---   the same result as @head . allMatchings r@ but more efficiently.
+-- |
+-- Returns the leftmost longest of all non-empty matchings for a
+-- regular expression in a given word.
 -- 
-firstMatching :: (forall w. Semiring w => RegExp w a) -> [a] -> Maybe Matching
-firstMatching r =
-  fmap fromMatch
-  . getMin
-  . process (sub (weightSymbols (\i _ -> Min (Just (match i i))) r))
+leftmostLongest :: RegExp c -> [c] -> Maybe Matching
+leftmostLongest r = fmap fromLL . getMin . submatch r
 
--- | Returns the leftmost longest subword of a word that matches the
---   given regular expression.
+-- |
+-- Matches a regular expression against a word computing a weight in
+-- an arbitrary semiring.
 -- 
-firstMatchingWord :: Ord a => (forall w. Semiring w => RegExp w a)
-                           -> [a] -> Maybe [a]
-firstMatchingWord r =
-  fmap (Fold.toList . snd)
-  . getMin
-  . process (sub (weightSymbols
-                  (\i a -> Min (Just (match i i, Seq.singleton a))) r))
+match :: Semiring w => RegExp c -> [c] -> w
+match (RegExp r) = matchW r
 
--- matching algorithm
+-- |
+-- Matches a regular expression against substrings of a word computing
+-- a weight in an arbitrary semiring. The 'index' function of
+-- semirings is used to report positional information about the
+-- matching part of the word to the semiring.
+-- 
+submatch :: Semiring w => RegExp c -> [c] -> w
+submatch r = match (arb `seq` indexed r `seq` arb) . zip [0..]
+ where arb = rep anySym
 
-process :: Semiring w => RegExp w a -> [a] -> w
-process r []     = empty r
-process r (x:xs) = go 1 (next one r 0 x) xs
- where go _ s []     = final s
-       go n s (y:ys) = go (n+1) (next zero s n y) ys
+matchW :: Semiring w => RegW w c -> [c] -> w
+matchW r []     = empty r
+matchW r (c:cs) = final (foldl (shiftW zero) (shiftW one r c) cs)
 
-next :: Semiring w => w -> RegExp w a -> Int -> a -> RegExp w a
-next w x n a = pass w x
- where pass t = shift t . regExp
+shiftW :: Semiring w => w -> RegW w c -> c -> RegW w c
+shiftW w r c | active r || w /= zero = shift w (reg r) c
+             | otherwise             = r
 
-       shift _ (Weight w)   = weight w
-       shift t (Symbol s p) = RegExp zero (t .*. p n a) (Symbol s p)
-       shift t (Star r)     = star (pass (t .+. final r) r)
-       shift t (r :*: s)    = pass t r .*. pass (t .*. empty r .+. final r) s
-       shift t (r :+: s)    = pass t r .+. pass t s
+shift :: Semiring w => w -> Reg w c -> c -> RegW w c
+shift _ Eps       _ = epsW
+shift w (Sym f)   c = (symW f) { final_ = w .*. f c }
+shift w (Alt p q) c = altW (shiftW w p c) (shiftW w q c)
+shift w (Seq p q) c = seqW (shiftW w p c)
+                           (shiftW (w .*. empty p .+. final p) q c)
+shift w (Rep r)   c = repW (shiftW (w .+. final r) r c)
