@@ -21,7 +21,8 @@ Library
   Build-Tools:          happy >= 1.17
   Build-Depends:        base >= 3 && < 5, array >= 0.1, containers == 0.2.*
   Exposed-Modules:      Text.RegExp,
-                        Data.Semiring
+                        Data.Semiring,
+                        Data.Semiring.Properties
   Other-Modules:        Text.RegExp.Data,
                         Text.RegExp.Parser,
                         Text.RegExp.Matcher
