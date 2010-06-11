@@ -1,8 +1,6 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
 
-module Text.RegExp.Matcher where
+module Text.RegExp.Matching where
 
 import Data.Semiring
 import Text.RegExp.Data
@@ -18,7 +16,7 @@ data Matching = Matching {
   -- | Start index of the matching subword in the queried word.
   matchingIndex :: Int,
  
-  -- | Last index of the matching subword.
+  -- | Length of the matching subword.
   matchingLength :: Int
  
   }
@@ -46,43 +44,6 @@ accept r = match r
 -- 
 matchingCount :: RegExp c -> [c] -> Int
 matchingCount r = getNumeric . match r
-
-data LeftLong = ZeroLL | OneLL | FromTo Int Int
- deriving (Eq,Show)
-
-fromLeftLong :: LeftLong -> Maybe Matching
-fromLeftLong ZeroLL        =  Nothing
-fromLeftLong OneLL         =  Just $ Matching 0 0
-fromLeftLong (FromTo x y)  =  Just $ Matching x (y-x+1)
-
-instance Semiring LeftLong where
-  zero = ZeroLL; one = OneLL
-
-  ZeroLL      .+.  y           =  y
-  x           .+.  ZeroLL      =  x
-  OneLL       .+.  y           =  y
-  x           .+.  OneLL       =  x
-  FromTo a b  .+.  FromTo c d
-    | a<c || a==c && b>=d      =  FromTo a b
-    | otherwise                =  FromTo c d
-
-  ZeroLL      .*.  _           =  ZeroLL
-  _           .*.  ZeroLL      =  ZeroLL
-  OneLL       .*.  y           =  y
-  x           .*.  OneLL       =  x
-  FromTo a b  .*.  FromTo c d
-    | a<=b && b+1==c && c<=d   =  FromTo a d
-    | otherwise                =  ZeroLL
-
-instance Weight c (Int,c) LeftLong where
-  symWeight p (n,c) = p c .*. FromTo n n
-
--- |
--- Returns the leftmost longest of all non-empty matchings for a
--- regular expression in a given word.
--- 
-leftmostLongest :: RegExp c -> [c] -> Maybe Matching
-leftmostLongest r = fromLeftLong . submatch r
 
 -- |
 -- Matches a regular expression against a word computing a weight in

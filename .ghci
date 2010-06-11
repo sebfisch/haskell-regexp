@@ -9,5 +9,5 @@
 
 -- load private modules
 
-:def loadprivate \_ -> return ":load Text/RegExp Text/RegExp/Data Text/RegExp/Matcher Data/Semiring"
+:def loadprivate \_ -> return ":load Text/RegExp Text/RegExp/Data Text/RegExp/Matching Text/RegExp/Matching/LeftLong Data/Semiring Data/Semiring/Properties"
 :loadprivate

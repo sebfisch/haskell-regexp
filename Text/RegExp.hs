@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 
 -- |
 -- Module      : Text.RegExp
@@ -51,7 +51,8 @@ import qualified Data.String
 
 import Text.RegExp.Data
 import Text.RegExp.Parser
-import Text.RegExp.Matcher
+import Text.RegExp.Matching
+import Text.RegExp.Matching.LeftLong
 
 import Prelude hiding ( seq )
 
@@ -60,7 +61,8 @@ import Prelude hiding ( seq )
 -- 'OverloadedStrings' language extension is enabled, string literals
 -- can be used as regular expressions without using 'fromString'
 -- explicitly. Implicit conversion is especially useful in combination
--- with functions that take a value of type @RegExp Char@ as argument.
+-- with functions like '=~' that take a value of type @RegExp Char@ as
+-- argument.
 -- 
 -- Here are some examples of supported regular expressions along with
 -- an explanation what they mean:
@@ -94,3 +96,7 @@ fromString = Data.String.fromString
 
 instance Data.String.IsString (RegExp Char) where
   fromString = parse
+
+(=~) :: Weight Char (Int,Char) w => RegExp Char -> String -> w
+(=~) = submatch
+

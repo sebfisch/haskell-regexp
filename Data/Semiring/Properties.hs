@@ -27,7 +27,7 @@ left'one :: Semiring s => s -> Bool
 left'one a  =  one .*. a  ==  a
 
 -- | > a .*. one  ==  a
-right'one :: Zemiring s => s -> Bool
+right'one :: Semiring s => s -> Bool
 right'one a  =  a .*. one  ==  a
 
 -- | > (a .*. b) .*. c  ==  a .*. (b .*. c)
@@ -43,9 +43,9 @@ right'distr :: Semiring s => s -> s -> s -> Bool
 right'distr a b c  =  (a .+. b) .*. c  ==  (a .*. c) .+. (b .*. c)
 
 -- | > zero .*. a  ==  zero
-left'ann :: Semiring s -> s -> Bool
+left'ann :: Semiring s => s -> Bool
 left'ann a  =  zero .*. a  ==  zero
 
 -- | > a .*. zero  ==  zero
-right'ann :: Semiring s -> s -> Bool
+right'ann :: Semiring s => s -> Bool
 right'ann a  =  a .*. zero  ==  zero

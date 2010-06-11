@@ -25,7 +25,8 @@ Library
                         Data.Semiring.Properties
   Other-Modules:        Text.RegExp.Data,
                         Text.RegExp.Parser,
-                        Text.RegExp.Matcher
+                        Text.RegExp.Matching,
+                        Text.RegExp.Matching.LeftLong
   Extensions:           RankNTypes,
                         BangPatterns,
                         FlexibleInstances,
