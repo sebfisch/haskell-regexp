@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Text.RegExp
@@ -97,6 +97,6 @@ fromString = Data.String.fromString
 instance Data.String.IsString (RegExp Char) where
   fromString = parse
 
-(=~) :: Weight Char (Int,Char) w => RegExp Char -> String -> w
-(=~) = submatch
+(=~) :: RegExp Char -> String -> Maybe Matching
+(=~) = leftmostLongest
 
