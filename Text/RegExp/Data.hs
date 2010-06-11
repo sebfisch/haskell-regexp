@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes, MultiParamTypeClasses #-}
 
 module Text.RegExp.Data where
 
@@ -28,15 +28,17 @@ data Reg w c = Eps
              | Seq (RegW w c) (RegW w c)
              | Rep (RegW w c)
 
-indexed :: RegExp c -> RegExp (Int,c)
-indexed (RegExp x) = RegExp (indexedW x)
- where indexedW (RegW a e f r) =
-         case r of
-           Eps     -> RegW a e f Eps
-           Sym g   -> RegW a e f (Sym (\ (i,c) -> index i .*. g c))
-           Alt p q -> RegW a e f (Alt (indexedW p) (indexedW q))
-           Seq p q -> RegW a e f (Seq (indexedW p) (indexedW q))
-           Rep p   -> RegW a e f (Rep (indexedW p))
+class Semiring w => Weight a b w where
+  symWeight :: (a -> w) -> b -> w
+
+weighted :: Weight a b w => RegW w a -> RegW w b
+weighted (RegW a e f r) =
+  case r of
+    Eps     -> RegW a e f Eps
+    Sym p   -> RegW a e f (Sym (symWeight p))
+    Alt p q -> RegW a e f (Alt (weighted p) (weighted q))
+    Seq p q -> RegW a e f (Seq (weighted p) (weighted q))
+    Rep p   -> RegW a e f (Rep (weighted p))
 
 -- |
 -- Matches the empty word. 'eps' has no direct string representation
@@ -54,16 +56,13 @@ epsW = RegW False one zero Eps
 sym :: Char -> RegExp Char
 sym = psym . (==)
 
-symW :: Semiring w => (c -> w) -> RegW w c
-symW f = RegW False zero zero $ Sym f
-
 -- | Matches a symbol that satisfies the given predicate.
 -- 
 psym :: (c -> Bool) -> RegExp c
-psym p = RegExp (psymW p)
+psym p = RegExp (symW (fromBool . p))
 
-psymW :: Semiring w => (c -> Bool) -> RegW w c
-psymW p = symW (fromBool . p)
+symW :: Semiring w => (c -> w) -> RegW w c
+symW p = RegW False zero zero $ Sym p
 
 -- | Matches an arbitrary symbol.
 -- 

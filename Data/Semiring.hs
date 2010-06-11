@@ -10,7 +10,7 @@
 -- This library provides a type class for semirings and instances for
 -- standard data types.
 -- 
-module Data.Semiring ( Semiring(..), fromBool, Numeric(..), Min(..) ) where
+module Data.Semiring ( Semiring(..), fromBool, Numeric(..) ) where
 
 import Data.Monoid
 import Control.Applicative
@@ -86,44 +86,3 @@ newtype Numeric a = Numeric { getNumeric :: a } deriving (Eq,Show,Num)
 
 instance Num a => Semiring (Numeric a) where
   zero = 0; one = 1; (.+.) = (+); (.*.) = (*)
-
--- |
--- Adds a maximum element (infinity) to a totally ordered type.
--- 
--- A monoid with a total order is a semiring after adding a maximum
--- element. The (lifted) minimum operation serves as addition and the
--- underlying monoid is lifted into the multiplicative stucture.
--- 
--- The minimum operation is associative and commutative if the
--- underlying ordering is total (and antisymmetric):
--- 
--- > a <= b || b <= a
--- > a <= b && b <= a  ==>  a == b
--- 
--- The laws of the underlying monoid are preserved when lifting it
--- into the multiplicative structure.
--- 
--- The distributive laws require that @mappend@ distributes over @min@
--- in the underlying type:
--- 
--- > a `mappend` (b `min` c)  ==  (a `mappend` b) `min` (a `mappend` c)
--- > (a `min` b) `mappend` c  ==  (a `mappend` c) `min` (b `mappend` c)
--- 
--- By definition, 'zero' annihilates the semiring with respect to
--- multiplication.
--- 
-newtype Min a = Min { getMin :: Maybe a } deriving Eq
-
-instance (Ord a, Monoid a) => Semiring (Min a)
- where
-  zero = Min Nothing
-  one  = Min (Just mempty)
-
-  a .+. b = Min (getMin a `plus` getMin b)
-   where
-    Nothing `plus` Nothing = Nothing
-    Nothing `plus` Just y  = Just y
-    Just x  `plus` Nothing = Just x
-    Just x  `plus` Just y  = Just (min x y)
-
-  a .*. b = Min $ liftA2 mappend (getMin a) (getMin b)

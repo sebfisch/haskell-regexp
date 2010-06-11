@@ -40,7 +40,7 @@ module Text.RegExp (
 
   -- * Matching
 
-  Matching, firstIndex, lastIndex,
+  Matching, matchingIndex, matchingLength,
 
   accept, matchingCount, leftmostLongest
 

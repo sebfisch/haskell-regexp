@@ -1,11 +1,8 @@
-{-# LANGUAGE RankNTypes, TypeOperators, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 
 module Text.RegExp.Matcher where
-
-import Data.Monoid
-
-import qualified Data.Sequence as Seq; import Data.Sequence ( Seq )
-import qualified Data.Foldable as Fold
 
 import Data.Semiring
 import Text.RegExp.Data
@@ -18,18 +15,18 @@ import Prelude hiding ( seq )
 -- 
 data Matching = Matching {
  
-  -- | First index of the matching subword in the queried word.
-  firstIndex :: Int,
+  -- | Start index of the matching subword in the queried word.
+  matchingIndex :: Int,
  
   -- | Last index of the matching subword.
-  lastIndex :: Int
+  matchingLength :: Int
  
   }
  
 instance Show Matching
  where
-  showsPrec _ m = showString "<from:" . shows (firstIndex m)
-                . showString " to:" . shows (lastIndex m)
+  showsPrec _ m = showString "<index:" . shows (matchingIndex m)
+                . showString " length:" . shows (matchingLength m)
                 . showString ">"
  
   showList = showString . unlines . map show
@@ -50,30 +47,42 @@ accept r = match r
 matchingCount :: RegExp c -> [c] -> Int
 matchingCount r = getNumeric . match r
 
-newtype LL = LL { getLL :: (First Int, Last Int) }
- deriving (Eq,Monoid)
+data LeftLong = ZeroLL | OneLL | FromTo Int Int
+ deriving (Eq,Show)
 
-leftlong :: Int -> Int -> LL
-leftlong i j = LL (First (Just i), Last (Just j))
+fromLeftLong :: LeftLong -> Maybe Matching
+fromLeftLong ZeroLL        =  Nothing
+fromLeftLong OneLL         =  Just $ Matching 0 0
+fromLeftLong (FromTo x y)  =  Just $ Matching x (y-x+1)
 
-fromLL :: LL -> Matching
-fromLL (LL (First (Just i), Last (Just j))) = Matching i j
+instance Semiring LeftLong where
+  zero = ZeroLL; one = OneLL
 
--- leftmost longest match is the smallest
-instance Ord LL
- where compare (LL a) (LL b) =
-         case (getFirst (fst a), getFirst (fst b)) of
-           (Nothing,Nothing) -> compare (snd b) (snd a)
-           (Nothing,_      ) -> GT
-           (_      ,Nothing) -> LT
-           (Just i ,Just j ) -> compare (i,snd b) (j,snd a)
+  ZeroLL      .+.  y           =  y
+  x           .+.  ZeroLL      =  x
+  OneLL       .+.  y           =  y
+  x           .+.  OneLL       =  x
+  FromTo a b  .+.  FromTo c d
+    | a<c || a==c && b>=d      =  FromTo a b
+    | otherwise                =  FromTo c d
+
+  ZeroLL      .*.  _           =  ZeroLL
+  _           .*.  ZeroLL      =  ZeroLL
+  OneLL       .*.  y           =  y
+  x           .*.  OneLL       =  x
+  FromTo a b  .*.  FromTo c d
+    | a<=b && b+1==c && c<=d   =  FromTo a d
+    | otherwise                =  ZeroLL
+
+instance Weight c (Int,c) LeftLong where
+  symWeight p (n,c) = p c .*. FromTo n n
 
 -- |
 -- Returns the leftmost longest of all non-empty matchings for a
 -- regular expression in a given word.
 -- 
 leftmostLongest :: RegExp c -> [c] -> Maybe Matching
-leftmostLongest r = fmap fromLL . getMin . submatch r
+leftmostLongest r = fromLeftLong . submatch r
 
 -- |
 -- Matches a regular expression against a word computing a weight in
@@ -88,9 +97,10 @@ match (RegExp r) = matchW r
 -- semirings is used to report positional information about the
 -- matching part of the word to the semiring.
 -- 
-submatch :: Semiring w => RegExp c -> [c] -> w
-submatch r = match (arb `seq` indexed r `seq` arb) . zip [0..]
- where arb = rep anySym
+submatch :: Weight c (Int,c) w => RegExp c -> [c] -> w
+submatch (RegExp r) =
+  matchW (arb `seqW` weighted r `seqW` arb) . zip [(0::Int)..]
+ where arb = repW (symW (const one))
 
 matchW :: Semiring w => RegW w c -> [c] -> w
 matchW r []     = empty r
