@@ -12,9 +12,6 @@
 -- 
 module Data.Semiring ( Semiring(..), fromBool, Numeric(..) ) where
 
-import Data.Monoid
-import Control.Applicative
-
 infixr 6 .+.
 infixr 7 .*.
 

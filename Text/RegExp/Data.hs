@@ -3,10 +3,7 @@
 
 module Text.RegExp.Data where
 
-import Data.Maybe
 import Data.Semiring
-
-import Prelude hiding ( seq )
 
 -- |
 -- Regular expressions are represented as values of type 'RegExp' @c@
@@ -94,8 +91,8 @@ altW p q = RegW (active p || active q)
 -- Matches the sequence of two regular expressions. For example the
 -- regular expressions @ab@ matches the word @ab@.
 -- 
-seq :: RegExp c -> RegExp c -> RegExp c
-seq (RegExp p) (RegExp q) =
+seq_ :: RegExp c -> RegExp c -> RegExp c
+seq_ (RegExp p) (RegExp q) =
   RegExp (RegW False (empty p .*. empty q) zero (Seq p q))
 
 seqW :: Semiring w => RegW w c -> RegW w c -> RegW w c
@@ -119,7 +116,7 @@ repW r = RegW (active r) one (final r) (Rep r)
 --   more times.
 -- 
 rep1 :: RegExp c -> RegExp c
-rep1 r = r `seq` rep r
+rep1 r = r `seq_` rep r
 
 -- |
 -- Matches the given regular expression or the empty word. Optional
@@ -142,4 +139,4 @@ opt r = eps `alt` r
 -- 
 brep :: (Int,Int) -> RegExp c -> RegExp c
 brep (n,m) r =
-  foldr seq (foldr seq eps (replicate (m-n) (opt r))) (replicate n r)
+  foldr seq_ (foldr seq_ eps (replicate (m-n) (opt r))) (replicate n r)

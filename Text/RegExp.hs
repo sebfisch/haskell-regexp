@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS -fno-warn-orphans #-}
 
 -- |
 -- Module      : Text.RegExp
@@ -36,13 +37,13 @@ module Text.RegExp (
 
   RegExp, fromString,
 
-  eps, sym, psym, alt, seq, rep, rep1, opt, brep,
+  eps, sym, psym, anySym, alt, seq_, rep, rep1, opt, brep,
 
   -- * Matching
 
   Matching, matchingIndex, matchingLength,
 
-  accept, matchingCount, leftmostLongest
+  accept, matchingCount, leftmostLongest, (=~)
 
   ) where
 

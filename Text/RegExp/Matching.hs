@@ -5,8 +5,6 @@ module Text.RegExp.Matching where
 import Data.Semiring
 import Text.RegExp.Data
 
-import Prelude hiding ( seq )
-
 -- |
 -- Subwords of words that match a regular expression are represented
 -- as values of type 'Matching'.
@@ -54,8 +52,8 @@ match (RegExp r) = matchW r
 
 -- |
 -- Matches a regular expression against substrings of a word computing
--- a weight in an arbitrary semiring. The 'index' function of
--- semirings is used to report positional information about the
+-- a weight in an arbitrary semiring. The 'symWeight' function of
+-- 'Weight's is used to report positional information about the
 -- matching part of the word to the semiring.
 -- 
 submatch :: Weight c (Int,c) w => RegExp c -> [c] -> w

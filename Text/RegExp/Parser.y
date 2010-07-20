@@ -1,15 +1,12 @@
 {
 {-# LANGUAGE NoMonomorphismRestriction  #-}
+{-# OPTIONS -fno-warn-incomplete-patterns -fno-warn-missing-signatures #-}
 
 module Text.RegExp.Parser ( parse ) where
 
 import Text.RegExp.Data
-  ( RegExp, eps, sym, psym, anySym, alt, rep, rep1, opt, brep )
+  ( eps, sym, psym, anySym, alt, seq_, rep, rep1, opt, brep )
 
-import qualified Text.RegExp.Data ( seq )
-
-import Data.Monoid
-import Data.String
 import Data.Char ( isSpace, toLower, isAlphaNum, isDigit )
 
 }
@@ -40,7 +37,7 @@ import Data.Char ( isSpace, toLower, isAlphaNum, isDigit )
 RegExp : {- empty -}       { eps }
        | sym               { sym $1 }
        | RegExp '*'        { rep $1 }
-       | RegExp seq RegExp { Text.RegExp.Data.seq $1 $3 }
+       | RegExp seq RegExp { seq_ $1 $3 }
        | RegExp '|' RegExp { alt $1 $3 }
        | '(' RegExp ')'    { $2 }
        | RegExp '+'        { rep1 $1 }
