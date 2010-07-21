@@ -13,9 +13,11 @@
 -- 
 module Text.RegExp.Matching.LeftLong (
 
-  Matching, matchingIndex, matchingLength,
+  LeftLong, Matching, matchingIndex, matchingLength,
 
-  matching
+  matching,
+
+  mult'LeftLong'pre
 
   ) where
 
@@ -78,3 +80,14 @@ instance Semiring LeftLong where
 
 instance Weight c (Int,c) LeftLong where
   symWeight p (n,c) = p c .*. LeftLong n n
+
+-- |
+-- The 'LeftLong' type satisfies the distributive laws only with this
+-- precondition on all involved multiplications, which is satisfied
+-- for all multiplications during regular expression matching because
+-- multiplication combines adjacent matches.
+-- 
+mult'LeftLong'pre :: LeftLong -> LeftLong -> Bool
+mult'LeftLong'pre (LeftLong a b) (LeftLong c d)  =  a<b && b+1==c && c < d
+mult'LeftLong'pre _              _               =  True
+

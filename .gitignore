@@ -7,3 +7,5 @@ Text/RegExp/Parser.hs
 test/match-regexp
 test/test-regexp-correctness
 test/tests
+hpc/*
+.hpc/*

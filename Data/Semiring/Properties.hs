@@ -6,7 +6,11 @@
 -- This library provides properties for the 'Semiring' type class that
 -- can be checked using libraries like QuickCheck or SmallCheck.
 -- 
-module Data.Semiring.Properties where
+module Data.Semiring.Properties (
+
+  module Data.Semiring, module Data.Semiring.Properties
+
+  ) where
 
 import Data.Semiring
 

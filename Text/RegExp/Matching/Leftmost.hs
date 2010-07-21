@@ -13,7 +13,7 @@
 -- 
 module Text.RegExp.Matching.Leftmost (
 
-  Matching, matchingIndex,
+  Leftmost, Matching, matchingIndex,
 
   matching
 
@@ -67,7 +67,7 @@ instance Semiring Leftmost where
   _           .*.  Zero        =  Zero
   One         .*.  y           =  y
   x           .*.  One         =  x
-  Leftmost a  .*.  Leftmost _  =  Leftmost a
+  Leftmost a  .*.  Leftmost b  =  Leftmost (min a b)
 
 instance Weight c (Int,c) Leftmost where
   symWeight p (n,c) = p c .*. Leftmost n

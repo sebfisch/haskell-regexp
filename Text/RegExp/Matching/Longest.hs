@@ -13,7 +13,7 @@
 -- 
 module Text.RegExp.Matching.Longest (
 
-  Matching, matchingLength,
+  Longest, Matching, matchingLength,
 
   matching
 

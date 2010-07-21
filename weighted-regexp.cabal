@@ -14,12 +14,13 @@ Author:        Thomas Wilke, Frank Huch, Sebastian Fischer
 Maintainer:    Sebastian Fischer
 Bug-Reports:   http://github.com/sebfisch/haskell-regexp/issues
 Homepage:      http://github.com/sebfisch/haskell-regexp
-Build-Type:    Simple
+Build-Type:    Custom
 Stability:     experimental
 
 Library
   Build-Tools:          happy >= 1.17
-  Build-Depends:        base >= 3 && < 5, array >= 0.1, containers == 0.2.*
+  Build-Depends:        base >= 3 && < 5,
+                        array >= 0.1 && <= 0.2.0.0
   Exposed-Modules:      Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
                         Text.RegExp.Matching.Longest,
@@ -31,9 +32,28 @@ Library
                         Text.RegExp.Matching
   Extensions:           RankNTypes,
                         BangPatterns,
+                        FlexibleContexts,
                         FlexibleInstances,
+                        MultiParamTypeClasses,
                         NoMonomorphismRestriction,
                         GeneralizedNewtypeDeriving
+
+Flag quickcheck
+  Description:          Build executable to run QuickCheck tests
+  Default:              False
+
+Executable quickcheck-weighted-regexp
+  other-modules:        Text.RegExp,
+                        Text.RegExp.Data
+  Main-Is:              quickcheck.lhs
+  Build-Depends:        base >= 3 && < 5, QuickCheck < 2
+  Extensions:           FlexibleContexts,
+                        ScopedTypeVariables,
+                        MultiParamTypeClasses,
+                        GeneralizedNewtypeDeriving
+  GHC-Options:          -fhpc -fno-warn-missing-methods -fno-warn-orphans
+  If !flag(quickcheck)
+    Buildable:          False
 
 Source-Repository head
   type:     git
