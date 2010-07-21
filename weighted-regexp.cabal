@@ -21,12 +21,14 @@ Library
   Build-Tools:          happy >= 1.17
   Build-Depends:        base >= 3 && < 5, array >= 0.1, containers == 0.2.*
   Exposed-Modules:      Text.RegExp,
+                        Text.RegExp.Matching.Leftmost,
+                        Text.RegExp.Matching.Longest,
+                        Text.RegExp.Matching.LeftLong,
                         Data.Semiring,
                         Data.Semiring.Properties
   Other-Modules:        Text.RegExp.Data,
                         Text.RegExp.Parser,
-                        Text.RegExp.Matching,
-                        Text.RegExp.Matching.LeftLong
+                        Text.RegExp.Matching
   Extensions:           RankNTypes,
                         BangPatterns,
                         FlexibleInstances,

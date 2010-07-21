@@ -6,28 +6,6 @@ import Data.Semiring
 import Text.RegExp.Data
 
 -- |
--- Subwords of words that match a regular expression are represented
--- as values of type 'Matching'.
--- 
-data Matching = Matching {
- 
-  -- | Start index of the matching subword in the queried word.
-  matchingIndex :: Int,
- 
-  -- | Length of the matching subword.
-  matchingLength :: Int
- 
-  }
- 
-instance Show Matching
- where
-  showsPrec _ m = showString "<index:" . shows (matchingIndex m)
-                . showString " length:" . shows (matchingLength m)
-                . showString ">"
- 
-  showList = showString . unlines . map show
-
--- |
 -- Checks whether a regular expression matches the given word. For
 -- example, @accept (fromString \"b|abc\") \"b\"@ yields @True@
 -- because the first alternative of @b|abc@ matches the string
@@ -40,7 +18,7 @@ accept r = match r
 -- Computes in how many ways a word can be matched against a regular
 -- expression.
 -- 
-matchingCount :: RegExp c -> [c] -> Int
+matchingCount :: Num a => RegExp c -> [c] -> a
 matchingCount r = getNumeric . match r
 
 -- |

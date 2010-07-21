@@ -31,7 +31,7 @@
 -- 
 module Text.RegExp (
 
-  module Data.Semiring,
+  module Data.Semiring, Weight(..),
 
   -- * Constructing regular expressions
 
@@ -41,9 +41,7 @@ module Text.RegExp (
 
   -- * Matching
 
-  Matching, matchingIndex, matchingLength,
-
-  accept, matchingCount, leftmostLongest, (=~)
+  (=~), accept, matchingCount, match, submatch
 
   ) where
 
@@ -53,7 +51,6 @@ import qualified Data.String
 import Text.RegExp.Data
 import Text.RegExp.Parser
 import Text.RegExp.Matching
-import Text.RegExp.Matching.LeftLong
 
 import Prelude hiding ( seq )
 
@@ -98,6 +95,10 @@ fromString = Data.String.fromString
 instance Data.String.IsString (RegExp Char) where
   fromString = parse
 
-(=~) :: RegExp Char -> String -> Maybe Matching
-(=~) = leftmostLongest
+-- | 
+-- Alias for 'accept' specialized for Strings. Useful in combination
+-- with the 'IsString' instance for 'RegExp Char'
+-- 
+(=~) :: RegExp Char -> String -> Bool
+(=~) = accept
 
