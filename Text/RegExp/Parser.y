@@ -5,7 +5,7 @@
 module Text.RegExp.Parser ( parse ) where
 
 import Text.RegExp.Data
-  ( eps, sym, psym, anySym, alt, seq_, rep, rep1, opt, brep )
+  ( eps, char, psym, anySym, alt, seq_, rep, rep1, opt, brep )
 
 import Data.Char ( isSpace, toLower, isAlphaNum, isDigit )
 
@@ -35,7 +35,7 @@ import Data.Char ( isSpace, toLower, isAlphaNum, isDigit )
 %%
 
 RegExp : {- empty -}       { eps }
-       | sym               { sym $1 }
+       | sym               { char $1 }
        | RegExp '*'        { rep $1 }
        | RegExp seq RegExp { seq_ $1 $3 }
        | RegExp '|' RegExp { alt $1 $3 }

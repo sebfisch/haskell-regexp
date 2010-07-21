@@ -55,10 +55,15 @@ eps = RegExp epsW
 epsW :: Semiring w => RegW w c
 epsW = RegW False one zero Eps
 
+-- | Matches the given symbol.
+-- 
+sym :: (Eq c, Show c) => c -> RegExp c
+sym c = psym (show c) (c==)
+
 -- | Matches the given character.
 -- 
-sym :: Char -> RegExp Char
-sym c = psym [c] (c==)
+char :: Char -> RegExp Char
+char c = psym [c] (c==)
 
 -- | Matches a symbol that satisfies the given predicate.
 -- 

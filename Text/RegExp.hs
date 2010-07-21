@@ -37,7 +37,7 @@ module Text.RegExp (
 
   RegExp, fromString,
 
-  eps, sym, psym, anySym, alt, seq_, rep, rep1, opt, brep,
+  eps, char, sym, psym, anySym, alt, seq_, rep, rep1, opt, brep,
 
   -- * Matching
 
