@@ -1,6 +1,7 @@
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 > {-# LANGUAGE ScopedTypeVariables #-}
+> {-# LANGUAGE OverloadedStrings #-}
 > {-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-orphans #-}
 
 We specify a `Monoid` instance for a `newtype` of lists.
@@ -35,30 +36,22 @@ The `main` function runs all tests defined in this program.
 
 > main :: IO ()
 > main = 
->  do runTests "    semiring laws for Bool" options $
->       checks (semiring'laws :: Checks Bool)
->     runTests "     semiring laws for Int" options $
->       checks (semiring'laws :: Checks (Numeric Int))
->     runTests "semiring laws for Leftmost" options $
->       checks (semiring'laws :: Checks Leftmost)
->     runTests " semiring laws for Longest" options $
->       checks (semiring'laws :: Checks Longest)
->     runTests "semiring laws for LeftLong" options $
->       checks semiring'laws'LeftLong
->     runTests "    matcher spec with Bool" options $
->       checks match'spec'Bool
->     runTests "     matcher spec with Int" options $
->       checks match'spec'Int
->     runTests "matcher spec with Leftmost" options $
->       checks (match'spec :: Checks Leftmost)
->     runTests " matcher spec with Longest" options $
->       checks (match'spec :: Checks Longest)
->     runTests "matcher spec with LeftLong" options $
->       checks (match'spec :: Checks LeftLong)
->     runTests "      parse printed regexp" options $
->       [run parse'printed]
+>  do runChecks "semiring laws for Bool" (semiring'laws :: Checks Bool)
+>     runChecks "semiring laws for Int" (semiring'laws :: Checks (Numeric Int))
+>     runChecks "semiring laws for Leftmost" (semiring'laws :: Checks Leftmost)
+>     runChecks "semiring laws for Longest" (semiring'laws :: Checks Longest)
+>     runChecks "semiring laws for LeftLong" semiring'laws'LeftLong
+>     runChecks "matcher spec with Bool" match'spec'Bool
+>     runChecks "matcher spec with Int" match'spec'Int
+>     runChecks "matcher spec with Leftmost" (match'spec :: Checks Leftmost)
+>     runChecks "matcher spec with Longest" (match'spec :: Checks Longest)
+>     runChecks "matcher spec with LeftLong" (match'spec :: Checks LeftLong)
+>     runChecks "parse printed regexp" (Checks [run parse'printed])
+>     runChecks "lazy infinite regexps" infinite'regexp'checks
 >  where
->   options = defOpt { no_of_tests = 1000, length_of_tests = 0 }
+>   options = defOpt { no_of_tests = 1000, length_of_tests = 10 }
+>   runChecks label = runTests (pad label) options . checks
+>   pad s = replicate (30-length s) ' ' ++ s
 
 The `Arbitrary` instance for numeric types wraps the underlying
 instance. We also provide one for `Char` which is not predefined.
@@ -233,3 +226,40 @@ sugar like `a?` or `[a-z]` which should be checked separately.
 
 > parse'printed :: RegExp Char -> Bool
 > parse'printed r = fromString (show r) == r
+
+We can also match infinite regular expressions lazily to recognize
+context-free or even context-sensitive languages.
+
+> infinite'regexp'checks :: Checks Bool
+> infinite'regexp'checks = Checks [run context'free, run context'sensitive]
+
+As an example for a context-free language, we recognize 
+${a^nb^n | n >= 0}$
+
+> context'free :: String -> Bool
+> context'free s = isInAnBn s == (anbn =~ s)
+>
+> isInAnBn :: String -> Bool
+> isInAnBn s = all (=='a') xs && all (=='b') ys && length xs == length ys
+>  where (xs,ys) = break (=='b') s
+>
+> anbn :: RegExp Char
+> anbn = eps `alt` seq_ "a" (anbn `seq_` "b")
+
+As an example for a context-sensitive language we use
+${a^nb^nc^n | n >= 0}$
+
+> context'sensitive :: String -> Bool
+> context'sensitive s = isInAnBnCn s == (anbncn =~ s)
+>
+> isInAnBnCn :: String -> Bool
+> isInAnBnCn s = all (=='a') xs && all (=='b') ys && all (=='c') zs
+>             && length xs == length ys && length ys == length zs
+>  where (xs,l)  = break (=='b') s
+>        (ys,zs) = break (=='c') l
+>
+> anbncn :: RegExp Char
+> anbncn = mkAnBnCn 0
+>  where
+>   mkAnBnCn n = fromString (replicate n 'b' ++ replicate n 'c')
+>          `alt` seq_ "a" (mkAnBnCn (n+1))

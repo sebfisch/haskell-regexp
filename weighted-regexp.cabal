@@ -56,6 +56,7 @@ Executable quickcheck-weighted-regexp
   Build-Depends:        base >= 3 && < 5, QuickCheck < 2
   Extensions:           FlexibleContexts,
                         FlexibleInstances,
+                        OverloadedStrings,
                         ScopedTypeVariables,
                         MultiParamTypeClasses,
                         GeneralizedNewtypeDeriving
