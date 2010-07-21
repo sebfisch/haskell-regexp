@@ -43,11 +43,19 @@ Flag quickcheck
   Default:              False
 
 Executable quickcheck-weighted-regexp
-  other-modules:        Text.RegExp,
-                        Text.RegExp.Data
+  Other-Modules:        Text.RegExp,
+                        Text.RegExp.Matching.Leftmost,
+                        Text.RegExp.Matching.Longest,
+                        Text.RegExp.Matching.LeftLong,
+                        Data.Semiring,
+                        Data.Semiring.Properties
+                        Text.RegExp.Data,
+                        Text.RegExp.Parser,
+                        Text.RegExp.Matching
   Main-Is:              quickcheck.lhs
   Build-Depends:        base >= 3 && < 5, QuickCheck < 2
   Extensions:           FlexibleContexts,
+                        FlexibleInstances,
                         ScopedTypeVariables,
                         MultiParamTypeClasses,
                         GeneralizedNewtypeDeriving

@@ -1,7 +1,7 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-orphans #-}
+> {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+> {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+> {-# LANGUAGE ScopedTypeVariables #-}
+> {-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-orphans #-}
 
 We specify a `Monoid` instance for a `newtype` of lists.
 
@@ -16,13 +16,16 @@ used in batch mode.
 > import Data.Char ( ord )
 
 We import the semiring properties in order to check them for the
-defined instances.
+defined instances. We also define our own `sum` function for
+semirings.
 
 > import Data.Semiring.Properties
+> import Prelude hiding ( sum )
 
 Finally, we need the `RegExp` datatype, the `symWeight` function from
 the `Weight` class, and the different semirings used for matching.
 
+> import Text.RegExp
 > import Text.RegExp.Data
 > import Text.RegExp.Matching.Leftmost
 > import Text.RegExp.Matching.Longest
@@ -32,18 +35,24 @@ The `main` function runs all tests defined in this program.
 
 > main :: IO ()
 > main = 
->  do runTests "    semiring laws for Bool" options $
+>  do runTests "          semiring laws for Bool" options $
 >       checks (semiring'laws :: Checks Bool)
->     runTests "     semiring laws for Int" options $
+>     runTests "           semiring laws for Int" options $
 >       checks (semiring'laws :: Checks (Numeric Int))
->     runTests "semiring laws for Leftmost" options $
+>     runTests "      semiring laws for Leftmost" options $
 >       checks (semiring'laws :: Checks Leftmost)
->     runTests " semiring laws for Longest" options $
+>     runTests "       semiring laws for Longest" options $
 >       checks (semiring'laws :: Checks Longest)
->     runTests "semiring laws for LeftLong" options $
+>     runTests "      semiring laws for LeftLong" options $
 >       checks semiring'laws'LeftLong
+>     runTests "equivalance of matcher with spec" options $
+>       checks match'spec'Bool ++
+>       checks match'spec'Int ++
+>       checks (match'spec :: Checks Leftmost) ++
+>       checks (match'spec :: Checks Longest) ++
+>       checks (match'spec :: Checks LeftLong)
 >  where
->   options = defOpt { no_of_tests = 1000 }
+>   options = defOpt { no_of_tests = 1000, length_of_tests = 0 }
 
 The `Arbitrary` instance for numeric types wraps the underlying
 instance. We also provide one for `Char` which is not predefined.
@@ -140,3 +149,73 @@ distributive laws.
 >   , prop1 left'ann
 >   , prop1 right'ann
 >   ]
+
+Now we turn to the correctness of the `match` function. In order to
+check it, we compare it with a executable specification which is
+correct by definition:
+
+> match'spec :: forall s . Semiring s => Checks s
+> match'spec = Checks [run (check'match'spec mtch)]
+>  where
+>   mtch :: RegExp Char -> String -> s
+>   mtch = match
+>
+> check'match'spec :: Semiring s
+>                  => (RegExp Char -> String -> s)
+>                  -> RegExp Char -> String -> Property
+> check'match'spec mtch r s = length s < 7 ==> mtch r s == matchSpec r s
+
+For `Bool` and `Int`, we use special functions in order to achieve the
+corresponding code coverage.
+
+> match'spec'Bool :: Checks Bool
+> match'spec'Bool = Checks [run (check'match'spec (=~))]
+>
+> match'spec'Int :: Checks (Numeric Int)
+> match'spec'Int = Checks [run (check'match'spec mtch)]
+>  where
+>   mtch :: RegExp Char -> String -> Numeric Int
+>   mtch r s = Numeric (matchingCount r s)
+
+To make this work, we need an `Arbitrary` instance for regular
+expressions.
+
+> instance Arbitrary (RegExp Char) where
+>   arbitrary = sized regexp
+>
+> regexp :: Int -> Gen (RegExp Char)
+> regexp 0 = frequency [ (1,return eps)
+>                      , (2,sym `fmap` arbitrary) ]
+> regexp n = frequency [ (1,return eps)
+>                      , (1,sym `fmap` arbitrary)
+>                      , (2,alt  `fmap` subexp `ap` subexp)
+>                      , (2,seq_ `fmap` subexp `ap` subexp)
+>                      , (1,rep  `fmap` regexp (n-1)) ]
+>  where subexp = regexp (n `div` 2)
+
+The specification of the matching function is defined by exhaustive
+search.
+
+> matchSpec :: Semiring s => RegExp c -> [c] -> s
+> matchSpec (RegExp r) = spec (reg r)
+>  where
+>   spec Eps        u  =  if null u then one else zero
+>   spec (Sym _ f)  u  =  case u of [c] -> f c; _ -> zero
+>   spec (Alt p q)  u  =  spec (reg p) u .+. spec (reg q) u
+>   spec (Seq p q)  u  =
+>     sum [ spec (reg p) u1 .*. spec (reg q) u2 | (u1,u2) <- split u ]
+>   spec (Rep p)    u  =
+>     sum [ prod [ spec (reg p) ui | ui <- ps] | ps <- parts u ]
+>
+> sum, prod :: Semiring s => [s] -> s
+> sum   =  foldr (.+.) zero
+> prod  =  foldr (.*.) one
+>
+> split :: [a] -> [([a],[a])]
+> split []      =  [([],[])]
+> split (c:cs)  =  ([],c:cs) : [ (c:s1,s2) | (s1,s2) <- split cs ]
+>
+> parts :: [a] ->  [[[a]]]
+> parts []      =  [[]]
+> parts [c]     =  [[[c]]]
+> parts (c:cs)  =  concat [ [(c:p):ps,[c]:p:ps] | p:ps <- parts cs ]

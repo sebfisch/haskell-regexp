@@ -37,7 +37,7 @@ match (RegExp r) = matchW r
 submatch :: Weight c (Int,c) w => RegExp c -> [c] -> w
 submatch (RegExp r) =
   matchW (arb `seqW` weighted r `seqW` arb) . zip [(0::Int)..]
- where arb = repW (symW (const one))
+ where arb = repW (symW "." (const one))
 
 matchW :: Semiring w => RegW w c -> [c] -> w
 matchW r []     = empty r
@@ -49,8 +49,8 @@ shiftW w r c | active r || w /= zero = shift w (reg r) c
 
 shift :: Semiring w => w -> Reg w c -> c -> RegW w c
 shift _ Eps       _ = epsW
-shift w (Sym f)   c = let w' = w .*. f c
-                       in (symW f) { active = w' /= zero, final_ = w' }
+shift w (Sym s f) c = let w' = w .*. f c
+                       in (symW s f) { active = w' /= zero, final_ = w' }
 shift w (Alt p q) c = altW (shiftW w p c) (shiftW w q c)
 shift w (Seq p q) c = seqW (shiftW w p c)
                            (shiftW (w .*. empty p .+. final p) q c)

@@ -21,7 +21,7 @@ final :: Semiring w => RegW w c -> w
 final r = if active r then final_ r else zero
 
 data Reg w c = Eps
-             | Sym (c -> w)
+             | Sym String (c -> w)
              | Alt (RegW w c) (RegW w c)
              | Seq (RegW w c) (RegW w c)
              | Rep (RegW w c)
@@ -39,7 +39,7 @@ weighted :: Weight a b w => RegW w a -> RegW w b
 weighted (RegW a e f r) =
   case r of
     Eps     -> RegW a e f Eps
-    Sym p   -> RegW a e f (Sym (symWeight p))
+    Sym s p -> RegW a e f (Sym s (symWeight p))
     Alt p q -> RegW a e f (Alt (weighted p) (weighted q))
     Seq p q -> RegW a e f (Seq (weighted p) (weighted q))
     Rep p   -> RegW a e f (Rep (weighted p))
@@ -58,20 +58,20 @@ epsW = RegW False one zero Eps
 -- | Matches the given character.
 -- 
 sym :: Char -> RegExp Char
-sym = psym . (==)
+sym c = psym [c] (c==)
 
 -- | Matches a symbol that satisfies the given predicate.
 -- 
-psym :: (c -> Bool) -> RegExp c
-psym p = RegExp (symW (fromBool . p))
+psym :: String -> (c -> Bool) -> RegExp c
+psym s p = RegExp (symW s (fromBool . p))
 
-symW :: Semiring w => (c -> w) -> RegW w c
-symW p = RegW False zero zero $ Sym p
+symW :: Semiring w => String -> (c -> w) -> RegW w c
+symW s p = RegW False zero zero $ Sym s p
 
 -- | Matches an arbitrary symbol.
 -- 
 anySym :: RegExp c
-anySym = psym (const True)
+anySym = psym "." (const True)
 
 -- |
 -- Matches either of two regular expressions. For example @a+b@
@@ -140,3 +140,25 @@ opt r = eps `alt` r
 brep :: (Int,Int) -> RegExp c -> RegExp c
 brep (n,m) r =
   foldr seq_ (foldr seq_ eps (replicate (m-n) (opt r))) (replicate n r)
+
+regW :: Semiring w => RegExp c -> RegW w c
+regW (RegExp r) = r
+
+instance Show (RegExp Char) where
+  showsPrec n r = showsPrec n (regW r :: RegW Bool Char)
+
+instance Show (RegW Bool Char) where
+  showsPrec n r = showsPrec n (reg r)
+
+instance Show (Reg Bool Char) where
+  showsPrec _ Eps        =  showString "()"
+  showsPrec _ (Sym s _)  =  showString s
+  showsPrec n (Alt p q)  =  showParen (n > 0)
+                         $  showsPrec 0 p
+                         .  showString "|"
+                         .  showsPrec 0 q
+  showsPrec n (Seq p q)  =  showParen (n > 1)
+                         $  showsPrec 1 p
+                         .  showsPrec 1 q
+  showsPrec n (Rep r)    =  showsPrec 2 r . showString "*"
+

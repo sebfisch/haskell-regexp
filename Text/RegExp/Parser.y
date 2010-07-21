@@ -43,7 +43,7 @@ RegExp : {- empty -}       { eps }
        | RegExp '+'        { rep1 $1 }
        | RegExp '?'        { opt $1 }
        | RegExp bnd        { brep $2 $1 }
-       | cls               { psym $1 }
+       | cls               { uncurry psym $1 }
        | '.'               { anySym }
 
 {
@@ -52,7 +52,7 @@ parse = parseTokens . scan
 
 data Token = Seq | Sym Char | Ast | Bar | L | R
            | Pls | Que | Bnd (Int,Int)
-           | Cls (Char -> Bool) | Dot
+           | Cls (String,Char -> Bool) | Dot
 
 
 token :: Char -> Token
@@ -91,7 +91,7 @@ process :: String -> [Token]
 process []            = []
 
 process ('\\':c:cs)
-  | isSymClassChar c  = Cls (symClassPred c) : process cs
+  | isSymClassChar c  = Cls (['\\',c],symClassPred c) : process cs
 
 process ('\\':c:cs)   = Sym c : process cs
 
@@ -103,10 +103,10 @@ process ('{':cs)      = case reads cs of
                                 _              -> token '{' : process cs
                           _              -> token '{' : process cs
 
-process ('[':'^':cs)  = Cls (not.p) : process xs
+process ('[':'^':cs)  = Cls (('[':'^':s),not.p) : process xs
  where (s,p,xs) = processCls cs
 
-process ('['    :cs)  = Cls p : process xs
+process ('['    :cs)  = Cls ('[':s,p) : process xs
  where (s,p,xs) = processCls cs
 
 process (c:cs)        = token c : process cs
