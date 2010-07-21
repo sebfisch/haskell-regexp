@@ -138,8 +138,15 @@ opt r = eps `alt` r
 -- @aaaaa?a?a?@.
 -- 
 brep :: (Int,Int) -> RegExp c -> RegExp c
-brep (n,m) r =
-  foldr seq_ (foldr seq_ eps (replicate (m-n) (opt r))) (replicate n r)
+brep (n,m) r
+  | n > m             =  error msg
+  | n >= m && n == 0  =  eps
+  | n >= m            =  foldr1 seq_ (replicate n r)
+  | otherwise         =  foldr seq_ rest (replicate n r)
+ where
+  rest = foldr nestopt (opt r) (replicate (m-n-1) r)
+  nestopt p q = opt (seq_ p q)
+  msg = "Text.RegExp.brep: invalid repetition bounds: " ++ show (n,m)
 
 regW :: Semiring w => RegExp c -> RegW w c
 regW (RegExp r) = r
