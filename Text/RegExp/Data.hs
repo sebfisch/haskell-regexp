@@ -154,11 +154,24 @@ instance Show (Reg Bool Char) where
   showsPrec _ Eps        =  showString "()"
   showsPrec _ (Sym s _)  =  showString s
   showsPrec n (Alt p q)  =  showParen (n > 0)
-                         $  showsPrec 0 p
+                         $  showsPrec 1 p
                          .  showString "|"
                          .  showsPrec 0 q
   showsPrec n (Seq p q)  =  showParen (n > 1)
-                         $  showsPrec 1 p
+                         $  showsPrec 2 p
                          .  showsPrec 1 q
-  showsPrec n (Rep r)    =  showsPrec 2 r . showString "*"
+  showsPrec _ (Rep r)    =  showsPrec 2 r . showString "*"
 
+instance Eq (RegExp Char) where
+  p == q  =  regW p == (regW q :: RegW Bool Char)
+
+instance Eq (RegW Bool Char) where
+  p == q  =  reg p == reg q
+
+instance Eq (Reg Bool Char) where
+  Eps     == Eps      =  True
+  Sym s _ == Sym t _  =  s==t
+  Alt a b == Alt c d  =  a==c && b==d
+  Seq a b == Seq c d  =  a==c && b==d
+  Rep a   == Rep b    =  a==b
+  _       == _        =  False
