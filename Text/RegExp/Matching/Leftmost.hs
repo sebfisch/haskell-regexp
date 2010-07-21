@@ -44,7 +44,7 @@ instance Show Matching
 -- its position is zero.
 -- 
 matching :: RegExp c -> [c] -> Maybe Matching
-matching r = getLeftmost . submatch r
+matching r = getLeftmost . partialMatch r
 
 data Leftmost = Zero | One | Leftmost Int
  deriving (Eq,Show)

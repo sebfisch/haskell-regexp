@@ -41,7 +41,7 @@ module Text.RegExp (
 
   -- * Matching
 
-  (=~), accept, matchingCount, match, submatch
+  (=~), accept, matchingCount, fullMatch, partialMatch
 
   ) where
 
@@ -51,8 +51,6 @@ import qualified Data.String
 import Text.RegExp.Data
 import Text.RegExp.Parser
 import Text.RegExp.Matching
-
-import Prelude hiding ( seq )
 
 -- |
 -- Parses a regular expression from its string representation. If the

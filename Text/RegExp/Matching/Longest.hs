@@ -43,7 +43,7 @@ instance Show Matching
 -- given word.
 -- 
 matching :: RegExp c -> [c] -> Maybe Matching
-matching r = getLongest . submatch r
+matching r = getLongest . partialMatch r
 
 data Longest = Zero | One | Longest Int
  deriving (Eq,Show)

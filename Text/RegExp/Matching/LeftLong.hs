@@ -51,7 +51,7 @@ instance Show Matching
 -- matching its position is zero.
 -- 
 matching :: RegExp c -> [c] -> Maybe Matching
-matching r = getLeftLong . submatch r
+matching r = getLeftLong . partialMatch r
 
 data LeftLong = Zero | One | LeftLong Int Int
  deriving (Eq,Show)

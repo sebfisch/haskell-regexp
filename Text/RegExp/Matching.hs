@@ -12,21 +12,21 @@ import Text.RegExp.Data
 -- @\"b\"@.
 -- 
 accept :: RegExp c -> [c] -> Bool
-accept r = match r
+accept r = fullMatch r
 
 -- |
 -- Computes in how many ways a word can be matched against a regular
 -- expression.
 -- 
 matchingCount :: Num a => RegExp c -> [c] -> a
-matchingCount r = getNumeric . match r
+matchingCount r = getNumeric . fullMatch r
 
 -- |
 -- Matches a regular expression against a word computing a weight in
 -- an arbitrary semiring.
 -- 
-match :: Semiring w => RegExp c -> [c] -> w
-match (RegExp r) = matchW r
+fullMatch :: Semiring w => RegExp c -> [c] -> w
+fullMatch (RegExp r) = matchW r
 
 -- |
 -- Matches a regular expression against substrings of a word computing
@@ -34,8 +34,8 @@ match (RegExp r) = matchW r
 -- 'Weight's is used to report positional information about the
 -- matching part of the word to the semiring.
 -- 
-submatch :: Weight c (Int,c) w => RegExp c -> [c] -> w
-submatch (RegExp r) =
+partialMatch :: Weight c (Int,c) w => RegExp c -> [c] -> w
+partialMatch (RegExp r) =
   matchW (arb `seqW` weighted r `seqW` arb) . zip [(0::Int)..]
  where arb = repW (symW "." (const one))
 

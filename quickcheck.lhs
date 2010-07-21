@@ -164,7 +164,7 @@ correct by definition:
 > match'spec = Checks [run (check'match'spec mtch)]
 >  where
 >   mtch :: RegExp Char -> String -> s
->   mtch = match
+>   mtch = fullMatch
 >
 > check'match'spec :: Semiring s
 >                  => (RegExp Char -> String -> s)
