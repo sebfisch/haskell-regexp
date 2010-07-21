@@ -35,21 +35,25 @@ The `main` function runs all tests defined in this program.
 
 > main :: IO ()
 > main = 
->  do runTests "          semiring laws for Bool" options $
+>  do runTests "    semiring laws for Bool" options $
 >       checks (semiring'laws :: Checks Bool)
->     runTests "           semiring laws for Int" options $
+>     runTests "     semiring laws for Int" options $
 >       checks (semiring'laws :: Checks (Numeric Int))
->     runTests "      semiring laws for Leftmost" options $
+>     runTests "semiring laws for Leftmost" options $
 >       checks (semiring'laws :: Checks Leftmost)
->     runTests "       semiring laws for Longest" options $
+>     runTests " semiring laws for Longest" options $
 >       checks (semiring'laws :: Checks Longest)
->     runTests "      semiring laws for LeftLong" options $
+>     runTests "semiring laws for LeftLong" options $
 >       checks semiring'laws'LeftLong
->     runTests "equivalance of matcher with spec" options $
->       checks match'spec'Bool ++
->       checks match'spec'Int ++
->       checks (match'spec :: Checks Leftmost) ++
->       checks (match'spec :: Checks Longest) ++
+>     runTests "    matcher spec with Bool" options $
+>       checks match'spec'Bool
+>     runTests "     matcher spec with Int" options $
+>       checks match'spec'Int
+>     runTests "matcher spec with Leftmost" options $
+>       checks (match'spec :: Checks Leftmost)
+>     runTests " matcher spec with Longest" options $
+>       checks (match'spec :: Checks Longest)
+>     runTests "matcher spec with LeftLong" options $
 >       checks (match'spec :: Checks LeftLong)
 >  where
 >   options = defOpt { no_of_tests = 1000, length_of_tests = 0 }
@@ -187,10 +191,10 @@ expressions.
 > regexp 0 = frequency [ (1,return eps)
 >                      , (2,sym `fmap` arbitrary) ]
 > regexp n = frequency [ (1,return eps)
->                      , (1,sym `fmap` arbitrary)
->                      , (2,alt  `fmap` subexp `ap` subexp)
->                      , (2,seq_ `fmap` subexp `ap` subexp)
->                      , (1,rep  `fmap` regexp (n-1)) ]
+>                      , (2,sym `fmap` arbitrary)
+>                      , (3,alt  `fmap` subexp `ap` subexp)
+>                      , (6,seq_ `fmap` subexp `ap` subexp)
+>                      , (3,rep  `fmap` regexp (n-1)) ]
 >  where subexp = regexp (n `div` 2)
 
 The specification of the matching function is defined by exhaustive
