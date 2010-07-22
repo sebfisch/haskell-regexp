@@ -1,3 +1,4 @@
+
 > {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 > {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 > {-# LANGUAGE ScopedTypeVariables #-}
@@ -13,7 +14,7 @@ used in batch mode.
 
 > import Test.QuickCheck
 > import Test.QuickCheck.Batch
-> import Control.Monad ( ap )
+> import Control.Monad ( ap, replicateM )
 > import Data.Char ( chr, ord )
 
 We import the semiring properties in order to check them for the
@@ -39,37 +40,29 @@ The `main` function runs all tests defined in this program.
 
 > main :: IO ()
 > main = 
->  do runChecks "semiring laws for Bool" (semiring'laws :: Checks Bool)
->     runChecks "semiring laws for Int" (semiring'laws :: Checks (Numeric Int))
->     runChecks "semiring laws for Leftmost" (semiring'laws :: Checks Leftmost)
->     runChecks "semiring laws for Longest" (semiring'laws :: Checks Longest)
->     runChecks "semiring laws for LeftLong" semiring'laws'LeftLong
->     runChecks "full match with Bool"
->       (full'match'spec :: Checks Bool)
->     runChecks "full match with Int"
->       (full'match'spec :: Checks (Numeric Int))
->     runChecks "full match with Leftmost"
->       (full'match'spec :: Checks Leftmost)
->     runChecks "full match with Longest"
->       (full'match'spec :: Checks Longest)
->     runChecks "full match with LeftLong"
->       (full'match'spec :: Checks LeftLong)
->     runChecks "partial match with Bool"
->       (partial'match'spec partialMatch id :: Checks Bool)
->     runChecks "partial match with Int"
->       (partial'match'spec partialMatch id :: Checks (Numeric Int))
->     runChecks "partial match with Leftmost"
->       (partial'match'spec Leftmost.matching getLeftmost)
->     runChecks "partial match with Longest"
->       (partial'match'spec Longest.matching getLongest)
->     runChecks "partial match with LeftLong"
->       (partial'match'spec LeftLong.matching getLeftLong)
->     runChecks "parse printed regexp" (Checks [run parse'printed])
+>  do runChecks "semiring laws (Bool)" (semiring'laws :: Checks Bool)
+>     runChecks "semiring laws (Int)" (semiring'laws :: Checks (Numeric Int))
+>     runChecks "semiring laws (Leftmost)" (semiring'laws :: Checks Leftmost)
+>     runChecks "semiring laws (Longest)" (semiring'laws :: Checks Longest)
+>     runChecks "semiring laws (LeftLong)" semiring'laws'LeftLong
+>     runTests (pad "full match") options $
+>       checks (full'match'spec :: Checks Bool) ++
+>       checks (full'match'spec :: Checks (Numeric Int)) ++
+>       checks (full'match'spec :: Checks Leftmost) ++
+>       checks (full'match'spec :: Checks Longest) ++
+>       checks (full'match'spec :: Checks LeftLong)
+>     runTests (pad "partial match") options $
+>       checks (partial'match'spec partialMatch id :: Checks Bool) ++
+>       checks (partial'match'spec partialMatch id :: Checks (Numeric Int)) ++
+>       checks (partial'match'spec Leftmost.matching getLeftmost) ++
+>       checks (partial'match'spec Longest.matching getLongest) ++
+>       checks (partial'match'spec LeftLong.matching getLeftLong)
+>     runTests (pad "parse printed regexp") options [run parse'printed]
 >     runChecks "lazy infinite regexps" infinite'regexp'checks
 >  where
 >   options = defOpt { no_of_tests = 1000, length_of_tests = 60 }
 >   runChecks s = runTests (pad s) options . checks
->   pad s = replicate (30-length s) ' ' ++ s
+>   pad s = replicate (25-length s) ' ' ++ s
 
 The `Arbitrary` instance for numeric types wraps the underlying
 instance. We also provide one for `Char` which is not predefined.
@@ -78,8 +71,7 @@ instance. We also provide one for `Char` which is not predefined.
 >   arbitrary = numeric `fmap` arbitrary
 >
 > instance Arbitrary Char where
->   arbitrary   = elements "abcde \\|*+?.[]{}"
->   coarbitrary = coarbitrary . ord
+>   arbitrary = elements "abcde \\|*+?.[]{}"
 
 We provide generic `Semiring` instances for the semirings used for
 matching.
@@ -178,30 +170,28 @@ check it, we compare it with a executable specification which is
 correct by definition:
 
 > full'match'spec :: (Show s, Semiring s) => Checks s
-> full'match'spec = match'spec fullMatch fullMatchSpec fullMatch id
+> full'match'spec = match'spec fullMatchSpec fullMatch id
 >
 > partial'match'spec :: (Show a, Weight Char (Int,Char) s)
 >                    => (RegExp Char -> String -> a)
 >                    -> (s -> a)
 >                    -> Checks s
-> partial'match'spec = match'spec partialMatch partialMatchSpec
+> partial'match'spec = match'spec partialMatchSpec
 >
 > match'spec :: (Show a, Semiring s)
 >            => (RegExp Char -> String -> s)
->            -> (RegExp Char -> String -> s)
 >            -> (RegExp Char -> String -> a)
 >            -> (s -> a)
 >            -> Checks s
-> match'spec mtch spec convmatch conv =
->   Checks [run (check'match'spec mtch spec convmatch conv)]
+> match'spec spec convmatch conv =
+>   Checks [run (check'match'spec spec convmatch conv)]
 >
 > check'match'spec :: (Show a, Semiring s)
 >                  => (RegExp Char -> String -> s)
->                  -> (RegExp Char -> String -> s)
 >                  -> (RegExp Char -> String -> a)
 >                  -> (s -> a)
 >                  -> RegExp Char -> String -> Property
-> check'match'spec mtch spec convmatch conv r s =
+> check'match'spec spec convmatch conv r s =
 >   length s < 7 ==> show (convmatch r s) == show (conv (spec r s))
 
 To make this work, we need an `Arbitrary` instance for regular
@@ -224,7 +214,6 @@ expressions.
 > simpleChar = elements "abcde"
 >
 > parsedRegExp :: Int -> Gen String
-> parsedRegExp 0 = symClass
 > parsedRegExp n = frequency [ (4, symClass)
 >                            , (2, (++"?") `fmap` subexp)
 >                            , (2, (++"+") `fmap` subexp)
@@ -244,7 +233,7 @@ expressions.
 > symClass :: Gen String
 > symClass = frequency [ (1, specialChar)
 >                      , (2, do n <- choose (0,3)
->                               cs <- sequence (replicate n charClass)
+>                               cs <- replicateM n charClass
 >                               s <- (["","^"]!!) `fmap` choose (0,1)
 >                               return $ "[" ++ s ++ concat cs ++ "]") ]
 >  where
@@ -254,7 +243,7 @@ expressions.
 >                       , specialChar
 >                       , do x <- simpleChar
 >                            y <- simpleChar
->                            return $ x:"-" ++ [chr (ord x+ord y-ord 'a')] ]
+>                            return $ x : '-' : [chr (ord x+ord y-ord 'a')] ]
 
 The specification of the matching function is defined inductively on
 the structure of a regular expression. It uses exhaustive search to
@@ -305,8 +294,8 @@ context-free or even context-sensitive languages.
 > infinite'regexp'checks :: Checks Bool
 > infinite'regexp'checks = Checks [run context'free, run context'sensitive]
 
-As an example for a context-free language, we recognize 
-${a^nb^n | n >= 0}$
+As an example for a context-free language, we recognize the language
+ ${a^nb^n | n >= 0}$.
 
 > context'free :: String -> Bool
 > context'free s = isInAnBn s == (anbn =~ s)
@@ -318,21 +307,24 @@ ${a^nb^n | n >= 0}$
 > anbn :: RegExp Char
 > anbn = eps `alt` seq_ "a" (anbn `seq_` "b")
 
-As an example for a context-sensitive language we use
-${a^nb^nc^n | n >= 0}$
+As an example for a context-sensitive language we use the language
+${a^nb^nc^n | n >= 0}$. To show that the alphabet cannot only contain
+characters, we use numbers instead of characters.
 
-> context'sensitive :: String -> Bool
+> context'sensitive :: [Int] -> Bool
 > context'sensitive s =
 >   fromBool (isInAnBnCn s) == (matchingCount anbncn s :: Numeric Int)
 >
-> isInAnBnCn :: String -> Bool
-> isInAnBnCn s = all (=='a') xs && all (=='b') ys && all (=='c') zs
+> isInAnBnCn :: [Int] -> Bool
+> isInAnBnCn s = all (==1) xs && all (==2) ys && all (==3) zs
 >             && length xs == length ys && length ys == length zs
->  where (xs,l)  = break (=='b') s
->        (ys,zs) = break (=='c') l
+>  where (xs,l)  = break (==2) s
+>        (ys,zs) = break (==3) l
 >
-> anbncn :: RegExp Char
+> anbncn :: RegExp Int
 > anbncn = mkAnBnCn 0
 >  where
->   mkAnBnCn n = fromString (replicate n 'b' ++ replicate n 'c')
->          `alt` seq_ "a" (mkAnBnCn (n+1))
+>   mkAnBnCn n = seqN n (sym 2) `seq_` seqN n (sym 3)
+>          `alt` seq_ (sym 1) (mkAnBnCn (n+1))
+>   seqN 0 _ = eps
+>   seqN n r = foldr1 seq_ (replicate n r)

@@ -8,5 +8,5 @@ main = defaultMainWithHooks hooks
   where hooks = simpleUserHooks { runTests =  runTestSuite }
 
 runTestSuite _ _ _ _ =
- do pid <- runCommand $ "ghc -e main quickcheck.lhs"
+ do pid <- runCommand "ghc -e main quickcheck.lhs"
     waitForProcess pid >>= exitWith

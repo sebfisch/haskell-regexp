@@ -168,7 +168,7 @@ instance Show (Reg Bool Char) where
   showsPrec n (Alt p q)  =  showParen (n > 0)
                          $  showsPrec 1 p
                          .  showString "|"
-                         .  showsPrec 0 q
+                         .  shows q
   showsPrec n (Seq p q)  =  showParen (n > 1)
                          $  showsPrec 2 p
                          .  showsPrec 1 q
