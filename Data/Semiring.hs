@@ -70,7 +70,11 @@ instance Semiring Bool where
 -- Every numeric type that satisfies the semiring laws (as all
 -- predefined numeric types do) is a semiring.
 -- 
-newtype Numeric a = Numeric { getNumeric :: a } deriving (Eq,Show,Num)
+newtype Numeric a = Numeric { getNumeric :: a }
+ deriving (Eq,Num)
+
+instance Show a => Show (Numeric a) where
+  show = show . getNumeric
 
 instance Num a => Semiring (Numeric a) where
   zero = 0; one = 1; (.+.) = (+); (.*.) = (*)

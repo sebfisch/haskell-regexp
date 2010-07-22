@@ -140,14 +140,14 @@ opt r = eps `alt` r
 -- 
 -- Numerical bounds are implemented via translation into ordinary
 -- regular expressions. For example, @a{4,7}@ is translated into
--- @aaaaa?a?a?@.
+-- @aaaa(a(a(a)?)?)?@.
 -- 
 brep :: (Int,Int) -> RegExp c -> RegExp c
 brep (n,m) r
-  | n > m             =  error msg
-  | n >= m && n == 0  =  eps
-  | n >= m            =  foldr1 seq_ (replicate n r)
-  | otherwise         =  foldr seq_ rest (replicate n r)
+  | n < 0 || m < 0 || n > m  =  error msg
+  | n == 0 && m == 0         =  eps
+  | n == m                   =  foldr1 seq_ (replicate n r)
+  | otherwise                =  foldr seq_ rest (replicate n r)
  where
   rest = foldr nestopt (opt r) (replicate (m-n-1) r)
   nestopt p q = opt (seq_ p q)
@@ -164,7 +164,7 @@ instance Show (RegW Bool Char) where
 
 instance Show (Reg Bool Char) where
   showsPrec _ Eps        =  showString "()"
-  showsPrec _ (Sym s _)  =  showString s
+  showsPrec _ (Sym s _)  =  showString (quote s)
   showsPrec n (Alt p q)  =  showParen (n > 0)
                          $  showsPrec 1 p
                          .  showString "|"
@@ -173,6 +173,10 @@ instance Show (Reg Bool Char) where
                          $  showsPrec 2 p
                          .  showsPrec 1 q
   showsPrec _ (Rep r)    =  showsPrec 2 r . showString "*"
+
+quote :: String -> String
+quote s | s `elem` map (:[]) " \\|*+?.[]{}"  =  '\\' : s
+        | otherwise                          =  s
 
 instance Eq (RegExp Char) where
   p == q  =  regW p == (regW q :: RegW Bool Char)

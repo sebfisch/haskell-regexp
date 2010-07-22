@@ -14,7 +14,7 @@ used in batch mode.
 > import Test.QuickCheck
 > import Test.QuickCheck.Batch
 > import Control.Monad ( ap )
-> import Data.Char ( ord )
+> import Data.Char ( chr, ord )
 
 We import the semiring properties in order to check them for the
 defined instances. We also define our own `sum` function for
@@ -41,16 +41,16 @@ The `main` function runs all tests defined in this program.
 >     runChecks "semiring laws for Leftmost" (semiring'laws :: Checks Leftmost)
 >     runChecks "semiring laws for Longest" (semiring'laws :: Checks Longest)
 >     runChecks "semiring laws for LeftLong" semiring'laws'LeftLong
->     runChecks "matcher spec with Bool" match'spec'Bool
->     runChecks "matcher spec with Int" match'spec'Int
->     runChecks "matcher spec with Leftmost" (match'spec :: Checks Leftmost)
->     runChecks "matcher spec with Longest" (match'spec :: Checks Longest)
->     runChecks "matcher spec with LeftLong" (match'spec :: Checks LeftLong)
+>     runChecks "full match with Bool" match'spec'Bool
+>     runChecks "full match with Int" match'spec'Int
+>     runChecks "full match with Leftmost" (match'spec :: Checks Leftmost)
+>     runChecks "full match with Longest" (match'spec :: Checks Longest)
+>     runChecks "full match with LeftLong" (match'spec :: Checks LeftLong)
 >     runChecks "parse printed regexp" (Checks [run parse'printed])
 >     runChecks "lazy infinite regexps" infinite'regexp'checks
 >  where
->   options = defOpt { no_of_tests = 1000, length_of_tests = 10 }
->   runChecks label = runTests (pad label) options . checks
+>   options = defOpt { no_of_tests = 1000, length_of_tests = 60 }
+>   runChecks s = runTests (pad s) options . checks
 >   pad s = replicate (30-length s) ' ' ++ s
 
 The `Arbitrary` instance for numeric types wraps the underlying
@@ -60,7 +60,7 @@ instance. We also provide one for `Char` which is not predefined.
 >   arbitrary   = Numeric `fmap` arbitrary
 >
 > instance Arbitrary Char where
->   arbitrary   = elements "abcde"
+>   arbitrary   = elements "abcde \\|*+?.[]{}"
 >   coarbitrary = coarbitrary . ord
 
 We provide generic `Semiring` instances for the semirings used for
@@ -183,17 +183,54 @@ expressions.
 >   arbitrary = sized regexp
 >
 > regexp :: Int -> Gen (RegExp Char)
-> regexp 0 = frequency [ (1,return eps)
->                      , (2,sym `fmap` arbitrary) ]
-> regexp n = frequency [ (1,return eps)
->                      , (2,sym `fmap` arbitrary)
->                      , (3,alt  `fmap` subexp `ap` subexp)
->                      , (6,seq_ `fmap` subexp `ap` subexp)
->                      , (3,rep  `fmap` regexp (n-1)) ]
+> regexp 0 = frequency [ (1, return eps)
+>                      , (4, char `fmap` simpleChar) ]
+> regexp n = frequency [ (1, regexp 0)
+>                      , (3, alt  `fmap` subexp `ap` subexp)
+>                      , (6, seq_ `fmap` subexp `ap` subexp)
+>                      , (3, rep  `fmap` regexp (n-1))
+>                      , (7, fromString `fmap` parsedRegExp n) ]
 >  where subexp = regexp (n `div` 2)
+>
+> simpleChar :: Gen Char
+> simpleChar = elements "abcde"
+>
+> parsedRegExp :: Int -> Gen String
+> parsedRegExp 0 = symClass
+> parsedRegExp n = frequency [ (4, symClass)
+>                            , (2, (++"?") `fmap` subexp)
+>                            , (2, (++"+") `fmap` subexp)
+>                            , (1, mkBrep1 =<< subexp)
+>                            , (1, mkBrep2 =<< subexp) ]
+>  where
+>   subexp = (($"") . showParen True . shows)
+>     `fmap` (resize (n-1) arbitrary :: Gen (RegExp Char))
+>
+>   mkBrep1 r = do x <- elements [0..3] :: Gen Int
+>                  return $ r ++ "{" ++ show x ++ "}"
+>
+>   mkBrep2 r = do x <- elements [0..2] :: Gen Int
+>                  y <- elements [0..2] :: Gen Int
+>                  return $ r ++ "{" ++ show x ++ "," ++ show (x+y) ++ "}"
+>
+> symClass :: Gen String
+> symClass = frequency [ (1, specialChar)
+>                      , (2, do n <- choose (0,3)
+>                               cs <- sequence (replicate n charClass)
+>                               s <- (["","^"]!!) `fmap` choose (0,1)
+>                               return $ "[" ++ s ++ concat cs ++ "]") ]
+>  where
+>   specialChar = elements (map (:[]) "." ++
+>                           map (\c -> '\\':[c]) "abcdewWdDsS \\|*+?.[]{}")
+>   charClass   = oneof [ (:[]) `fmap` simpleChar
+>                       , specialChar
+>                       , do x <- simpleChar
+>                            y <- simpleChar
+>                            return $ x:"-" ++ [chr (ord x+ord y-ord 'a')] ]
 
-The specification of the matching function is defined by exhaustive
-search.
+The specification of the matching function is defined inductively on
+the structure of a regular expression. It uses exhaustive search to
+find all possibilities to match a regexp against a word.
 
 > matchSpec :: Semiring s => RegExp c -> [c] -> s
 > matchSpec (RegExp r) = spec (reg r)
@@ -219,10 +256,9 @@ search.
 > parts [c]     =  [[[c]]]
 > parts (c:cs)  =  concat [ [(c:p):ps,[c]:p:ps] | p:ps <- parts cs ]
 
-As a partial check for the parser, we check whether the representation
+As a check for the parser, we check whether the representation
 generated by the `Show` instance of regular expressions can be parsed
-back and yields the original expression. This does not check syntactic
-sugar like `a?` or `[a-z]` which should be checked separately.
+back and yields the original expression.
 
 > parse'printed :: RegExp Char -> Bool
 > parse'printed r = fromString (show r) == r
