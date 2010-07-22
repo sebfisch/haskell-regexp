@@ -10,7 +10,13 @@
 -- This library provides a type class for semirings and instances for
 -- standard data types.
 -- 
-module Data.Semiring ( Semiring(..), fromBool, Numeric(..) ) where
+module Data.Semiring (
+
+  Semiring(..), fromBool,
+
+  Numeric, numeric, getNumeric
+
+  ) where
 
 infixr 6 .+.
 infixr 7 .*.
@@ -70,11 +76,47 @@ instance Semiring Bool where
 -- Every numeric type that satisfies the semiring laws (as all
 -- predefined numeric types do) is a semiring.
 -- 
-newtype Numeric a = Numeric { getNumeric :: a }
- deriving (Eq,Num)
+-- We represent zero and one explicitly to be able to define less
+-- strict arithmetic functions.
+-- 
+data Numeric a = Zero | One | Num a
+ deriving Eq
 
-instance Show a => Show (Numeric a) where
+numeric :: Num a => a -> Numeric a
+numeric 0 = Zero
+numeric 1 = One
+numeric n = Num n
+
+getNumeric :: Num a => Numeric a -> a
+getNumeric Zero    = 0
+getNumeric One     = 1
+getNumeric (Num n) = n
+
+instance (Num a, Show a) => Show (Numeric a) where
   show = show . getNumeric
+
+instance Functor Numeric where
+  fmap _ Zero    = Zero
+  fmap _ One     = One
+  fmap f (Num n) = Num (f n)
+
+lift2 :: Num a => (a -> a -> a) -> Numeric a -> Numeric a -> Numeric a
+lift2 f x y = numeric (f (getNumeric x) (getNumeric y))
+
+instance Num a => Num (Numeric a) where
+  fromInteger = numeric . fromInteger
+  signum      = fmap signum
+  abs         = fmap abs
+
+  Zero + x    = x
+  x    + Zero = x
+  x    + y    = lift2 (+) x y
+
+  Zero * _    = Zero
+  _    * Zero = Zero
+  One  * x    = x
+  x    * One  = x
+  x    * y    = lift2 (*) x y
 
 instance Num a => Semiring (Numeric a) where
   zero = 0; one = 1; (.+.) = (+); (.*.) = (*)

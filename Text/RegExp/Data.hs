@@ -29,10 +29,10 @@ data Reg w c = Eps
 class Semiring w => Weight a b w where
   symWeight :: (a -> w) -> b -> w
 
-instance Weight c c Bool where
-  symWeight = id
-
 instance Weight c (Int,c) Bool where
+  symWeight p = p . snd
+
+instance Num a => Weight c (Int,c) (Numeric a) where
   symWeight p = p . snd
 
 weighted :: Weight a b w => RegW w a -> RegW w b

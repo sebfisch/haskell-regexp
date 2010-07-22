@@ -13,9 +13,9 @@
 -- 
 module Text.RegExp.Matching.Leftmost (
 
-  Leftmost, Matching, matchingIndex,
+  Leftmost(..), Matching(..),
 
-  matching
+  matching, getLeftmost
 
   ) where
 
@@ -30,13 +30,12 @@ data Matching = Matching {
   matchingIndex :: Int
  
   }
- 
+ deriving Eq
+
 instance Show Matching
  where
   showsPrec _ m = showString "<index:" . shows (matchingIndex m)
                 . showString ">"
- 
-  showList = showString . unlines . map show
 
 -- |
 -- Returns the leftmost of all non-empty matchings for a regular
@@ -46,6 +45,8 @@ instance Show Matching
 matching :: RegExp c -> [c] -> Maybe Matching
 matching r = getLeftmost . partialMatch r
 
+-- | Semiring used for leftmost matching.
+-- 
 data Leftmost = Zero | One | Leftmost Int
  deriving (Eq,Show)
 

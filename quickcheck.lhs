@@ -28,9 +28,12 @@ the `Weight` class, and the different semirings used for matching.
 
 > import Text.RegExp
 > import Text.RegExp.Data
-> import Text.RegExp.Matching.Leftmost
-> import Text.RegExp.Matching.Longest
-> import Text.RegExp.Matching.LeftLong
+> import Text.RegExp.Matching.Leftmost ( Leftmost(..), getLeftmost )
+> import Text.RegExp.Matching.Longest  ( Longest(..), getLongest )
+> import Text.RegExp.Matching.LeftLong ( LeftLong(..), getLeftLong )
+> import qualified Text.RegExp.Matching.Leftmost as Leftmost
+> import qualified Text.RegExp.Matching.Longest  as Longest
+> import qualified Text.RegExp.Matching.LeftLong as LeftLong
 
 The `main` function runs all tests defined in this program.
 
@@ -41,11 +44,26 @@ The `main` function runs all tests defined in this program.
 >     runChecks "semiring laws for Leftmost" (semiring'laws :: Checks Leftmost)
 >     runChecks "semiring laws for Longest" (semiring'laws :: Checks Longest)
 >     runChecks "semiring laws for LeftLong" semiring'laws'LeftLong
->     runChecks "full match with Bool" match'spec'Bool
->     runChecks "full match with Int" match'spec'Int
->     runChecks "full match with Leftmost" (match'spec :: Checks Leftmost)
->     runChecks "full match with Longest" (match'spec :: Checks Longest)
->     runChecks "full match with LeftLong" (match'spec :: Checks LeftLong)
+>     runChecks "full match with Bool"
+>       (full'match'spec :: Checks Bool)
+>     runChecks "full match with Int"
+>       (full'match'spec :: Checks (Numeric Int))
+>     runChecks "full match with Leftmost"
+>       (full'match'spec :: Checks Leftmost)
+>     runChecks "full match with Longest"
+>       (full'match'spec :: Checks Longest)
+>     runChecks "full match with LeftLong"
+>       (full'match'spec :: Checks LeftLong)
+>     runChecks "partial match with Bool"
+>       (partial'match'spec partialMatch id :: Checks Bool)
+>     runChecks "partial match with Int"
+>       (partial'match'spec partialMatch id :: Checks (Numeric Int))
+>     runChecks "partial match with Leftmost"
+>       (partial'match'spec Leftmost.matching getLeftmost)
+>     runChecks "partial match with Longest"
+>       (partial'match'spec Longest.matching getLongest)
+>     runChecks "partial match with LeftLong"
+>       (partial'match'spec LeftLong.matching getLeftLong)
 >     runChecks "parse printed regexp" (Checks [run parse'printed])
 >     runChecks "lazy infinite regexps" infinite'regexp'checks
 >  where
@@ -56,8 +74,8 @@ The `main` function runs all tests defined in this program.
 The `Arbitrary` instance for numeric types wraps the underlying
 instance. We also provide one for `Char` which is not predefined.
 
-> instance Arbitrary a => Arbitrary (Numeric a) where
->   arbitrary   = Numeric `fmap` arbitrary
+> instance (Num a, Arbitrary a) => Arbitrary (Numeric a) where
+>   arbitrary = numeric `fmap` arbitrary
 >
 > instance Arbitrary Char where
 >   arbitrary   = elements "abcde \\|*+?.[]{}"
@@ -67,21 +85,21 @@ We provide generic `Semiring` instances for the semirings used for
 matching.
 
 > instance Arbitrary Leftmost where
->   arbitrary   = weight
+>   arbitrary = frequency [ (1, return zero)
+>                         , (1, return one)
+>                         , (3, (Leftmost . abs) `fmap` arbitrary) ]
 >
 > instance Arbitrary Longest where
->   arbitrary   = weight
+>   arbitrary = frequency [ (1, return zero) 
+>                         , (1, return one)
+>                         , (3, (Longest . succ . abs) `fmap` arbitrary) ]
 >
 > instance Arbitrary LeftLong where
->   arbitrary   = weight
->
-> weight :: forall s . (Weight Char (Int,Char) s, Arbitrary s) => Gen s
-> weight = oneof [ return zero
->                , return one
->                , (.+.) `fmap` arbitrary `ap` arbitrary
->                , (.*.) `fmap` arbitrary `ap` arbitrary
->                , symWeight `fmap` (arbitrary :: Gen (Char -> s))
->                              `ap` (arbitrary :: Gen (Int,Char)) ]
+>   arbitrary = frequency [ (1, return zero)
+>                         , (1, return one)
+>                         , (3, do x <- abs `fmap` arbitrary
+>                                  y <- abs `fmap` arbitrary
+>                                  return $ LeftLong (min x y) (max x y)) ]
 
 We define a list of `Checks` for the semiring laws.
 
@@ -117,14 +135,10 @@ different arities.
 > prop3 prop = Checks [run prop]
 
 The `LeftLong` type satisfies the distributive laws only with a
-precondition on all involved multiplications:
-
-    mult'LeftLong'pre :: LeftLong -> LeftLong -> Bool
-    mult'LeftLong'pre (LeftLong a b) (LeftLong c d)  =  a<b && b+1==c && c < d
-    mult'LeftLong'pre _              _               =  True
-
-This precondition is satisfied for all multiplications during regular
-expression matching because multiplication combines adjacent matches.
+precondition on all involved multiplications: multiplied matches must
+be adjacent and the start position must be smaller than the end
+position. This precondition is satisfied for all multiplications
+during regular expression matching.
 
 We define a variant of `semiring'laws` with this precondition on the
 distributive laws.
@@ -137,44 +151,58 @@ distributive laws.
 >   , prop1 left'one
 >   , prop1 right'one
 >   , prop3 mul'assoc
->   , prop3 (\a b c -> mult'LeftLong'pre a (b .+. c) &&
->                      mult'LeftLong'pre a b &&
->                      mult'LeftLong'pre a c
->                  ==> left'distr a b c)
->   , prop3 (\a b c -> mult'LeftLong'pre (a .+. b) c &&
->                      mult'LeftLong'pre a c &&
->                      mult'LeftLong'pre b c
->                  ==> right'distr a b c)
+>   , prop3 left'distr'LeftLong
+>   , prop3 right'distr'LeftLong
 >   , prop1 left'ann
 >   , prop1 right'ann
 >   ]
+
+For testing the distributive laws, we adjust the randomly generated
+`LeftLong` values such that the arguments of multiplications are
+adjacent.
+
+> left'distr'LeftLong :: LeftLong -> LeftLong -> LeftLong -> Bool
+> left'distr'LeftLong a b c = left'distr a (shift a b) (shift a c)
+>  where
+>   shift (LeftLong _ x) (LeftLong y z) = LeftLong (x+1) (z+x+1-y)
+>   shift _              x              = x
+>
+> right'distr'LeftLong :: LeftLong -> LeftLong -> LeftLong -> Bool
+> right'distr'LeftLong a b c = right'distr (shift a c) (shift b c) c
+>  where
+>   shift (LeftLong x y) (LeftLong z _) = LeftLong (x+z-1-y) (z-1)
+>   shift x              _              = x
 
 Now we turn to the correctness of the `match` function. In order to
 check it, we compare it with a executable specification which is
 correct by definition:
 
-> match'spec :: forall s . Semiring s => Checks s
-> match'spec = Checks [run (check'match'spec mtch)]
->  where
->   mtch :: RegExp Char -> String -> s
->   mtch = fullMatch
+> full'match'spec :: (Show s, Semiring s) => Checks s
+> full'match'spec = match'spec fullMatch fullMatchSpec fullMatch id
 >
-> check'match'spec :: Semiring s
+> partial'match'spec :: (Show a, Weight Char (Int,Char) s)
+>                    => (RegExp Char -> String -> a)
+>                    -> (s -> a)
+>                    -> Checks s
+> partial'match'spec = match'spec partialMatch partialMatchSpec
+>
+> match'spec :: (Show a, Semiring s)
+>            => (RegExp Char -> String -> s)
+>            -> (RegExp Char -> String -> s)
+>            -> (RegExp Char -> String -> a)
+>            -> (s -> a)
+>            -> Checks s
+> match'spec mtch spec convmatch conv =
+>   Checks [run (check'match'spec mtch spec convmatch conv)]
+>
+> check'match'spec :: (Show a, Semiring s)
 >                  => (RegExp Char -> String -> s)
+>                  -> (RegExp Char -> String -> s)
+>                  -> (RegExp Char -> String -> a)
+>                  -> (s -> a)
 >                  -> RegExp Char -> String -> Property
-> check'match'spec mtch r s = length s < 7 ==> mtch r s == matchSpec r s
-
-For `Bool` and `Int`, we use special functions in order to achieve the
-corresponding code coverage.
-
-> match'spec'Bool :: Checks Bool
-> match'spec'Bool = Checks [run (check'match'spec (=~))]
->
-> match'spec'Int :: Checks (Numeric Int)
-> match'spec'Int = Checks [run (check'match'spec mtch)]
->  where
->   mtch :: RegExp Char -> String -> Numeric Int
->   mtch r s = Numeric (matchingCount r s)
+> check'match'spec mtch spec convmatch conv r s =
+>   length s < 7 ==> show (convmatch r s) == show (conv (spec r s))
 
 To make this work, we need an `Arbitrary` instance for regular
 expressions.
@@ -232,16 +260,17 @@ The specification of the matching function is defined inductively on
 the structure of a regular expression. It uses exhaustive search to
 find all possibilities to match a regexp against a word.
 
-> matchSpec :: Semiring s => RegExp c -> [c] -> s
-> matchSpec (RegExp r) = spec (reg r)
->  where
->   spec Eps        u  =  if null u then one else zero
->   spec (Sym _ f)  u  =  case u of [c] -> f c; _ -> zero
->   spec (Alt p q)  u  =  spec (reg p) u .+. spec (reg q) u
->   spec (Seq p q)  u  =
->     sum [ spec (reg p) u1 .*. spec (reg q) u2 | (u1,u2) <- split u ]
->   spec (Rep p)    u  =
->     sum [ prod [ spec (reg p) ui | ui <- ps] | ps <- parts u ]
+> fullMatchSpec :: Semiring s => RegExp c -> [c] -> s
+> fullMatchSpec (RegExp r) = matchSpec (reg r)
+>
+> matchSpec :: Semiring s => Reg s c -> [c] -> s
+> matchSpec Eps        u  =  if null u then one else zero
+> matchSpec (Sym _ f)  u  =  case u of [c] -> f c; _ -> zero
+> matchSpec (Alt p q)  u  =  matchSpec (reg p) u .+. matchSpec (reg q) u
+> matchSpec (Seq p q)  u  =
+>   sum [ matchSpec (reg p) u1 .*. matchSpec (reg q) u2 | (u1,u2) <- split u ]
+> matchSpec (Rep p)    u  =
+>   sum [ prod [ matchSpec (reg p) ui | ui <- ps] | ps <- parts u ]
 >
 > sum, prod :: Semiring s => [s] -> s
 > sum   =  foldr (.+.) zero
@@ -255,6 +284,13 @@ find all possibilities to match a regexp against a word.
 > parts []      =  [[]]
 > parts [c]     =  [[[c]]]
 > parts (c:cs)  =  concat [ [(c:p):ps,[c]:p:ps] | p:ps <- parts cs ]
+
+We can perform a similar test for partial instead of full matches.
+
+> partialMatchSpec :: Weight c (Int,c) s => RegExp c -> [c] -> s
+> partialMatchSpec (RegExp r) =
+>   matchSpec (reg (arb `seqW` weighted r `seqW` arb)) . zip [(0::Int)..]
+>  where arb = repW (symW "." (const one))
 
 As a check for the parser, we check whether the representation
 generated by the `Show` instance of regular expressions can be parsed
@@ -286,7 +322,8 @@ As an example for a context-sensitive language we use
 ${a^nb^nc^n | n >= 0}$
 
 > context'sensitive :: String -> Bool
-> context'sensitive s = isInAnBnCn s == (anbncn =~ s)
+> context'sensitive s =
+>   fromBool (isInAnBnCn s) == (matchingCount anbncn s :: Numeric Int)
 >
 > isInAnBnCn :: String -> Bool
 > isInAnBnCn s = all (=='a') xs && all (=='b') ys && all (=='c') zs

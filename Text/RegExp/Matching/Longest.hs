@@ -13,9 +13,9 @@
 -- 
 module Text.RegExp.Matching.Longest (
 
-  Longest, Matching, matchingLength,
+  Longest(..), Matching(..),
 
-  matching
+  matching, getLongest
 
   ) where
 
@@ -30,13 +30,12 @@ data Matching = Matching {
   matchingLength :: Int
  
   }
- 
+ deriving Eq
+
 instance Show Matching
  where
   showsPrec _ m = showString "<length:" . shows (matchingLength m)
                 . showString ">"
- 
-  showList = showString . unlines . map show
 
 -- |
 -- Returns the longest of all matchings for a regular expression in a
@@ -45,6 +44,8 @@ instance Show Matching
 matching :: RegExp c -> [c] -> Maybe Matching
 matching r = getLongest . partialMatch r
 
+-- | Semiring used for longest matching.
+-- 
 data Longest = Zero | One | Longest Int
  deriving (Eq,Show)
 

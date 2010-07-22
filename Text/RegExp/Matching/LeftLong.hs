@@ -13,11 +13,9 @@
 -- 
 module Text.RegExp.Matching.LeftLong (
 
-  LeftLong, Matching, matchingIndex, matchingLength,
+  LeftLong(..), Matching(..),
 
-  matching,
-
-  mult'LeftLong'pre
+  matching, getLeftLong
 
   ) where
 
@@ -36,14 +34,13 @@ data Matching = Matching {
   matchingLength :: Int
  
   }
- 
+ deriving Eq
+
 instance Show Matching
  where
   showsPrec _ m = showString "<index:" . shows (matchingIndex m)
                 . showString " length:" . shows (matchingLength m)
                 . showString ">"
- 
-  showList = showString . unlines . map show
 
 -- |
 -- Returns the leftmost longest of all non-empty matchings for a
@@ -53,6 +50,15 @@ instance Show Matching
 matching :: RegExp c -> [c] -> Maybe Matching
 matching r = getLeftLong . partialMatch r
 
+-- | 
+-- Semiring used for leftmost longest matching.
+-- 
+-- The `LeftLong` type satisfies the distributive laws only with a
+-- precondition on all involved multiplications: multiplied matches
+-- must be adjacent and the start position must be smaller than the
+-- end position. This precondition is satisfied for all
+-- multiplications during regular expression matching.
+-- 
 data LeftLong = Zero | One | LeftLong Int Int
  deriving (Eq,Show)
 
@@ -80,14 +86,4 @@ instance Semiring LeftLong where
 
 instance Weight c (Int,c) LeftLong where
   symWeight p (n,c) = p c .*. LeftLong n n
-
--- |
--- The 'LeftLong' type satisfies the distributive laws only with this
--- precondition on all involved multiplications, which is satisfied
--- for all multiplications during regular expression matching because
--- multiplication combines adjacent matches.
--- 
-mult'LeftLong'pre :: LeftLong -> LeftLong -> Bool
-mult'LeftLong'pre (LeftLong a b) (LeftLong c d)  =  a<b && b+1==c && c < d
-mult'LeftLong'pre _              _               =  True
 
