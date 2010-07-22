@@ -324,7 +324,5 @@ characters, we use numbers instead of characters.
 > anbncn :: RegExp Int
 > anbncn = mkAnBnCn 0
 >  where
->   mkAnBnCn n = seqN n (sym 2) `seq_` seqN n (sym 3)
+>   mkAnBnCn n = brep (n,n) (sym 2) `seq_` brep (n,n) (sym 3)
 >          `alt` seq_ (sym 1) (mkAnBnCn (n+1))
->   seqN 0 _ = eps
->   seqN n r = foldr1 seq_ (replicate n r)
