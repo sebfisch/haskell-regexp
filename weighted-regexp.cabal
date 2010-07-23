@@ -32,7 +32,6 @@ Library
                         Text.RegExp.Parser,
                         Text.RegExp.Matching
   Extensions:           RankNTypes,
-                        BangPatterns,
                         FlexibleContexts,
                         FlexibleInstances,
                         MultiParamTypeClasses,
@@ -57,7 +56,6 @@ Executable quickcheck-re
                         Text.RegExp.Parser,
                         Text.RegExp.Matching
   Extensions:           RankNTypes,
-                        BangPatterns,
                         FlexibleContexts,
                         FlexibleInstances,
                         MultiParamTypeClasses,
@@ -86,7 +84,6 @@ Executable criterion-re
                         Text.RegExp.Parser,
                         Text.RegExp.Matching
   Extensions:           RankNTypes,
-                        BangPatterns,
                         FlexibleContexts,
                         FlexibleInstances,
                         MultiParamTypeClasses,

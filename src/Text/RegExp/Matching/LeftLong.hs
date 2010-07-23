@@ -1,5 +1,4 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
-{-# LANGUAGE BangPatterns #-}
 
 -- |
 -- Module      : Text.RegExp.Matching.LeftLong
