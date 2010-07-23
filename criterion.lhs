@@ -16,12 +16,12 @@ different regular expressions against strings.
 >   [ bgroup "full"
 >     [ bgroup mode
 >       [ bench name $ call re str
->       | (name,re,str) <-
+>       | (name, re, str) <-
 >         [ ("phone", phone're, phone'str)
->         , ("html", html're, html'str)
+>         , ("html" , html're , html'str)
 >         ]
 >       ]
->     | (mode,call) <-
+>     | (mode, call) <-
 >       [ ("accept", whnf . accept)
 >       , ("count" , whnf . (matchingCount :: RegExp Char -> String -> Int))
 >       ]
@@ -41,7 +41,7 @@ As an example for an ambiguous match we match the following regular
 expression wich reminds one of HTML documents.
 
 > html're :: RegExp Char
-> html're = "(<[^<>]*>.*</[^<>]*>)*"
+> html're = "(<\\w*>.*</\\w*>)*"
 
 This expressions matches the string below in two different ways.
 
