@@ -4,5 +4,6 @@
 *.prof
 dist/*
 src/lib/Text/RegExp/Parser.hs
+.hpc/*
 hpc/*
 criterion/*

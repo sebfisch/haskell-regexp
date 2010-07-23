@@ -1,5 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 -- | 
 -- Module      : Data.Semiring
 -- Copyright   : Thomas Wilke, Frank Huch, Sebastian Fischer
@@ -14,7 +12,7 @@ module Data.Semiring (
 
   Semiring(..), fromBool,
 
-  Numeric, numeric, getNumeric
+  Numeric(..)
 
   ) where
 
@@ -76,45 +74,32 @@ instance Semiring Bool where
 -- Every numeric type that satisfies the semiring laws (as all
 -- predefined numeric types do) is a semiring.
 -- 
--- We represent zero and one explicitly to be able to define less
--- strict arithmetic functions.
--- 
-data Numeric a = Zero | One | Num a
+data Numeric a = Numeric { getNumeric :: a }
  deriving Eq
-
-numeric :: Num a => a -> Numeric a
-numeric 0 = Zero
-numeric 1 = One
-numeric n = Num n
-
-getNumeric :: Num a => Numeric a -> a
-getNumeric Zero    = 0
-getNumeric One     = 1
-getNumeric (Num n) = n
 
 instance (Num a, Show a) => Show (Numeric a) where
   show = show . getNumeric
 
 lift :: Num a => (a -> a) -> Numeric a -> Numeric a
-lift f = numeric . f . getNumeric
+lift f = Numeric . f . getNumeric
 
 lift2 :: Num a => (a -> a -> a) -> Numeric a -> Numeric a -> Numeric a
-lift2 f x y = numeric (f (getNumeric x) (getNumeric y))
+lift2 f x y = Numeric (f (getNumeric x) (getNumeric y))
 
 instance Num a => Num (Numeric a) where
-  fromInteger = numeric . fromInteger
+  fromInteger = Numeric . fromInteger
   signum      = lift signum
   abs         = lift abs
 
-  Zero + x    = x
-  x    + Zero = x
-  x    + y    = lift2 (+) x y
+  0 + x = x
+  x + 0 = x
+  x + y = lift2 (+) x y
 
-  Zero * _    = Zero
-  _    * Zero = Zero
-  One  * x    = x
-  x    * One  = x
-  x    * y    = lift2 (*) x y
+  0 * _ = 0
+  _ * 0 = 0
+  1 * x = x
+  x * 1 = x
+  x * y = lift2 (*) x y
 
 instance Num a => Semiring (Numeric a) where
   zero = 0; one = 1; (.+.) = (+); (.*.) = (*)

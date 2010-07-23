@@ -68,7 +68,7 @@ The `Arbitrary` instance for numeric types wraps the underlying
 instance. We also provide one for `Char` which is not predefined.
 
 > instance (Num a, Arbitrary a) => Arbitrary (Numeric a) where
->   arbitrary = numeric `fmap` arbitrary
+>   arbitrary = Numeric `fmap` arbitrary
 >
 > instance Arbitrary Char where
 >   arbitrary = elements "abcde \\|*+?.[]{}"
