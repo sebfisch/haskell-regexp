@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- |
 -- Module      : Text.RegExp.Matching.Leftmost
@@ -27,7 +28,7 @@ import Text.RegExp
 data Matching = Matching {
  
   -- | Start index of the matching subword in the queried word.
-  matchingIndex :: Int
+  matchingIndex :: !Int
  
   }
  deriving Eq
@@ -47,7 +48,7 @@ matching r = getLeftmost . partialMatch r
 
 -- | Semiring used for leftmost matching.
 -- 
-data Leftmost = Zero | One | Leftmost Int
+data Leftmost = Zero | One | Leftmost !Int
  deriving (Eq,Show)
 
 getLeftmost :: Leftmost -> Maybe Matching

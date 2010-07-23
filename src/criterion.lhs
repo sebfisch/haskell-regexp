@@ -26,6 +26,20 @@ different regular expressions against strings.
 >       , ("count" , whnf . (matchingCount :: RegExp Char -> String -> Int))
 >       ]
 >     ]
+>   , bgroup "partial"
+>     [ bgroup mode
+>       [ bench name $ call re str
+>       | (name, re, str) <-
+>         [ ("rna", rna're, rna'str)
+>         ]
+>       ]
+>     | (mode, call) <-
+>       [ ("accept"  , whnf . accept)
+>       , ("leftmost", whnf . Leftmost.matching)
+>       , ("longest" , whnf . Longest.matching)
+>       , ("leftlong", whnf . LeftLong.matching)
+>       ]
+>     ]
 >   ]
 
 The following regular expression for phone numbers matches uniquely
@@ -47,4 +61,18 @@ This expressions matches the string below in two different ways.
 
 > html'str :: String
 > html'str = "<p>some</p><p>text</p>"
+
+To benchmark partial matchings we search for a protein sequence in an
+RNA sequence. Protein sequences start with `AUG`, followed by codons
+(triplets) built from the bases adenin (`A`), cytosine (`C`), guanin
+(`G`), and uracil (`U`), and end with `UAG`, `UGA`, or `UAA`.
+
+> rna're :: RegExp Char
+> rna're = "AUG([ACGU][ACGU][ACGU])*(UAG|UGA|UAA)"
+
+For example, the following RNA sequence contains the protein sequence
+`AUGACACUUGAAUGA`.
+
+> rna'str :: String
+> rna'str = "UUACGGAUGACACUUGAAUGACUGA"
 

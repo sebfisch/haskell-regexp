@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- |
 -- Module      : Text.RegExp.Matching.Longest
@@ -27,7 +28,7 @@ import Text.RegExp
 data Matching = Matching {
  
   -- | Length of the matching subword in the queried word.
-  matchingLength :: Int
+  matchingLength :: !Int
  
   }
  deriving Eq
@@ -46,7 +47,7 @@ matching r = getLongest . partialMatch r
 
 -- | Semiring used for longest matching.
 -- 
-data Longest = Zero | One | Longest Int
+data Longest = Zero | One | Longest !Int
  deriving (Eq,Show)
 
 getLongest :: Longest -> Maybe Matching

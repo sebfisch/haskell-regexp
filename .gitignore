@@ -3,10 +3,6 @@
 *.hi
 *.prof
 dist/*
-Text/RegExp/Parser.hs
-test/match-regexp
-test/test-regexp-correctness
-test/tests
+src/lib/Text/RegExp/Parser.hs
 hpc/*
-.hpc/*
 criterion/*

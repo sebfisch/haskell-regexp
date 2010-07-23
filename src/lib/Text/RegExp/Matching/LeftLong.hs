@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- |
 -- Module      : Text.RegExp.Matching.LeftLong
@@ -28,10 +29,10 @@ import Text.RegExp
 data Matching = Matching {
  
   -- | Start index of the matching subword in the queried word.
-  matchingIndex :: Int,
+  matchingIndex :: !Int,
  
   -- | Length of the matching subword.
-  matchingLength :: Int
+  matchingLength :: !Int
  
   }
  deriving Eq
@@ -59,7 +60,7 @@ matching r = getLeftLong . partialMatch r
 -- end position. This precondition is satisfied for all
 -- multiplications during regular expression matching.
 -- 
-data LeftLong = Zero | One | LeftLong Int Int
+data LeftLong = Zero | One | LeftLong !Int !Int
  deriving (Eq,Show)
 
 getLeftLong :: LeftLong -> Maybe Matching
