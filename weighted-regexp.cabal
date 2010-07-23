@@ -14,7 +14,7 @@ Author:        Thomas Wilke, Frank Huch, Sebastian Fischer
 Maintainer:    Sebastian Fischer
 Bug-Reports:   http://github.com/sebfisch/haskell-regexp/issues
 Homepage:      http://github.com/sebfisch/haskell-regexp
-Build-Type:    Custom
+Build-Type:    Simple
 Stability:     experimental
 
 Library
@@ -38,11 +38,13 @@ Library
                         NoMonomorphismRestriction,
                         GeneralizedNewtypeDeriving
 
-Flag quickcheck
+Flag QuickCheck
   Description:          Build executable to run QuickCheck tests
   Default:              False
 
-Executable quickcheck-weighted-regexp
+Executable quickcheck-re
+  Main-Is:              quickcheck.lhs
+  Build-Depends:        base >= 3 && < 5, QuickCheck < 2
   Other-Modules:        Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
                         Text.RegExp.Matching.Longest,
@@ -52,8 +54,6 @@ Executable quickcheck-weighted-regexp
                         Text.RegExp.Data,
                         Text.RegExp.Parser,
                         Text.RegExp.Matching
-  Main-Is:              quickcheck.lhs
-  Build-Depends:        base >= 3 && < 5, QuickCheck < 2
   Extensions:           FlexibleContexts,
                         FlexibleInstances,
                         OverloadedStrings,
@@ -61,7 +61,28 @@ Executable quickcheck-weighted-regexp
                         MultiParamTypeClasses,
                         GeneralizedNewtypeDeriving
   GHC-Options:          -fhpc -fno-warn-missing-methods -fno-warn-orphans
-  If !flag(quickcheck)
+  If !flag(QuickCheck)
+    Buildable:          False
+
+Flag Criterion
+  Description:          Build executable to run Criterion benchmarks
+  Default:              False
+
+Executable criterion-re
+  Main-Is:              criterion.lhs
+  Build-Depends:        base >= 3 && < 5, criterion >= 0.5 && < 0.6
+  Other-Modules:        Text.RegExp,
+                        Text.RegExp.Matching.Leftmost,
+                        Text.RegExp.Matching.Longest,
+                        Text.RegExp.Matching.LeftLong,
+                        Data.Semiring,
+                        Data.Semiring.Properties
+                        Text.RegExp.Data,
+                        Text.RegExp.Parser,
+                        Text.RegExp.Matching
+  Extensions:           OverloadedStrings
+  GHC-Options:          
+  If !flag(Criterion)
     Buildable:          False
 
 Source-Repository head

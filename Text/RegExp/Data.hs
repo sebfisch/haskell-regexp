@@ -63,7 +63,11 @@ sym c = psym (show c) (c==)
 -- | Matches the given character.
 -- 
 char :: Char -> RegExp Char
-char c = psym [c] (c==)
+char c = psym (quote c) (c==)
+
+quote :: Char -> String
+quote c | c `elem` " \\|*+?.[]{}^" = '\\' : [c]
+        | otherwise                = [c]
 
 -- | Matches a symbol that satisfies the given predicate.
 -- 
@@ -164,7 +168,7 @@ instance Show (RegW Bool Char) where
 
 instance Show (Reg Bool Char) where
   showsPrec _ Eps        =  showString "()"
-  showsPrec _ (Sym s _)  =  showString (quote s)
+  showsPrec _ (Sym s _)  =  showString s
   showsPrec n (Alt p q)  =  showParen (n > 0)
                          $  showsPrec 1 p
                          .  showString "|"
@@ -173,10 +177,6 @@ instance Show (Reg Bool Char) where
                          $  showsPrec 2 p
                          .  showsPrec 1 q
   showsPrec _ (Rep r)    =  showsPrec 2 r . showString "*"
-
-quote :: String -> String
-quote s | s `elem` map (:[]) " \\|*+?.[]{}"  =  '\\' : s
-        | otherwise                          =  s
 
 instance Eq (RegExp Char) where
   p == q  =  regW p == (regW q :: RegW Bool Char)

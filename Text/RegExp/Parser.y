@@ -90,10 +90,7 @@ rseq _       = False
 process :: String -> [Token]
 process []            = []
 
-process ('\\':c:cs)
-  | isSymClassChar c  = Cls (['\\',c],symClassPred c) : process cs
-
-process ('\\':c:cs)   = Sym c : process cs
+process ('\\':c:cs)   = Cls (['\\',c],symClassPred c) : process cs
 
 process ('{':cs)      = case reads cs of
                           (n,'}':s1) : _ -> Bnd (n,n) : process s1
@@ -138,7 +135,10 @@ symClassPred :: Char -> Char -> Bool
 symClassPred 'w' = isWordChar
 symClassPred 'd' = isDigit
 symClassPred 's' = isSpace
-symClassPred  c  = not . symClassPred (toLower c)
+symClassPred 'W' = not . isWordChar
+symClassPred 'D' = not . isDigit
+symClassPred 'S' = not . isSpace
+symClassPred  c  = (c==)
 
 isWordChar :: Char -> Bool
 isWordChar c = c == '_' || isAlphaNum c

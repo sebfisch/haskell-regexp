@@ -9,3 +9,4 @@ test/test-regexp-correctness
 test/tests
 hpc/*
 .hpc/*
+criterion/*

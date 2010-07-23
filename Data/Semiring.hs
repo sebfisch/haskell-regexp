@@ -95,18 +95,16 @@ getNumeric (Num n) = n
 instance (Num a, Show a) => Show (Numeric a) where
   show = show . getNumeric
 
-instance Functor Numeric where
-  fmap _ Zero    = Zero
-  fmap _ One     = One
-  fmap f (Num n) = Num (f n)
+lift :: Num a => (a -> a) -> Numeric a -> Numeric a
+lift f = numeric . f . getNumeric
 
 lift2 :: Num a => (a -> a -> a) -> Numeric a -> Numeric a -> Numeric a
 lift2 f x y = numeric (f (getNumeric x) (getNumeric y))
 
 instance Num a => Num (Numeric a) where
   fromInteger = numeric . fromInteger
-  signum      = fmap signum
-  abs         = fmap abs
+  signum      = lift signum
+  abs         = lift abs
 
   Zero + x    = x
   x    + Zero = x

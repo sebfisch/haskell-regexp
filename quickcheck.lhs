@@ -238,7 +238,7 @@ expressions.
 >                               return $ "[" ++ s ++ concat cs ++ "]") ]
 >  where
 >   specialChar = elements (map (:[]) "." ++
->                           map (\c -> '\\':[c]) "abcdewWdDsS \\|*+?.[]{}")
+>                           map (\c -> '\\':[c]) "abcdewWdDsS \\|*+?.[]{}^")
 >   charClass   = oneof [ (:[]) `fmap` simpleChar
 >                       , specialChar
 >                       , do x <- simpleChar
