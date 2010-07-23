@@ -21,7 +21,7 @@ Library
   Build-Tools:          happy >= 1.17
   Build-Depends:        base >= 3 && < 5,
                         array >= 0.1 && <= 0.2.0.0
-  HS-Source-Dirs:       src/lib
+  HS-Source-Dirs:       src
   Exposed-Modules:      Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
                         Text.RegExp.Matching.Longest,
@@ -46,7 +46,7 @@ Flag QuickCheck
 Executable quickcheck-re
   Main-Is:              quickcheck.lhs
   Build-Depends:        base >= 3 && < 5, QuickCheck < 2
-  HS-Source-Dirs:       src, src/lib
+  HS-Source-Dirs:       src
   Other-Modules:        Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
                         Text.RegExp.Matching.Longest,
@@ -76,7 +76,7 @@ Flag Criterion
 Executable criterion-re
   Main-Is:              criterion.lhs
   Build-Depends:        base >= 3 && < 5, criterion >= 0.5 && < 0.6
-  HS-Source-Dirs:       src, src/lib
+  HS-Source-Dirs:       src
   Other-Modules:        Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
                         Text.RegExp.Matching.Longest,

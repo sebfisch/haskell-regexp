@@ -1,6 +1,6 @@
 -- generate parser from happy specification on GHCi startup
 
-:def genparser \_ -> return ":! happy Text/RegExp/Parser.y"
+:def genparser \_ -> return ":! happy src/lib/Text/RegExp/Parser.y"
 :genparser
 
 -- enable overloaded strings
@@ -9,5 +9,6 @@
 
 -- load private modules
 
+:cd src
 :def loadprivate \_ -> return ":load Text/RegExp Text/RegExp/Data Text/RegExp/Matching Text/RegExp/Matching/LeftLong Data/Semiring Data/Semiring/Properties"
 :loadprivate

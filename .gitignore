@@ -3,7 +3,8 @@
 *.hi
 *.prof
 dist/*
-src/lib/Text/RegExp/Parser.hs
+src/Text/RegExp/Parser.hs
+src/fullmatch
 .hpc/*
 hpc/*
 criterion/*
