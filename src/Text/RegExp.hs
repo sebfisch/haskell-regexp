@@ -95,7 +95,7 @@ instance Data.String.IsString (RegExp Char) where
 
 -- | 
 -- Alias for 'accept' specialized for Strings. Useful in combination
--- with the 'IsString' instance for 'RegExp Char'
+-- with the 'IsString' instance for 'RegExp' 'Char'
 -- 
 (=~) :: RegExp Char -> String -> Bool
 (=~) = accept
