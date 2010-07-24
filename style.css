@@ -1,0 +1,45 @@
+body {
+    font-family: Optima, sans-serif;
+    margin: 10%;
+}
+
+#TOC>ul {
+    margin: 0; padding: 0;
+    text-align: right; float: right;
+}
+
+#TOC>ul>li {
+    list-style-type: none;
+    margin: 0; padding: 0;
+}
+
+#TOC>ul>li>ul {
+    margin: 0; padding: 0;
+    display: inline;
+}
+
+#TOC>ul>li>ul>li {
+    display: inline;
+    margin-left: 1em; padding: 0;
+}
+
+h1 a, h2 a, #TOC a {
+    text-decoration: none;
+    font-weight: bold;
+    color: forestgreen;
+}
+
+a {
+    color: firebrick;
+}
+
+pre code {
+    display: block;
+    margin: 1em; padding: 1em;
+    background-color: aliceblue;
+}
+
+img {
+    display: block;
+    margin: auto;
+}
