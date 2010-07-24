@@ -5,22 +5,24 @@ body {
 
 #TOC>ul {
     margin: 0; padding: 0;
-    text-align: right; float: right;
+    float: center;
+    display: inline;
 }
 
 #TOC>ul>li {
     list-style-type: none;
     margin: 0; padding: 0;
+    display: inline;
 }
 
 #TOC>ul>li>ul {
     margin: 0; padding: 0;
-    display: inline;
+    display: block;
 }
 
 #TOC>ul>li>ul>li {
-    display: inline;
-    margin-left: 1em; padding: 0;
+    display: block;
+    padding: 0;
 }
 
 h1 a, h2 a, #TOC a {
