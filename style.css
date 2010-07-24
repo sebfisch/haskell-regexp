@@ -8,7 +8,8 @@ h1, h2 {
 }
 
 h1.title {
-    margin: 0; padding: 0;
+    text-align: center;
+    margin-bottom: 0.2em;
     font-size: 40pt;
     color: cornflowerblue;
 }
@@ -28,6 +29,7 @@ p {
 
 #TOC {
     text-align: center;
+    margin-bottom: 2em;
 }
 
 #TOC>ul {
