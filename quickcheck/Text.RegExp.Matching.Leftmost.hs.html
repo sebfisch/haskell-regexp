@@ -1,0 +1,88 @@
+<html><style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>-- |
+<span class="lineno">    4 </span>-- Module      : Text.RegExp.Matching.Leftmost
+<span class="lineno">    5 </span>-- Copyright   : Thomas Wilke, Frank Huch, and Sebastian Fischer
+<span class="lineno">    6 </span>-- License     : BSD3
+<span class="lineno">    7 </span>-- Maintainer  : Sebastian Fischer &lt;mailto:sebf@informatik.uni-kiel.de&gt;
+<span class="lineno">    8 </span>-- Stability   : experimental
+<span class="lineno">    9 </span>-- 
+<span class="lineno">   10 </span>-- This module implements leftmost matching based on weighted regular
+<span class="lineno">   11 </span>-- expressions. It should be imported qualified as the interface
+<span class="lineno">   12 </span>-- resembles that provided by other matching modules.
+<span class="lineno">   13 </span>-- 
+<span class="lineno">   14 </span>module Text.RegExp.Matching.Leftmost (
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>  Leftmost(..), Matching(..),
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>  matching, getLeftmost
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>  ) where
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Text.RegExp
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- |
+<span class="lineno">   25 </span>-- A 'Matching' records the leftmost start index of a matching subword.
+<span class="lineno">   26 </span>-- 
+<span class="lineno">   27 </span>data Matching = Matching {
+<span class="lineno">   28 </span> 
+<span class="lineno">   29 </span>  -- | Start index of the matching subword in the queried word.
+<span class="lineno">   30 </span>  matchingIndex :: !Int
+<span class="lineno">   31 </span> 
+<span class="lineno">   32 </span>  }
+<span class="lineno">   33 </span> deriving <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>instance Show Matching
+<span class="lineno">   36 </span> where
+<span class="lineno">   37 </span>  <span class="decl"><span class="istickedoff">showsPrec _ m = showString &quot;&lt;index:&quot; . shows (matchingIndex m)</span>
+<span class="lineno">   38 </span><span class="spaces">                </span><span class="istickedoff">. showString &quot;&gt;&quot;</span></span>
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>-- |
+<span class="lineno">   41 </span>-- Returns the leftmost of all non-empty matchings for a regular
+<span class="lineno">   42 </span>-- expression in a given word. If the empty word is the only matching
+<span class="lineno">   43 </span>-- its position is zero.
+<span class="lineno">   44 </span>-- 
+<span class="lineno">   45 </span>matching :: RegExp c -&gt; [c] -&gt; Maybe Matching
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">matching r = getLeftmost . partialMatch r</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>-- | Semiring used for leftmost matching.
+<span class="lineno">   49 </span>-- 
+<span class="lineno">   50 </span>data Leftmost = Zero | One | Leftmost !Int
+<span class="lineno">   51 </span> deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>,<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>getLeftmost :: Leftmost -&gt; Maybe Matching
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">getLeftmost Zero          =  Nothing</span>
+<span class="lineno">   55 </span><span class="spaces"></span><span class="istickedoff">getLeftmost One           =  Just $ Matching 0 </span>
+<span class="lineno">   56 </span><span class="spaces"></span><span class="istickedoff">getLeftmost (Leftmost x)  =  Just $ Matching x</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>instance Semiring Leftmost where
+<span class="lineno">   59 </span>  <span class="decl"><span class="istickedoff">zero = Zero</span></span>; <span class="decl"><span class="istickedoff">one = One</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>  <span class="decl"><span class="istickedoff">Zero        .+.  y           =  y</span>
+<span class="lineno">   62 </span><span class="spaces">  </span><span class="istickedoff">x           .+.  Zero        =  x</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="istickedoff">One         .+.  y           =  y</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="istickedoff">x           .+.  One         =  x</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">Leftmost a  .+.  Leftmost b  =  Leftmost (min a b)</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>  <span class="decl"><span class="istickedoff">Zero        .*.  _           =  Zero</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">_           .*.  Zero        =  Zero</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">One         .*.  y           =  y</span>
+<span class="lineno">   70 </span><span class="spaces">  </span><span class="istickedoff">x           .*.  One         =  x</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="istickedoff">Leftmost a  .*.  Leftmost b  =  Leftmost (min a b)</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>instance Weight c (Int,c) Leftmost where
+<span class="lineno">   74 </span>  <span class="decl"><span class="istickedoff">symWeight p (n,c) = p c .*. Leftmost n</span></span>
+
+</pre>
+</html>

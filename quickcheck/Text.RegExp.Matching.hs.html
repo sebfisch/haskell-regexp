@@ -1,0 +1,71 @@
+<html><style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module Text.RegExp.Matching where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Data.Semiring
+<span class="lineno">    6 </span>import Text.RegExp.Data
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>-- |
+<span class="lineno">    9 </span>-- Checks whether a regular expression matches the given word. For
+<span class="lineno">   10 </span>-- example, @accept (fromString \&quot;b|abc\&quot;) \&quot;b\&quot;@ yields @True@
+<span class="lineno">   11 </span>-- because the first alternative of @b|abc@ matches the string
+<span class="lineno">   12 </span>-- @\&quot;b\&quot;@.
+<span class="lineno">   13 </span>-- 
+<span class="lineno">   14 </span>accept :: RegExp c -&gt; [c] -&gt; Bool
+<span class="lineno">   15 </span><span class="decl"><span class="istickedoff">accept r = fullMatch r</span></span>
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>-- |
+<span class="lineno">   18 </span>-- Computes in how many ways a word can be matched against a regular
+<span class="lineno">   19 </span>-- expression.
+<span class="lineno">   20 </span>-- 
+<span class="lineno">   21 </span>matchingCount :: Num a =&gt; RegExp c -&gt; [c] -&gt; a
+<span class="lineno">   22 </span><span class="decl"><span class="istickedoff">matchingCount r = getNumeric . fullMatch r</span></span>
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- |
+<span class="lineno">   25 </span>-- Matches a regular expression against a word computing a weight in
+<span class="lineno">   26 </span>-- an arbitrary semiring.
+<span class="lineno">   27 </span>-- 
+<span class="lineno">   28 </span>fullMatch :: Semiring w =&gt; RegExp c -&gt; [c] -&gt; w
+<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">fullMatch (RegExp r) = matchW r</span></span>
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>-- |
+<span class="lineno">   32 </span>-- Matches a regular expression against substrings of a word computing
+<span class="lineno">   33 </span>-- a weight in an arbitrary semiring. The 'symWeight' function of
+<span class="lineno">   34 </span>-- 'Weight's is used to report positional information about the
+<span class="lineno">   35 </span>-- matching part of the word to the semiring.
+<span class="lineno">   36 </span>-- 
+<span class="lineno">   37 </span>partialMatch :: Weight c (Int,c) w =&gt; RegExp c -&gt; [c] -&gt; w
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">partialMatch (RegExp r) =</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">matchW (arb `seqW` weighted r `seqW` arb) . zip [(0::Int)..]</span>
+<span class="lineno">   40 </span><span class="spaces"> </span><span class="istickedoff">where arb = repW (symW <span class="nottickedoff">&quot;.&quot;</span> (const one))</span></span>
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>matchW :: Semiring w =&gt; RegW w c -&gt; [c] -&gt; w
+<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">matchW r []     = empty r</span>
+<span class="lineno">   44 </span><span class="spaces"></span><span class="istickedoff">matchW r (c:cs) = final (foldl (shiftW zero) (shiftW one r c) cs)</span></span>
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>shiftW :: Semiring w =&gt; w -&gt; RegW w c -&gt; c -&gt; RegW w c
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">shiftW w r c | active r || w /= zero = shift w (reg r) c</span>
+<span class="lineno">   48 </span><span class="spaces">             </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>             = r</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>shift :: Semiring w =&gt; w -&gt; Reg w c -&gt; c -&gt; RegW w c
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">shift _ Eps       _ = epsW</span>
+<span class="lineno">   52 </span><span class="spaces"></span><span class="istickedoff">shift w (Sym s f) c = let w' = w .*. f c</span>
+<span class="lineno">   53 </span><span class="spaces">                       </span><span class="istickedoff">in (symW <span class="nottickedoff">s</span> f) { active = w' /= zero, final_ = w' }</span>
+<span class="lineno">   54 </span><span class="spaces"></span><span class="istickedoff">shift w (Alt p q) c = altW (shiftW w p c) (shiftW w q c)</span>
+<span class="lineno">   55 </span><span class="spaces"></span><span class="istickedoff">shift w (Seq p q) c = seqW (shiftW w p c)</span>
+<span class="lineno">   56 </span><span class="spaces">                           </span><span class="istickedoff">(shiftW (w .*. empty p .+. final p) q c)</span>
+<span class="lineno">   57 </span><span class="spaces"></span><span class="istickedoff">shift w (Rep r)   c = repW (shiftW (w .+. final r) r c)</span></span>
+
+</pre>
+</html>

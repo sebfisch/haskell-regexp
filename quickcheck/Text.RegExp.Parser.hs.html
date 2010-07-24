@@ -1,0 +1,584 @@
+<html><style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+<pre>
+<span class="lineno">    1 </span>{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
+<span class="lineno">    2 </span>{-# OPTIONS -fglasgow-exts -cpp #-}
+<span class="lineno">    3 </span>{-# LANGUAGE NoMonomorphismRestriction  #-}
+<span class="lineno">    4 </span>{-# OPTIONS -fno-warn-incomplete-patterns -fno-warn-missing-signatures #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module Text.RegExp.Parser ( parse ) where
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>import Text.RegExp.Data
+<span class="lineno">    9 </span>  ( eps, char, psym, anySym, alt, seq_, rep, rep1, opt, brep )
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import Data.Char ( isSpace, toLower, isAlphaNum, isDigit )
+<span class="lineno">   12 </span>#if __GLASGOW_HASKELL__ &gt;= 503
+<span class="lineno">   13 </span>import qualified Data.Array as Happy_Data_Array
+<span class="lineno">   14 </span>#else
+<span class="lineno">   15 </span>import qualified Array as Happy_Data_Array
+<span class="lineno">   16 </span>#endif
+<span class="lineno">   17 </span>#if __GLASGOW_HASKELL__ &gt;= 503
+<span class="lineno">   18 </span>import qualified GHC.Exts as Happy_GHC_Exts
+<span class="lineno">   19 </span>#else
+<span class="lineno">   20 </span>import qualified GlaExts as Happy_GHC_Exts
+<span class="lineno">   21 </span>#endif
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- parser produced by Happy Version 1.18.4
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>newtype HappyAbsSyn t4 = HappyAbsSyn HappyAny
+<span class="lineno">   26 </span>#if __GLASGOW_HASKELL__ &gt;= 607
+<span class="lineno">   27 </span>type HappyAny = Happy_GHC_Exts.Any
+<span class="lineno">   28 </span>#else
+<span class="lineno">   29 </span>type HappyAny = forall a . a
+<span class="lineno">   30 </span>#endif
+<span class="lineno">   31 </span>happyIn4 :: t4 -&gt; (HappyAbsSyn t4)
+<span class="lineno">   32 </span><span class="decl"><span class="istickedoff">happyIn4 x = Happy_GHC_Exts.unsafeCoerce# x</span></span>
+<span class="lineno">   33 </span>{-# INLINE happyIn4 #-}
+<span class="lineno">   34 </span>happyOut4 :: (HappyAbsSyn t4) -&gt; t4
+<span class="lineno">   35 </span><span class="decl"><span class="istickedoff">happyOut4 x = Happy_GHC_Exts.unsafeCoerce# x</span></span>
+<span class="lineno">   36 </span>{-# INLINE happyOut4 #-}
+<span class="lineno">   37 </span>happyInTok :: (Token) -&gt; (HappyAbsSyn t4)
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">happyInTok x = Happy_GHC_Exts.unsafeCoerce# x</span></span>
+<span class="lineno">   39 </span>{-# INLINE happyInTok #-}
+<span class="lineno">   40 </span>happyOutTok :: (HappyAbsSyn t4) -&gt; (Token)
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">happyOutTok x = Happy_GHC_Exts.unsafeCoerce# x</span></span>
+<span class="lineno">   42 </span>{-# INLINE happyOutTok #-}
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>happyActOffsets :: HappyAddr
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">happyActOffsets = HappyA# &quot;\x04\x00\x00\x00\xff\xff\x00\x00\x04\x00\x00\x00\x00\x00\x0e\x00\x00\x00\x04\x00\x04\x00\x00\x00\x00\x00\x00\x00\x16\x00\x19\x00\x00\x00\x00\x00&quot;#</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>happyGotoOffsets :: HappyAddr
+<span class="lineno">   49 </span><span class="decl"><span class="istickedoff">happyGotoOffsets = HappyA# &quot;\x13\x00\x00\x00\x00\x00\x00\x00\x0d\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0c\x00\x0a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00&quot;#</span></span>
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>happyDefActions :: HappyAddr
+<span class="lineno">   52 </span><span class="decl"><span class="istickedoff">happyDefActions = HappyA# &quot;\xfe\xff\x00\x00\x00\x00\xfd\xff\xfe\xff\xf5\xff\xf4\xff\x00\x00\xfc\xff\xfe\xff\xfe\xff\xf8\xff\xf7\xff\xf6\xff\xfa\xff\xfb\xff\xf9\xff&quot;#</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>happyCheck :: HappyAddr
+<span class="lineno">   55 </span><span class="decl"><span class="istickedoff">happyCheck = HappyA# &quot;\xff\xff\x02\x00\x03\x00\x04\x00\xff\xff\x01\x00\x07\x00\x08\x00\x09\x00\x05\x00\x00\x00\x0c\x00\x00\x00\x00\x00\x0a\x00\x0b\x00\x02\x00\x03\x00\x04\x00\x00\x00\x06\x00\x07\x00\x08\x00\x09\x00\x02\x00\x03\x00\x04\x00\x02\x00\x03\x00\x07\x00\x08\x00\x09\x00\x07\x00\x08\x00\x09\x00\xff\xff\xff\xff\xff\xff&quot;#</span></span>
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>happyTable :: HappyAddr
+<span class="lineno">   58 </span><span class="decl"><span class="istickedoff">happyTable = HappyA# &quot;\x00\x00\x09\x00\x0a\x00\x0b\x00\x00\x00\x04\x00\x0c\x00\x0d\x00\x0e\x00\x05\x00\x0e\x00\xff\xff\x0f\x00\x07\x00\x06\x00\x07\x00\x09\x00\x0a\x00\x0b\x00\x02\x00\x11\x00\x0c\x00\x0d\x00\x0e\x00\x09\x00\x0a\x00\x0b\x00\x09\x00\x0a\x00\x0c\x00\x0d\x00\x0e\x00\x0c\x00\x0d\x00\x0e\x00\x00\x00\x00\x00\x00\x00&quot;#</span></span>
+<span class="lineno">   59 </span>
+<span class="lineno">   60 </span><span class="decl"><span class="istickedoff">happyReduceArr = Happy_Data_Array.array (1, 11) [</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="istickedoff">(1 , happyReduce_1),</span>
+<span class="lineno">   62 </span><span class="spaces">        </span><span class="istickedoff">(2 , happyReduce_2),</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="istickedoff">(3 , happyReduce_3),</span>
+<span class="lineno">   64 </span><span class="spaces">        </span><span class="istickedoff">(4 , happyReduce_4),</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="istickedoff">(5 , happyReduce_5),</span>
+<span class="lineno">   66 </span><span class="spaces">        </span><span class="istickedoff">(6 , happyReduce_6),</span>
+<span class="lineno">   67 </span><span class="spaces">        </span><span class="istickedoff">(7 , happyReduce_7),</span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="istickedoff">(8 , happyReduce_8),</span>
+<span class="lineno">   69 </span><span class="spaces">        </span><span class="istickedoff">(9 , happyReduce_9),</span>
+<span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">(10 , happyReduce_10),</span>
+<span class="lineno">   71 </span><span class="spaces">        </span><span class="istickedoff">(11 , happyReduce_11)</span>
+<span class="lineno">   72 </span><span class="spaces">        </span><span class="istickedoff">]</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">happy_n_terms = 13 :: Int</span></span>
+<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">happy_n_nonterms = 1 :: Int</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span><span class="decl"><span class="istickedoff">happyReduce_1 = happySpecReduce_0  0# happyReduction_1</span></span>
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">happyReduction_1  =  happyIn4</span>
+<span class="lineno">   79 </span><span class="spaces">                 </span><span class="istickedoff">(eps</span>
+<span class="lineno">   80 </span><span class="spaces">        </span><span class="istickedoff">)</span></span>
+<span class="lineno">   81 </span>
+<span class="lineno">   82 </span><span class="decl"><span class="istickedoff">happyReduce_2 = happySpecReduce_1  0# happyReduction_2</span></span>
+<span class="lineno">   83 </span><span class="decl"><span class="istickedoff">happyReduction_2 happy_x_1</span>
+<span class="lineno">   84 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOutTok happy_x_1 of { (Sym happy_var_1) -&gt; </span>
+<span class="lineno">   85 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">   86 </span><span class="spaces">                 </span><span class="istickedoff">(char happy_var_1</span>
+<span class="lineno">   87 </span><span class="spaces">        </span><span class="istickedoff">)}</span></span>
+<span class="lineno">   88 </span>
+<span class="lineno">   89 </span><span class="decl"><span class="istickedoff">happyReduce_3 = happySpecReduce_2  0# happyReduction_3</span></span>
+<span class="lineno">   90 </span><span class="decl"><span class="istickedoff">happyReduction_3 happy_x_2</span>
+<span class="lineno">   91 </span><span class="spaces">        </span><span class="istickedoff">happy_x_1</span>
+<span class="lineno">   92 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOut4 happy_x_1 of { happy_var_1 -&gt; </span>
+<span class="lineno">   93 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">   94 </span><span class="spaces">                 </span><span class="istickedoff">(rep happy_var_1</span>
+<span class="lineno">   95 </span><span class="spaces">        </span><span class="istickedoff">)}</span></span>
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span><span class="decl"><span class="istickedoff">happyReduce_4 = happySpecReduce_3  0# happyReduction_4</span></span>
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">happyReduction_4 happy_x_3</span>
+<span class="lineno">   99 </span><span class="spaces">        </span><span class="istickedoff">happy_x_2</span>
+<span class="lineno">  100 </span><span class="spaces">        </span><span class="istickedoff">happy_x_1</span>
+<span class="lineno">  101 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOut4 happy_x_1 of { happy_var_1 -&gt; </span>
+<span class="lineno">  102 </span><span class="spaces">        </span><span class="istickedoff">case happyOut4 happy_x_3 of { happy_var_3 -&gt; </span>
+<span class="lineno">  103 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">  104 </span><span class="spaces">                 </span><span class="istickedoff">(seq_ happy_var_1 happy_var_3</span>
+<span class="lineno">  105 </span><span class="spaces">        </span><span class="istickedoff">)}}</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span><span class="decl"><span class="istickedoff">happyReduce_5 = happySpecReduce_3  0# happyReduction_5</span></span>
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">happyReduction_5 happy_x_3</span>
+<span class="lineno">  109 </span><span class="spaces">        </span><span class="istickedoff">happy_x_2</span>
+<span class="lineno">  110 </span><span class="spaces">        </span><span class="istickedoff">happy_x_1</span>
+<span class="lineno">  111 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOut4 happy_x_1 of { happy_var_1 -&gt; </span>
+<span class="lineno">  112 </span><span class="spaces">        </span><span class="istickedoff">case happyOut4 happy_x_3 of { happy_var_3 -&gt; </span>
+<span class="lineno">  113 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">  114 </span><span class="spaces">                 </span><span class="istickedoff">(alt happy_var_1 happy_var_3</span>
+<span class="lineno">  115 </span><span class="spaces">        </span><span class="istickedoff">)}}</span></span>
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">happ<span class="tickonlytrue">yReduce_6</span> = happySpecReduce_3  0# happyReduction_6</span></span>
+<span class="lineno">  118 </span><span class="decl"><span class="istickedoff">happyReduction_6 happy_x_3</span>
+<span class="lineno">  119 </span><span class="spaces">        </span><span class="istickedoff">happy_x_2</span>
+<span class="lineno">  120 </span><span class="spaces">        </span><span class="istickedoff">happy_x_1</span>
+<span class="lineno">  121 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOut4 happy_x_2 of { happy_var_2 -&gt; </span>
+<span class="lineno">  122 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">  123 </span><span class="spaces">                 </span><span class="istickedoff">(happy_var_2</span>
+<span class="lineno">  124 </span><span class="spaces">        </span><span class="istickedoff">)}</span></span>
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span><span class="decl"><span class="istickedoff">happyReduce_7 = happySpecReduce_2  0# happyReduction_7</span></span>
+<span class="lineno">  127 </span><span class="decl"><span class="istickedoff">happyReduction_7 happy_x_2</span>
+<span class="lineno">  128 </span><span class="spaces">        </span><span class="istickedoff">happy_x_1</span>
+<span class="lineno">  129 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOut4 happy_x_1 of { happy_var_1 -&gt; </span>
+<span class="lineno">  130 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">  131 </span><span class="spaces">                 </span><span class="istickedoff">(rep1 happy_var_1</span>
+<span class="lineno">  132 </span><span class="spaces">        </span><span class="istickedoff">)}</span></span>
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span><span class="decl"><span class="istickedoff">happyReduce_8 = happySpecReduce_2  0# happyReduction_8</span></span>
+<span class="lineno">  135 </span><span class="decl"><span class="istickedoff">happyReduction_8 happy_x_2</span>
+<span class="lineno">  136 </span><span class="spaces">        </span><span class="istickedoff">happy_x_1</span>
+<span class="lineno">  137 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOut4 happy_x_1 of { happy_var_1 -&gt; </span>
+<span class="lineno">  138 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">  139 </span><span class="spaces">                 </span><span class="istickedoff">(opt happy_var_1</span>
+<span class="lineno">  140 </span><span class="spaces">        </span><span class="istickedoff">)}</span></span>
+<span class="lineno">  141 </span>
+<span class="lineno">  142 </span><span class="decl"><span class="istickedoff">happyReduce_9 = happySpecReduce_2  0# happyReduction_9</span></span>
+<span class="lineno">  143 </span><span class="decl"><span class="istickedoff">happyReduction_9 happy_x_2</span>
+<span class="lineno">  144 </span><span class="spaces">        </span><span class="istickedoff">happy_x_1</span>
+<span class="lineno">  145 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOut4 happy_x_1 of { happy_var_1 -&gt; </span>
+<span class="lineno">  146 </span><span class="spaces">        </span><span class="istickedoff">case happyOutTok happy_x_2 of { (Bnd happy_var_2) -&gt; </span>
+<span class="lineno">  147 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">  148 </span><span class="spaces">                 </span><span class="istickedoff">(brep happy_var_2 happy_var_1</span>
+<span class="lineno">  149 </span><span class="spaces">        </span><span class="istickedoff">)}}</span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span><span class="decl"><span class="istickedoff">happyReduce_10 = happySpecReduce_1  0# happyReduction_10</span></span>
+<span class="lineno">  152 </span><span class="decl"><span class="istickedoff">happyReduction_10 happy_x_1</span>
+<span class="lineno">  153 </span><span class="spaces">         </span><span class="istickedoff">=  case happyOutTok happy_x_1 of { (Cls happy_var_1) -&gt; </span>
+<span class="lineno">  154 </span><span class="spaces">        </span><span class="istickedoff">happyIn4</span>
+<span class="lineno">  155 </span><span class="spaces">                 </span><span class="istickedoff">(uncurry psym happy_var_1</span>
+<span class="lineno">  156 </span><span class="spaces">        </span><span class="istickedoff">)}</span></span>
+<span class="lineno">  157 </span>
+<span class="lineno">  158 </span><span class="decl"><span class="istickedoff">happyReduce_11 = happySpecReduce_1  0# happyReduction_11</span></span>
+<span class="lineno">  159 </span><span class="decl"><span class="istickedoff">happyReduction_11 happy_x_1</span>
+<span class="lineno">  160 </span><span class="spaces">         </span><span class="istickedoff">=  happyIn4</span>
+<span class="lineno">  161 </span><span class="spaces">                 </span><span class="istickedoff">(anySym</span>
+<span class="lineno">  162 </span><span class="spaces">        </span><span class="istickedoff">)</span></span>
+<span class="lineno">  163 </span>
+<span class="lineno">  164 </span><span class="decl"><span class="istickedoff">happyNewToken action sts stk [] =</span>
+<span class="lineno">  165 </span><span class="spaces">        </span><span class="istickedoff">happyDoAction 12# <span class="nottickedoff">notHappyAtAll</span> action sts stk <span class="nottickedoff">[]</span></span>
+<span class="lineno">  166 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  167 </span><span class="spaces"></span><span class="istickedoff">happyNewToken action sts stk (tk:tks) =</span>
+<span class="lineno">  168 </span><span class="spaces">        </span><span class="istickedoff">let cont i = happyDoAction i tk action sts stk tks in</span>
+<span class="lineno">  169 </span><span class="spaces">        </span><span class="istickedoff">case tk of {</span>
+<span class="lineno">  170 </span><span class="spaces">        </span><span class="istickedoff">Sym happy_dollar_dollar -&gt; cont 1#;</span>
+<span class="lineno">  171 </span><span class="spaces">        </span><span class="istickedoff">Ast -&gt; cont 2#;</span>
+<span class="lineno">  172 </span><span class="spaces">        </span><span class="istickedoff">Seq -&gt; cont 3#;</span>
+<span class="lineno">  173 </span><span class="spaces">        </span><span class="istickedoff">Bar -&gt; cont 4#;</span>
+<span class="lineno">  174 </span><span class="spaces">        </span><span class="istickedoff">L -&gt; cont 5#;</span>
+<span class="lineno">  175 </span><span class="spaces">        </span><span class="istickedoff">R -&gt; cont 6#;</span>
+<span class="lineno">  176 </span><span class="spaces">        </span><span class="istickedoff">Pls -&gt; cont 7#;</span>
+<span class="lineno">  177 </span><span class="spaces">        </span><span class="istickedoff">Que -&gt; cont 8#;</span>
+<span class="lineno">  178 </span><span class="spaces">        </span><span class="istickedoff">Bnd happy_dollar_dollar -&gt; cont 9#;</span>
+<span class="lineno">  179 </span><span class="spaces">        </span><span class="istickedoff">Cls happy_dollar_dollar -&gt; cont 10#;</span>
+<span class="lineno">  180 </span><span class="spaces">        </span><span class="istickedoff">Dot -&gt; cont 11#;</span>
+<span class="lineno">  181 </span><span class="spaces">        </span><span class="istickedoff">_ -&gt; <span class="nottickedoff">happyError' (tk:tks)</span></span>
+<span class="lineno">  182 </span><span class="spaces">        </span><span class="istickedoff">}</span></span>
+<span class="lineno">  183 </span>
+<span class="lineno">  184 </span><span class="decl"><span class="nottickedoff">happyError_ tk tks = happyError' (tk:tks)</span></span>
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>newtype HappyIdentity a = HappyIdentity a
+<span class="lineno">  187 </span><span class="decl"><span class="nottickedoff">happyIdentity = HappyIdentity</span></span>
+<span class="lineno">  188 </span><span class="decl"><span class="istickedoff">happyRunIdentity (HappyIdentity a) = a</span></span>
+<span class="lineno">  189 </span>
+<span class="lineno">  190 </span>instance Monad HappyIdentity where
+<span class="lineno">  191 </span>    <span class="decl"><span class="istickedoff">return = HappyIdentity</span></span>
+<span class="lineno">  192 </span>    <span class="decl"><span class="istickedoff">(HappyIdentity p) &gt;&gt;= q = q p</span></span>
+<span class="lineno">  193 </span>
+<span class="lineno">  194 </span>happyThen :: () =&gt; HappyIdentity a -&gt; (a -&gt; HappyIdentity b) -&gt; HappyIdentity b
+<span class="lineno">  195 </span><span class="decl"><span class="istickedoff">happyThen = (&gt;&gt;=)</span></span>
+<span class="lineno">  196 </span>happyReturn :: () =&gt; a -&gt; HappyIdentity a
+<span class="lineno">  197 </span><span class="decl"><span class="istickedoff">happyReturn = (return)</span></span>
+<span class="lineno">  198 </span><span class="decl"><span class="nottickedoff">happyThen1 m k tks = (&gt;&gt;=) m (\a -&gt; k a tks)</span></span>
+<span class="lineno">  199 </span>happyReturn1 :: () =&gt; a -&gt; b -&gt; HappyIdentity a
+<span class="lineno">  200 </span><span class="decl"><span class="istickedoff">happyReturn1 = \a tks -&gt; (return) a</span></span>
+<span class="lineno">  201 </span>happyError' :: () =&gt; [(Token)] -&gt; HappyIdentity a
+<span class="lineno">  202 </span><span class="decl"><span class="nottickedoff">happyError' = HappyIdentity . parseError</span></span>
+<span class="lineno">  203 </span>
+<span class="lineno">  204 </span><span class="decl"><span class="istickedoff">parseTokens tks = happyRunIdentity happySomeParser where</span>
+<span class="lineno">  205 </span><span class="spaces">  </span><span class="istickedoff">happySomeParser = happyThen (happyParse 0# tks) (\x -&gt; happyReturn (happyOut4 x))</span></span>
+<span class="lineno">  206 </span>
+<span class="lineno">  207 </span><span class="decl"><span class="istickedoff">happySeq = happyDontSeq</span></span>
+<span class="lineno">  208 </span>
+<span class="lineno">  209 </span>
+<span class="lineno">  210 </span><span class="decl"><span class="istickedoff">parse = parseTokens . scan</span></span>
+<span class="lineno">  211 </span>
+<span class="lineno">  212 </span>data Token = Seq | Sym Char | Ast | Bar | L | R
+<span class="lineno">  213 </span>           | Pls | Que | Bnd (Int,Int)
+<span class="lineno">  214 </span>           | Cls (String,Char -&gt; Bool) | Dot
+<span class="lineno">  215 </span>
+<span class="lineno">  216 </span>
+<span class="lineno">  217 </span>token :: Char -&gt; Token
+<span class="lineno">  218 </span><span class="decl"><span class="istickedoff">token '*'  = Ast</span>
+<span class="lineno">  219 </span><span class="spaces"></span><span class="istickedoff">token '|'  = Bar</span>
+<span class="lineno">  220 </span><span class="spaces"></span><span class="istickedoff">token '('  = L</span>
+<span class="lineno">  221 </span><span class="spaces"></span><span class="istickedoff">token ')'  = R</span>
+<span class="lineno">  222 </span><span class="spaces"></span><span class="istickedoff">token '?'  = Que</span>
+<span class="lineno">  223 </span><span class="spaces"></span><span class="istickedoff">token '+'  = Pls</span>
+<span class="lineno">  224 </span><span class="spaces"></span><span class="istickedoff">token '.'  = Dot</span>
+<span class="lineno">  225 </span><span class="spaces"></span><span class="istickedoff">token c    = Sym c</span></span>
+<span class="lineno">  226 </span>
+<span class="lineno">  227 </span>scan :: String -&gt; [Token]
+<span class="lineno">  228 </span><span class="decl"><span class="istickedoff">scan = insertSeqs . process</span></span>
+<span class="lineno">  229 </span>
+<span class="lineno">  230 </span>insertSeqs :: [Token] -&gt; [Token]
+<span class="lineno">  231 </span><span class="decl"><span class="istickedoff">insertSeqs []           = <span class="nottickedoff">[]</span></span>
+<span class="lineno">  232 </span><span class="spaces"></span><span class="istickedoff">insertSeqs [t]          = [t]</span>
+<span class="lineno">  233 </span><span class="spaces"></span><span class="istickedoff">insertSeqs (a:ts@(b:_))</span>
+<span class="lineno">  234 </span><span class="spaces">  </span><span class="istickedoff">| lseq a &amp;&amp; rseq b    = a : Seq : insertSeqs ts</span>
+<span class="lineno">  235 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>           = a : insertSeqs ts</span></span>
+<span class="lineno">  236 </span>
+<span class="lineno">  237 </span>lseq :: Token -&gt; Bool
+<span class="lineno">  238 </span><span class="decl"><span class="istickedoff">lseq Bar = False</span>
+<span class="lineno">  239 </span><span class="spaces"></span><span class="istickedoff">lseq L   = False</span>
+<span class="lineno">  240 </span><span class="spaces"></span><span class="istickedoff">lseq _   = True</span></span>
+<span class="lineno">  241 </span>
+<span class="lineno">  242 </span>rseq :: Token -&gt; Bool
+<span class="lineno">  243 </span><span class="decl"><span class="istickedoff">rseq (Sym _) = True</span>
+<span class="lineno">  244 </span><span class="spaces"></span><span class="istickedoff">rseq L       = True</span>
+<span class="lineno">  245 </span><span class="spaces"></span><span class="istickedoff">rseq (Cls _) = True</span>
+<span class="lineno">  246 </span><span class="spaces"></span><span class="istickedoff">rseq Dot     = True</span>
+<span class="lineno">  247 </span><span class="spaces"></span><span class="istickedoff">rseq _       = False</span></span>
+<span class="lineno">  248 </span>
+<span class="lineno">  249 </span>process :: String -&gt; [Token]
+<span class="lineno">  250 </span><span class="decl"><span class="istickedoff">process []            = []</span>
+<span class="lineno">  251 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  252 </span><span class="spaces"></span><span class="istickedoff">process ('\\':c:cs)   = Cls (['\\',c],symClassPred c) : process cs</span>
+<span class="lineno">  253 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  254 </span><span class="spaces"></span><span class="istickedoff">process ('{':cs)      = case reads cs of</span>
+<span class="lineno">  255 </span><span class="spaces">                          </span><span class="istickedoff">(n,'}':s1) : _ -&gt; Bnd (n,n) : process s1</span>
+<span class="lineno">  256 </span><span class="spaces">                          </span><span class="istickedoff">(n,',':s1) : _ -&gt;</span>
+<span class="lineno">  257 </span><span class="spaces">                              </span><span class="istickedoff">case reads s1 of</span>
+<span class="lineno">  258 </span><span class="spaces">                                </span><span class="istickedoff">(m,'}':s2) : _ -&gt; Bnd (n,m) : process s2</span>
+<span class="lineno">  259 </span><span class="spaces">                                </span><span class="istickedoff">_              -&gt; <span class="nottickedoff">token '{' : process cs</span></span>
+<span class="lineno">  260 </span><span class="spaces">                          </span><span class="istickedoff">_              -&gt; <span class="nottickedoff">token '{' : process cs</span></span>
+<span class="lineno">  261 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  262 </span><span class="spaces"></span><span class="istickedoff">process ('[':'^':cs)  = Cls (('[':'^':s),not.p) : process xs</span>
+<span class="lineno">  263 </span><span class="spaces"> </span><span class="istickedoff">where (s,p,xs) = processCls cs</span>
+<span class="lineno">  264 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  265 </span><span class="spaces"></span><span class="istickedoff">process ('['    :cs)  = Cls ('[':s,p) : process xs</span>
+<span class="lineno">  266 </span><span class="spaces"> </span><span class="istickedoff">where (s,p,xs) = processCls cs</span>
+<span class="lineno">  267 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  268 </span><span class="spaces"></span><span class="istickedoff">process (c:cs)        = token c : process cs</span></span>
+<span class="lineno">  269 </span>
+<span class="lineno">  270 </span>processCls :: String -&gt; (String, Char -&gt; Bool, String)
+<span class="lineno">  271 </span>
+<span class="lineno">  272 </span><span class="decl"><span class="istickedoff">processCls []           = <span class="nottickedoff">parseError []</span></span>
+<span class="lineno">  273 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  274 </span><span class="spaces"></span><span class="istickedoff">processCls (']':cs)     = (&quot;]&quot;, const False, cs)</span>
+<span class="lineno">  275 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  276 </span><span class="spaces"></span><span class="istickedoff">processCls ('\\':c:cs)</span>
+<span class="lineno">  277 </span><span class="spaces">  </span><span class="istickedoff">| isSymClassChar c    = ('\\':c:s, \x -&gt; symClassPred c x || p x, xs)</span>
+<span class="lineno">  278 </span><span class="spaces"> </span><span class="istickedoff">where (s,p,xs) = processCls cs</span>
+<span class="lineno">  279 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  280 </span><span class="spaces"></span><span class="istickedoff">processCls ('\\':c:cs)  = ('\\':c:s, \x -&gt; x==c || p x, xs)</span>
+<span class="lineno">  281 </span><span class="spaces"> </span><span class="istickedoff">where (s,p,xs) = processCls cs</span>
+<span class="lineno">  282 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  283 </span><span class="spaces"></span><span class="istickedoff">processCls (c:'-':e:cs) | <span class="tickonlytrue">e /= ']'</span></span>
+<span class="lineno">  284 </span><span class="spaces">                        </span><span class="istickedoff">= (c:'-':e:s, \d -&gt; (c&lt;=d &amp;&amp; d&lt;=e) || p d, xs)</span>
+<span class="lineno">  285 </span><span class="spaces"> </span><span class="istickedoff">where (s,p,xs) = processCls cs</span>
+<span class="lineno">  286 </span><span class="spaces"></span><span class="istickedoff"></span>
+<span class="lineno">  287 </span><span class="spaces"></span><span class="istickedoff">processCls (c:cs)       = (c:s, \b -&gt; b==c || p b, xs)</span>
+<span class="lineno">  288 </span><span class="spaces"> </span><span class="istickedoff">where (s,p,xs) = processCls cs</span></span>
+<span class="lineno">  289 </span>
+<span class="lineno">  290 </span>isSymClassChar :: Char -&gt; Bool
+<span class="lineno">  291 </span><span class="decl"><span class="istickedoff">isSymClassChar = (`elem`&quot;wWdDsS&quot;)</span></span>
+<span class="lineno">  292 </span>
+<span class="lineno">  293 </span>symClassPred :: Char -&gt; Char -&gt; Bool
+<span class="lineno">  294 </span><span class="decl"><span class="istickedoff">symClassPred 'w' = isWordChar</span>
+<span class="lineno">  295 </span><span class="spaces"></span><span class="istickedoff">symClassPred 'd' = isDigit</span>
+<span class="lineno">  296 </span><span class="spaces"></span><span class="istickedoff">symClassPred 's' = isSpace</span>
+<span class="lineno">  297 </span><span class="spaces"></span><span class="istickedoff">symClassPred 'W' = not . isWordChar</span>
+<span class="lineno">  298 </span><span class="spaces"></span><span class="istickedoff">symClassPred 'D' = not . isDigit</span>
+<span class="lineno">  299 </span><span class="spaces"></span><span class="istickedoff">symClassPred 'S' = not . isSpace</span>
+<span class="lineno">  300 </span><span class="spaces"></span><span class="istickedoff">symClassPred  c  = (c==)</span></span>
+<span class="lineno">  301 </span>
+<span class="lineno">  302 </span>isWordChar :: Char -&gt; Bool
+<span class="lineno">  303 </span><span class="decl"><span class="istickedoff">isWordChar c = c == '_' || isAlphaNum c</span></span>
+<span class="lineno">  304 </span>
+<span class="lineno">  305 </span>parseError :: [Token] -&gt; a
+<span class="lineno">  306 </span><span class="decl"><span class="nottickedoff">parseError _ = error &quot;cannot parse regular expression&quot;</span></span>
+<span class="lineno">  307 </span>{-# LINE 1 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  308 </span>{-# LINE 1 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  309 </span>{-# LINE 1 &quot;&lt;built-in&gt;&quot; #-}
+<span class="lineno">  310 </span>{-# LINE 1 &quot;&lt;command line&gt;&quot; #-}
+<span class="lineno">  311 </span>{-# LINE 1 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  312 </span>-- Id: GenericTemplate.hs,v 1.26 2005/01/14 14:47:22 simonmar Exp 
+<span class="lineno">  313 </span>
+<span class="lineno">  314 </span>{-# LINE 28 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  315 </span>
+<span class="lineno">  316 </span>
+<span class="lineno">  317 </span>data Happy_IntList = HappyCons Happy_GHC_Exts.Int# Happy_IntList
+<span class="lineno">  318 </span>
+<span class="lineno">  319 </span>
+<span class="lineno">  320 </span>
+<span class="lineno">  321 </span>
+<span class="lineno">  322 </span>
+<span class="lineno">  323 </span>{-# LINE 49 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  324 </span>
+<span class="lineno">  325 </span>{-# LINE 59 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  326 </span>
+<span class="lineno">  327 </span>{-# LINE 68 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  328 </span>
+<span class="lineno">  329 </span>infixr 9 `HappyStk`
+<span class="lineno">  330 </span>data HappyStk a = HappyStk a (HappyStk a)
+<span class="lineno">  331 </span>
+<span class="lineno">  332 </span>-----------------------------------------------------------------------------
+<span class="lineno">  333 </span>-- starting the parse
+<span class="lineno">  334 </span>
+<span class="lineno">  335 </span>happyParse start_state = happyNewToken start_state notHappyAtAll notHappyAtAll
+<span class="lineno">  336 </span>
+<span class="lineno">  337 </span>-----------------------------------------------------------------------------
+<span class="lineno">  338 </span>-- Accepting the parse
+<span class="lineno">  339 </span>
+<span class="lineno">  340 </span>-- If the current token is 0#, it means we've just accepted a partial
+<span class="lineno">  341 </span>-- parse (a %partial parser).  We must ignore the saved token on the top of
+<span class="lineno">  342 </span>-- the stack in this case.
+<span class="lineno">  343 </span>happyAccept 0# tk st sts (_ `HappyStk` ans `HappyStk` _) =
+<span class="lineno">  344 </span>        happyReturn1 ans
+<span class="lineno">  345 </span>happyAccept j tk st sts (HappyStk ans _) = 
+<span class="lineno">  346 </span>        (happyTcHack j (happyTcHack st)) (happyReturn1 ans)
+<span class="lineno">  347 </span>
+<span class="lineno">  348 </span>-----------------------------------------------------------------------------
+<span class="lineno">  349 </span>-- Arrays only: do the next action
+<span class="lineno">  350 </span>
+<span class="lineno">  351 </span>
+<span class="lineno">  352 </span>
+<span class="lineno">  353 </span>happyDoAction i tk st
+<span class="lineno">  354 </span>        = {- nothing -}
+<span class="lineno">  355 </span>
+<span class="lineno">  356 </span>
+<span class="lineno">  357 </span>          case action of
+<span class="lineno">  358 </span>               0#         -&gt; {- nothing -}
+<span class="lineno">  359 </span>                               happyFail i tk st
+<span class="lineno">  360 </span>               -1#     -&gt; {- nothing -}
+<span class="lineno">  361 </span>                               happyAccept i tk st
+<span class="lineno">  362 </span>               n | (n Happy_GHC_Exts.&lt;# (0# :: Happy_GHC_Exts.Int#)) -&gt; {- nothing -}
+<span class="lineno">  363 </span>
+<span class="lineno">  364 </span>                               (happyReduceArr Happy_Data_Array.! rule) i tk st
+<span class="lineno">  365 </span>                               where rule = (Happy_GHC_Exts.I# ((Happy_GHC_Exts.negateInt# ((n Happy_GHC_Exts.+# (1# :: Happy_GHC_Exts.Int#))))))
+<span class="lineno">  366 </span>               n           -&gt; {- nothing -}
+<span class="lineno">  367 </span>
+<span class="lineno">  368 </span>
+<span class="lineno">  369 </span>                               happyShift new_state i tk st
+<span class="lineno">  370 </span>                               where new_state = (n Happy_GHC_Exts.-# (1# :: Happy_GHC_Exts.Int#))
+<span class="lineno">  371 </span>   where off    = indexShortOffAddr happyActOffsets st
+<span class="lineno">  372 </span>         off_i  = (off Happy_GHC_Exts.+# i)
+<span class="lineno">  373 </span>         check  = if (off_i Happy_GHC_Exts.&gt;=# (0# :: Happy_GHC_Exts.Int#))
+<span class="lineno">  374 </span>                     then (indexShortOffAddr happyCheck off_i Happy_GHC_Exts.==#  i)
+<span class="lineno">  375 </span>                     else False
+<span class="lineno">  376 </span>         action | check     = indexShortOffAddr happyTable off_i
+<span class="lineno">  377 </span>               | otherwise = indexShortOffAddr happyDefActions st
+<span class="lineno">  378 </span>
+<span class="lineno">  379 </span>{-# LINE 127 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  380 </span>
+<span class="lineno">  381 </span>
+<span class="lineno">  382 </span>indexShortOffAddr (HappyA# arr) off =
+<span class="lineno">  383 </span>#if __GLASGOW_HASKELL__ &gt; 500
+<span class="lineno">  384 </span>        Happy_GHC_Exts.narrow16Int# i
+<span class="lineno">  385 </span>#elif __GLASGOW_HASKELL__ == 500
+<span class="lineno">  386 </span>        Happy_GHC_Exts.intToInt16# i
+<span class="lineno">  387 </span>#else
+<span class="lineno">  388 </span>        Happy_GHC_Exts.iShiftRA# (Happy_GHC_Exts.iShiftL# i 16#) 16#
+<span class="lineno">  389 </span>#endif
+<span class="lineno">  390 </span>  where
+<span class="lineno">  391 </span>#if __GLASGOW_HASKELL__ &gt;= 503
+<span class="lineno">  392 </span>        i = Happy_GHC_Exts.word2Int# (Happy_GHC_Exts.or# (Happy_GHC_Exts.uncheckedShiftL# high 8#) low)
+<span class="lineno">  393 </span>#else
+<span class="lineno">  394 </span>        i = Happy_GHC_Exts.word2Int# (Happy_GHC_Exts.or# (Happy_GHC_Exts.shiftL# high 8#) low)
+<span class="lineno">  395 </span>#endif
+<span class="lineno">  396 </span>        high = Happy_GHC_Exts.int2Word# (Happy_GHC_Exts.ord# (Happy_GHC_Exts.indexCharOffAddr# arr (off' Happy_GHC_Exts.+# 1#)))
+<span class="lineno">  397 </span>        low  = Happy_GHC_Exts.int2Word# (Happy_GHC_Exts.ord# (Happy_GHC_Exts.indexCharOffAddr# arr off'))
+<span class="lineno">  398 </span>        off' = off Happy_GHC_Exts.*# 2#
+<span class="lineno">  399 </span>
+<span class="lineno">  400 </span>
+<span class="lineno">  401 </span>
+<span class="lineno">  402 </span>
+<span class="lineno">  403 </span>
+<span class="lineno">  404 </span>data HappyAddr = HappyA# Happy_GHC_Exts.Addr#
+<span class="lineno">  405 </span>
+<span class="lineno">  406 </span>
+<span class="lineno">  407 </span>
+<span class="lineno">  408 </span>
+<span class="lineno">  409 </span>-----------------------------------------------------------------------------
+<span class="lineno">  410 </span>-- HappyState data type (not arrays)
+<span class="lineno">  411 </span>
+<span class="lineno">  412 </span>{-# LINE 170 &quot;templates/GenericTemplate.hs&quot; #-}
+<span class="lineno">  413 </span>
+<span class="lineno">  414 </span>-----------------------------------------------------------------------------
+<span class="lineno">  415 </span>-- Shifting a token
+<span class="lineno">  416 </span>
+<span class="lineno">  417 </span>happyShift new_state 0# tk st sts stk@(x `HappyStk` _) =
+<span class="lineno">  418 </span>     let i = (case Happy_GHC_Exts.unsafeCoerce# x of { (Happy_GHC_Exts.I# (i)) -&gt; i }) in
+<span class="lineno">  419 </span>--     trace &quot;shifting the error token&quot; $
+<span class="lineno">  420 </span>     happyDoAction i tk new_state (HappyCons (st) (sts)) (stk)
+<span class="lineno">  421 </span>
+<span class="lineno">  422 </span>happyShift new_state i tk st sts stk =
+<span class="lineno">  423 </span>     happyNewToken new_state (HappyCons (st) (sts)) ((happyInTok (tk))`HappyStk`stk)
+<span class="lineno">  424 </span>
+<span class="lineno">  425 </span>-- happyReduce is specialised for the common cases.
+<span class="lineno">  426 </span>
+<span class="lineno">  427 </span>happySpecReduce_0 i fn 0# tk st sts stk
+<span class="lineno">  428 </span>     = happyFail 0# tk st sts stk
+<span class="lineno">  429 </span>happySpecReduce_0 nt fn j tk st@((action)) sts stk
+<span class="lineno">  430 </span>     = happyGoto nt j tk st (HappyCons (st) (sts)) (fn `HappyStk` stk)
+<span class="lineno">  431 </span>
+<span class="lineno">  432 </span>happySpecReduce_1 i fn 0# tk st sts stk
+<span class="lineno">  433 </span>     = happyFail 0# tk st sts stk
+<span class="lineno">  434 </span>happySpecReduce_1 nt fn j tk _ sts@((HappyCons (st@(action)) (_))) (v1`HappyStk`stk')
+<span class="lineno">  435 </span>     = let r = fn v1 in
+<span class="lineno">  436 </span>       happySeq r (happyGoto nt j tk st sts (r `HappyStk` stk'))
+<span class="lineno">  437 </span>
+<span class="lineno">  438 </span>happySpecReduce_2 i fn 0# tk st sts stk
+<span class="lineno">  439 </span>     = happyFail 0# tk st sts stk
+<span class="lineno">  440 </span>happySpecReduce_2 nt fn j tk _ (HappyCons (_) (sts@((HappyCons (st@(action)) (_))))) (v1`HappyStk`v2`HappyStk`stk')
+<span class="lineno">  441 </span>     = let r = fn v1 v2 in
+<span class="lineno">  442 </span>       happySeq r (happyGoto nt j tk st sts (r `HappyStk` stk'))
+<span class="lineno">  443 </span>
+<span class="lineno">  444 </span>happySpecReduce_3 i fn 0# tk st sts stk
+<span class="lineno">  445 </span>     = happyFail 0# tk st sts stk
+<span class="lineno">  446 </span>happySpecReduce_3 nt fn j tk _ (HappyCons (_) ((HappyCons (_) (sts@((HappyCons (st@(action)) (_))))))) (v1`HappyStk`v2`HappyStk`v3`HappyStk`stk')
+<span class="lineno">  447 </span>     = let r = fn v1 v2 v3 in
+<span class="lineno">  448 </span>       happySeq r (happyGoto nt j tk st sts (r `HappyStk` stk'))
+<span class="lineno">  449 </span>
+<span class="lineno">  450 </span>happyReduce k i fn 0# tk st sts stk
+<span class="lineno">  451 </span>     = happyFail 0# tk st sts stk
+<span class="lineno">  452 </span>happyReduce k nt fn j tk st sts stk
+<span class="lineno">  453 </span>     = case happyDrop (k Happy_GHC_Exts.-# (1# :: Happy_GHC_Exts.Int#)) sts of
+<span class="lineno">  454 </span>         sts1@((HappyCons (st1@(action)) (_))) -&gt;
+<span class="lineno">  455 </span>                let r = fn stk in  -- it doesn't hurt to always seq here...
+<span class="lineno">  456 </span>                happyDoSeq r (happyGoto nt j tk st1 sts1 r)
+<span class="lineno">  457 </span>
+<span class="lineno">  458 </span>happyMonadReduce k nt fn 0# tk st sts stk
+<span class="lineno">  459 </span>     = happyFail 0# tk st sts stk
+<span class="lineno">  460 </span>happyMonadReduce k nt fn j tk st sts stk =
+<span class="lineno">  461 </span>        happyThen1 (fn stk tk) (\r -&gt; happyGoto nt j tk st1 sts1 (r `HappyStk` drop_stk))
+<span class="lineno">  462 </span>       where sts1@((HappyCons (st1@(action)) (_))) = happyDrop k (HappyCons (st) (sts))
+<span class="lineno">  463 </span>             drop_stk = happyDropStk k stk
+<span class="lineno">  464 </span>
+<span class="lineno">  465 </span>happyMonad2Reduce k nt fn 0# tk st sts stk
+<span class="lineno">  466 </span>     = happyFail 0# tk st sts stk
+<span class="lineno">  467 </span>happyMonad2Reduce k nt fn j tk st sts stk =
+<span class="lineno">  468 </span>       happyThen1 (fn stk tk) (\r -&gt; happyNewToken new_state sts1 (r `HappyStk` drop_stk))
+<span class="lineno">  469 </span>       where sts1@((HappyCons (st1@(action)) (_))) = happyDrop k (HappyCons (st) (sts))
+<span class="lineno">  470 </span>             drop_stk = happyDropStk k stk
+<span class="lineno">  471 </span>
+<span class="lineno">  472 </span>             off    = indexShortOffAddr happyGotoOffsets st1
+<span class="lineno">  473 </span>             off_i  = (off Happy_GHC_Exts.+# nt)
+<span class="lineno">  474 </span>             new_state = indexShortOffAddr happyTable off_i
+<span class="lineno">  475 </span>
+<span class="lineno">  476 </span>
+<span class="lineno">  477 </span>
+<span class="lineno">  478 </span>
+<span class="lineno">  479 </span>happyDrop 0# l = l
+<span class="lineno">  480 </span>happyDrop n (HappyCons (_) (t)) = happyDrop (n Happy_GHC_Exts.-# (1# :: Happy_GHC_Exts.Int#)) t
+<span class="lineno">  481 </span>
+<span class="lineno">  482 </span>happyDropStk 0# l = l
+<span class="lineno">  483 </span>happyDropStk n (x `HappyStk` xs) = happyDropStk (n Happy_GHC_Exts.-# (1#::Happy_GHC_Exts.Int#)) xs
+<span class="lineno">  484 </span>
+<span class="lineno">  485 </span>-----------------------------------------------------------------------------
+<span class="lineno">  486 </span>-- Moving to a new state after a reduction
+<span class="lineno">  487 </span>
+<span class="lineno">  488 </span>
+<span class="lineno">  489 </span>happyGoto nt j tk st = 
+<span class="lineno">  490 </span>   {- nothing -}
+<span class="lineno">  491 </span>   happyDoAction j tk new_state
+<span class="lineno">  492 </span>   where off    = indexShortOffAddr happyGotoOffsets st
+<span class="lineno">  493 </span>         off_i  = (off Happy_GHC_Exts.+# nt)
+<span class="lineno">  494 </span>         new_state = indexShortOffAddr happyTable off_i
+<span class="lineno">  495 </span>
+<span class="lineno">  496 </span>
+<span class="lineno">  497 </span>
+<span class="lineno">  498 </span>
+<span class="lineno">  499 </span>-----------------------------------------------------------------------------
+<span class="lineno">  500 </span>-- Error recovery (0# is the error token)
+<span class="lineno">  501 </span>
+<span class="lineno">  502 </span>-- parse error if we are in recovery and we fail again
+<span class="lineno">  503 </span>happyFail  0# tk old_st _ stk =
+<span class="lineno">  504 </span>--      trace &quot;failing&quot; $ 
+<span class="lineno">  505 </span>        happyError_ tk
+<span class="lineno">  506 </span>
+<span class="lineno">  507 </span>{-  We don't need state discarding for our restricted implementation of
+<span class="lineno">  508 </span>    &quot;error&quot;.  In fact, it can cause some bogus parses, so I've disabled it
+<span class="lineno">  509 </span>    for now --SDM
+<span class="lineno">  510 </span>
+<span class="lineno">  511 </span>-- discard a state
+<span class="lineno">  512 </span>happyFail  0# tk old_st (HappyCons ((action)) (sts)) 
+<span class="lineno">  513 </span>                                 (saved_tok `HappyStk` _ `HappyStk` stk) =
+<span class="lineno">  514 </span>--      trace (&quot;discarding state, depth &quot; ++ show (length stk))  $
+<span class="lineno">  515 </span>        happyDoAction 0# tk action sts ((saved_tok`HappyStk`stk))
+<span class="lineno">  516 </span>-}
+<span class="lineno">  517 </span>
+<span class="lineno">  518 </span>-- Enter error recovery: generate an error token,
+<span class="lineno">  519 </span>--                       save the old token and carry on.
+<span class="lineno">  520 </span>happyFail  i tk (action) sts stk =
+<span class="lineno">  521 </span>--      trace &quot;entering error recovery&quot; $
+<span class="lineno">  522 </span>        happyDoAction 0# tk action sts ( (Happy_GHC_Exts.unsafeCoerce# (Happy_GHC_Exts.I# (i))) `HappyStk` stk)
+<span class="lineno">  523 </span>
+<span class="lineno">  524 </span>-- Internal happy errors:
+<span class="lineno">  525 </span>
+<span class="lineno">  526 </span>notHappyAtAll = error &quot;Internal Happy error\n&quot;
+<span class="lineno">  527 </span>
+<span class="lineno">  528 </span>-----------------------------------------------------------------------------
+<span class="lineno">  529 </span>-- Hack to get the typechecker to accept our action functions
+<span class="lineno">  530 </span>
+<span class="lineno">  531 </span>
+<span class="lineno">  532 </span>happyTcHack :: Happy_GHC_Exts.Int# -&gt; a -&gt; a
+<span class="lineno">  533 </span>happyTcHack x y = y
+<span class="lineno">  534 </span>{-# INLINE happyTcHack #-}
+<span class="lineno">  535 </span>
+<span class="lineno">  536 </span>
+<span class="lineno">  537 </span>-----------------------------------------------------------------------------
+<span class="lineno">  538 </span>-- Seq-ing.  If the --strict flag is given, then Happy emits 
+<span class="lineno">  539 </span>--      happySeq = happyDoSeq
+<span class="lineno">  540 </span>-- otherwise it emits
+<span class="lineno">  541 </span>--      happySeq = happyDontSeq
+<span class="lineno">  542 </span>
+<span class="lineno">  543 </span>happyDoSeq, happyDontSeq :: a -&gt; b -&gt; b
+<span class="lineno">  544 </span>happyDoSeq   a b = a `seq` b
+<span class="lineno">  545 </span>happyDontSeq a b = b
+<span class="lineno">  546 </span>
+<span class="lineno">  547 </span>-----------------------------------------------------------------------------
+<span class="lineno">  548 </span>-- Don't inline any functions from the template.  GHC has a nasty habit
+<span class="lineno">  549 </span>-- of deciding to inline happyGoto everywhere, which increases the size of
+<span class="lineno">  550 </span>-- the generated parser quite a bit.
+<span class="lineno">  551 </span>
+<span class="lineno">  552 </span>
+<span class="lineno">  553 </span>{-# NOINLINE happyDoAction #-}
+<span class="lineno">  554 </span>{-# NOINLINE happyTable #-}
+<span class="lineno">  555 </span>{-# NOINLINE happyCheck #-}
+<span class="lineno">  556 </span>{-# NOINLINE happyActOffsets #-}
+<span class="lineno">  557 </span>{-# NOINLINE happyGotoOffsets #-}
+<span class="lineno">  558 </span>{-# NOINLINE happyDefActions #-}
+<span class="lineno">  559 </span>
+<span class="lineno">  560 </span>{-# NOINLINE happyShift #-}
+<span class="lineno">  561 </span>{-# NOINLINE happySpecReduce_0 #-}
+<span class="lineno">  562 </span>{-# NOINLINE happySpecReduce_1 #-}
+<span class="lineno">  563 </span>{-# NOINLINE happySpecReduce_2 #-}
+<span class="lineno">  564 </span>{-# NOINLINE happySpecReduce_3 #-}
+<span class="lineno">  565 </span>{-# NOINLINE happyReduce #-}
+<span class="lineno">  566 </span>{-# NOINLINE happyMonadReduce #-}
+<span class="lineno">  567 </span>{-# NOINLINE happyGoto #-}
+<span class="lineno">  568 </span>{-# NOINLINE happyFail #-}
+<span class="lineno">  569 </span>
+<span class="lineno">  570 </span>-- end of Happy Template.
+
+</pre>
+</html>

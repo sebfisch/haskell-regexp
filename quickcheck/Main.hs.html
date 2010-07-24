@@ -1,0 +1,342 @@
+<html><style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+<pre>
+<span class="lineno">    1 </span>
+<span class="lineno">    2 </span>&gt; {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+<span class="lineno">    3 </span>&gt; {-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+<span class="lineno">    4 </span>&gt; {-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">    5 </span>&gt; {-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    6 </span>&gt; {-# OPTIONS_GHC -fno-warn-missing-methods -fno-warn-orphans #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>We specify a `Monoid` instance for a `newtype` of lists.
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>&gt; import Data.Monoid ( Monoid(..) )
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>We use QuickCheck version 1 for testing because version 2 cannot be
+<span class="lineno">   13 </span>used in batch mode.
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>&gt; import Test.QuickCheck
+<span class="lineno">   16 </span>&gt; import Test.QuickCheck.Batch
+<span class="lineno">   17 </span>&gt; import Control.Monad ( ap, replicateM )
+<span class="lineno">   18 </span>&gt; import Data.Char ( chr, ord )
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>We import the semiring properties in order to check them for the
+<span class="lineno">   21 </span>defined instances. We also define our own `sum` function for
+<span class="lineno">   22 </span>semirings.
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>&gt; import Data.Semiring.Properties
+<span class="lineno">   25 </span>&gt; import Prelude hiding ( sum )
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>Finally, we need the `RegExp` datatype, the `symWeight` function from
+<span class="lineno">   28 </span>the `Weight` class, and the different semirings used for matching.
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>&gt; import Text.RegExp
+<span class="lineno">   31 </span>&gt; import Text.RegExp.Data
+<span class="lineno">   32 </span>&gt; import Text.RegExp.Matching.Leftmost ( Leftmost(..), getLeftmost )
+<span class="lineno">   33 </span>&gt; import Text.RegExp.Matching.Longest  ( Longest(..), getLongest )
+<span class="lineno">   34 </span>&gt; import Text.RegExp.Matching.LeftLong ( LeftLong(..), getLeftLong )
+<span class="lineno">   35 </span>&gt; import qualified Text.RegExp.Matching.Leftmost as Leftmost
+<span class="lineno">   36 </span>&gt; import qualified Text.RegExp.Matching.Longest  as Longest
+<span class="lineno">   37 </span>&gt; import qualified Text.RegExp.Matching.LeftLong as LeftLong
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>The `main` function runs all tests defined in this program.
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>&gt; main :: IO ()
+<span class="lineno">   42 </span>&gt; <span class="decl"><span class="istickedoff">main = </span>
+<span class="lineno">   43 </span><span class="spaces"></span><span class="istickedoff">&gt;  do runChecks &quot;semiring laws (Bool)&quot; (semiring'laws :: Checks Bool)</span>
+<span class="lineno">   44 </span><span class="spaces"></span><span class="istickedoff">&gt;     runChecks &quot;semiring laws (Int)&quot; (semiring'laws :: Checks (Numeric Int))</span>
+<span class="lineno">   45 </span><span class="spaces"></span><span class="istickedoff">&gt;     runChecks &quot;semiring laws (Leftmost)&quot; (semiring'laws :: Checks Leftmost)</span>
+<span class="lineno">   46 </span><span class="spaces"></span><span class="istickedoff">&gt;     runChecks &quot;semiring laws (Longest)&quot; (semiring'laws :: Checks Longest)</span>
+<span class="lineno">   47 </span><span class="spaces"></span><span class="istickedoff">&gt;     runChecks &quot;semiring laws (LeftLong)&quot; semiring'laws'LeftLong</span>
+<span class="lineno">   48 </span><span class="spaces"></span><span class="istickedoff">&gt;     runTests (pad &quot;full match&quot;) options $</span>
+<span class="lineno">   49 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (full'match'spec :: Checks Bool) ++</span>
+<span class="lineno">   50 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (full'match'spec :: Checks (Numeric Int)) ++</span>
+<span class="lineno">   51 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (full'match'spec :: Checks Leftmost) ++</span>
+<span class="lineno">   52 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (full'match'spec :: Checks Longest) ++</span>
+<span class="lineno">   53 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (full'match'spec :: Checks LeftLong)</span>
+<span class="lineno">   54 </span><span class="spaces"></span><span class="istickedoff">&gt;     runTests (pad &quot;partial match&quot;) options $</span>
+<span class="lineno">   55 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (partial'match'spec partialMatch id :: Checks Bool) ++</span>
+<span class="lineno">   56 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (partial'match'spec partialMatch id :: Checks (Numeric Int)) ++</span>
+<span class="lineno">   57 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (partial'match'spec Leftmost.matching getLeftmost) ++</span>
+<span class="lineno">   58 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (partial'match'spec Longest.matching getLongest) ++</span>
+<span class="lineno">   59 </span><span class="spaces"></span><span class="istickedoff">&gt;       checks (partial'match'spec LeftLong.matching getLeftLong)</span>
+<span class="lineno">   60 </span><span class="spaces"></span><span class="istickedoff">&gt;     runTests (pad &quot;parse printed regexp&quot;) options [run parse'printed]</span>
+<span class="lineno">   61 </span><span class="spaces"></span><span class="istickedoff">&gt;     runChecks &quot;lazy infinite regexps&quot; infinite'regexp'checks</span>
+<span class="lineno">   62 </span><span class="spaces"></span><span class="istickedoff">&gt;  where</span>
+<span class="lineno">   63 </span><span class="spaces"></span><span class="istickedoff">&gt;   options = defOpt { no_of_tests = 1000, length_of_tests = 60 }</span>
+<span class="lineno">   64 </span><span class="spaces"></span><span class="istickedoff">&gt;   runChecks s = runTests (pad s) options . checks</span>
+<span class="lineno">   65 </span><span class="spaces"></span><span class="istickedoff">&gt;   pad s = replicate (25-length s) ' ' ++ s</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>The `Arbitrary` instance for numeric types wraps the underlying
+<span class="lineno">   68 </span>instance. We also provide one for `Char` which is not predefined.
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>&gt; instance (Num a, Arbitrary a) =&gt; Arbitrary (Numeric a) where
+<span class="lineno">   71 </span>&gt;   <span class="decl"><span class="istickedoff">arbitrary = Numeric `fmap` arbitrary</span></span>
+<span class="lineno">   72 </span>&gt;
+<span class="lineno">   73 </span>&gt; instance Arbitrary Char where
+<span class="lineno">   74 </span>&gt;   <span class="decl"><span class="istickedoff">arbitrary = elements &quot;abcde \\|*+?.[]{}&quot;</span></span>
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>We provide generic `Semiring` instances for the semirings used for
+<span class="lineno">   77 </span>matching.
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>&gt; instance Arbitrary Leftmost where
+<span class="lineno">   80 </span>&gt;   <span class="decl"><span class="istickedoff">arbitrary = frequency [ (1, return zero)</span>
+<span class="lineno">   81 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , (1, return one)</span>
+<span class="lineno">   82 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , (3, (Leftmost . abs) `fmap` arbitrary) ]</span></span>
+<span class="lineno">   83 </span>&gt;
+<span class="lineno">   84 </span>&gt; instance Arbitrary Longest where
+<span class="lineno">   85 </span>&gt;   <span class="decl"><span class="istickedoff">arbitrary = frequency [ (1, return zero) </span>
+<span class="lineno">   86 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , (1, return one)</span>
+<span class="lineno">   87 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , (3, (Longest . succ . abs) `fmap` arbitrary) ]</span></span>
+<span class="lineno">   88 </span>&gt;
+<span class="lineno">   89 </span>&gt; instance Arbitrary LeftLong where
+<span class="lineno">   90 </span>&gt;   <span class="decl"><span class="istickedoff">arbitrary = frequency [ (1, return zero)</span>
+<span class="lineno">   91 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , (1, return one)</span>
+<span class="lineno">   92 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , (3, do x &lt;- abs `fmap` arbitrary</span>
+<span class="lineno">   93 </span><span class="spaces"></span><span class="istickedoff">&gt;                                  y &lt;- abs `fmap` arbitrary</span>
+<span class="lineno">   94 </span><span class="spaces"></span><span class="istickedoff">&gt;                                  return $ LeftLong (min x y) (max x y)) ]</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>We define a list of `Checks` for the semiring laws.
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>&gt; semiring'laws :: (Arbitrary s, Show s, Semiring s) =&gt; Checks s
+<span class="lineno">   99 </span>&gt; <span class="decl"><span class="istickedoff">semiring'laws = mconcat [ prop2 plus'comm</span>
+<span class="lineno">  100 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop1 left'zero</span>
+<span class="lineno">  101 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop3 add'assoc</span>
+<span class="lineno">  102 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop1 left'one</span>
+<span class="lineno">  103 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop1 right'one</span>
+<span class="lineno">  104 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop3 mul'assoc</span>
+<span class="lineno">  105 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop3 left'distr</span>
+<span class="lineno">  106 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop3 right'distr</span>
+<span class="lineno">  107 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop1 left'ann</span>
+<span class="lineno">  108 </span><span class="spaces"></span><span class="istickedoff">&gt;                         , prop1 right'ann</span>
+<span class="lineno">  109 </span><span class="spaces"></span><span class="istickedoff">&gt;                         ]</span></span>
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>`Checks` is a `newtype` for a list of batch tests with a phantom type
+<span class="lineno">  112 </span>that can be used in definitions of the properties.
+<span class="lineno">  113 </span>
+<span class="lineno">  114 </span>&gt; newtype Checks a = Checks { checks :: [TestOptions -&gt; IO TestResult] }
+<span class="lineno">  115 </span>&gt;  deriving ( Monoid )
+<span class="lineno">  116 </span>
+<span class="lineno">  117 </span>We define the auxiliary functions to create semiring properties with
+<span class="lineno">  118 </span>different arities.
+<span class="lineno">  119 </span>
+<span class="lineno">  120 </span>&gt; prop1 :: (Arbitrary s, Show s, Testable a) =&gt; (s -&gt; a) -&gt; Checks s
+<span class="lineno">  121 </span>&gt; <span class="decl"><span class="istickedoff">prop1 prop = Checks [run prop]</span></span>
+<span class="lineno">  122 </span>&gt;
+<span class="lineno">  123 </span>&gt; prop2 :: (Arbitrary s, Show s, Testable a) =&gt; (s -&gt; s -&gt; a) -&gt; Checks s
+<span class="lineno">  124 </span>&gt; <span class="decl"><span class="istickedoff">prop2 prop = Checks [run prop]</span></span>
+<span class="lineno">  125 </span>&gt;
+<span class="lineno">  126 </span>&gt; prop3 :: (Arbitrary s, Show s, Testable a) =&gt; (s-&gt; s -&gt; s -&gt; a) -&gt; Checks s
+<span class="lineno">  127 </span>&gt; <span class="decl"><span class="istickedoff">prop3 prop = Checks [run prop]</span></span>
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>The `LeftLong` type satisfies the distributive laws only with a
+<span class="lineno">  130 </span>precondition on all involved multiplications: multiplied matches must
+<span class="lineno">  131 </span>be adjacent and the start position must be smaller than the end
+<span class="lineno">  132 </span>position. This precondition is satisfied for all multiplications
+<span class="lineno">  133 </span>during regular expression matching.
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>We define a variant of `semiring'laws` with this precondition on the
+<span class="lineno">  136 </span>distributive laws.
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>&gt; semiring'laws'LeftLong :: Checks LeftLong
+<span class="lineno">  139 </span>&gt; <span class="decl"><span class="istickedoff">semiring'laws'LeftLong = mconcat</span>
+<span class="lineno">  140 </span><span class="spaces"></span><span class="istickedoff">&gt;   [ prop2 plus'comm</span>
+<span class="lineno">  141 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop1 left'zero</span>
+<span class="lineno">  142 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop3 add'assoc</span>
+<span class="lineno">  143 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop1 left'one</span>
+<span class="lineno">  144 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop1 right'one</span>
+<span class="lineno">  145 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop3 mul'assoc</span>
+<span class="lineno">  146 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop3 left'distr'LeftLong</span>
+<span class="lineno">  147 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop3 right'distr'LeftLong</span>
+<span class="lineno">  148 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop1 left'ann</span>
+<span class="lineno">  149 </span><span class="spaces"></span><span class="istickedoff">&gt;   , prop1 right'ann</span>
+<span class="lineno">  150 </span><span class="spaces"></span><span class="istickedoff">&gt;   ]</span></span>
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>For testing the distributive laws, we adjust the randomly generated
+<span class="lineno">  153 </span>`LeftLong` values such that the arguments of multiplications are
+<span class="lineno">  154 </span>adjacent.
+<span class="lineno">  155 </span>
+<span class="lineno">  156 </span>&gt; left'distr'LeftLong :: LeftLong -&gt; LeftLong -&gt; LeftLong -&gt; Bool
+<span class="lineno">  157 </span>&gt; <span class="decl"><span class="istickedoff">left'distr'LeftLong a b c = left'distr a (shift a b) (shift a c)</span>
+<span class="lineno">  158 </span><span class="spaces"></span><span class="istickedoff">&gt;  where</span>
+<span class="lineno">  159 </span><span class="spaces"></span><span class="istickedoff">&gt;   shift (LeftLong _ x) (LeftLong y z) = LeftLong (x+1) (z+x+1-y)</span>
+<span class="lineno">  160 </span><span class="spaces"></span><span class="istickedoff">&gt;   shift _              x              = x</span></span>
+<span class="lineno">  161 </span>&gt;
+<span class="lineno">  162 </span>&gt; right'distr'LeftLong :: LeftLong -&gt; LeftLong -&gt; LeftLong -&gt; Bool
+<span class="lineno">  163 </span>&gt; <span class="decl"><span class="istickedoff">right'distr'LeftLong a b c = right'distr (shift a c) (shift b c) c</span>
+<span class="lineno">  164 </span><span class="spaces"></span><span class="istickedoff">&gt;  where</span>
+<span class="lineno">  165 </span><span class="spaces"></span><span class="istickedoff">&gt;   shift (LeftLong x y) (LeftLong z _) = LeftLong (x+z-1-y) (z-1)</span>
+<span class="lineno">  166 </span><span class="spaces"></span><span class="istickedoff">&gt;   shift x              _              = x</span></span>
+<span class="lineno">  167 </span>
+<span class="lineno">  168 </span>Now we turn to the correctness of the `match` function. In order to
+<span class="lineno">  169 </span>check it, we compare it with a executable specification which is
+<span class="lineno">  170 </span>correct by definition:
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>&gt; full'match'spec :: (Show s, Semiring s) =&gt; Checks s
+<span class="lineno">  173 </span>&gt; <span class="decl"><span class="istickedoff">full'match'spec = match'spec fullMatchSpec fullMatch id</span></span>
+<span class="lineno">  174 </span>&gt;
+<span class="lineno">  175 </span>&gt; partial'match'spec :: (Show a, Weight Char (Int,Char) s)
+<span class="lineno">  176 </span>&gt;                    =&gt; (RegExp Char -&gt; String -&gt; a)
+<span class="lineno">  177 </span>&gt;                    -&gt; (s -&gt; a)
+<span class="lineno">  178 </span>&gt;                    -&gt; Checks s
+<span class="lineno">  179 </span>&gt; <span class="decl"><span class="istickedoff">partial'match'spec = match'spec partialMatchSpec</span></span>
+<span class="lineno">  180 </span>&gt;
+<span class="lineno">  181 </span>&gt; match'spec :: (Show a, Semiring s)
+<span class="lineno">  182 </span>&gt;            =&gt; (RegExp Char -&gt; String -&gt; s)
+<span class="lineno">  183 </span>&gt;            -&gt; (RegExp Char -&gt; String -&gt; a)
+<span class="lineno">  184 </span>&gt;            -&gt; (s -&gt; a)
+<span class="lineno">  185 </span>&gt;            -&gt; Checks s
+<span class="lineno">  186 </span>&gt; <span class="decl"><span class="istickedoff">match'spec spec convmatch conv =</span>
+<span class="lineno">  187 </span><span class="spaces"></span><span class="istickedoff">&gt;   Checks [run (check'match'spec spec convmatch conv)]</span></span>
+<span class="lineno">  188 </span>&gt;
+<span class="lineno">  189 </span>&gt; check'match'spec :: (Show a, Semiring s)
+<span class="lineno">  190 </span>&gt;                  =&gt; (RegExp Char -&gt; String -&gt; s)
+<span class="lineno">  191 </span>&gt;                  -&gt; (RegExp Char -&gt; String -&gt; a)
+<span class="lineno">  192 </span>&gt;                  -&gt; (s -&gt; a)
+<span class="lineno">  193 </span>&gt;                  -&gt; RegExp Char -&gt; String -&gt; Property
+<span class="lineno">  194 </span>&gt; <span class="decl"><span class="istickedoff">check'match'spec spec convmatch conv r s =</span>
+<span class="lineno">  195 </span><span class="spaces"></span><span class="istickedoff">&gt;   length s &lt; 7 ==&gt; show (convmatch r s) == show (conv (spec r s))</span></span>
+<span class="lineno">  196 </span>
+<span class="lineno">  197 </span>To make this work, we need an `Arbitrary` instance for regular
+<span class="lineno">  198 </span>expressions.
+<span class="lineno">  199 </span>
+<span class="lineno">  200 </span>&gt; instance Arbitrary (RegExp Char) where
+<span class="lineno">  201 </span>&gt;   <span class="decl"><span class="istickedoff">arbitrary = sized regexp</span></span>
+<span class="lineno">  202 </span>&gt;
+<span class="lineno">  203 </span>&gt; regexp :: Int -&gt; Gen (RegExp Char)
+<span class="lineno">  204 </span>&gt; <span class="decl"><span class="istickedoff">regexp 0 = frequency [ (1, return eps)</span>
+<span class="lineno">  205 </span><span class="spaces"></span><span class="istickedoff">&gt;                      , (4, char `fmap` simpleChar) ]</span>
+<span class="lineno">  206 </span><span class="spaces"></span><span class="istickedoff">&gt; regexp n = frequency [ (1, regexp 0)</span>
+<span class="lineno">  207 </span><span class="spaces"></span><span class="istickedoff">&gt;                      , (3, alt  `fmap` subexp `ap` subexp)</span>
+<span class="lineno">  208 </span><span class="spaces"></span><span class="istickedoff">&gt;                      , (6, seq_ `fmap` subexp `ap` subexp)</span>
+<span class="lineno">  209 </span><span class="spaces"></span><span class="istickedoff">&gt;                      , (3, rep  `fmap` regexp (n-1))</span>
+<span class="lineno">  210 </span><span class="spaces"></span><span class="istickedoff">&gt;                      , (7, fromString `fmap` parsedRegExp n) ]</span>
+<span class="lineno">  211 </span><span class="spaces"></span><span class="istickedoff">&gt;  where subexp = regexp (n `div` 2)</span></span>
+<span class="lineno">  212 </span>&gt;
+<span class="lineno">  213 </span>&gt; simpleChar :: Gen Char
+<span class="lineno">  214 </span>&gt; <span class="decl"><span class="istickedoff">simpleChar = elements &quot;abcde&quot;</span></span>
+<span class="lineno">  215 </span>&gt;
+<span class="lineno">  216 </span>&gt; parsedRegExp :: Int -&gt; Gen String
+<span class="lineno">  217 </span>&gt; <span class="decl"><span class="istickedoff">parsedRegExp n = frequency [ (4, symClass)</span>
+<span class="lineno">  218 </span><span class="spaces"></span><span class="istickedoff">&gt;                            , (2, (++&quot;?&quot;) `fmap` subexp)</span>
+<span class="lineno">  219 </span><span class="spaces"></span><span class="istickedoff">&gt;                            , (2, (++&quot;+&quot;) `fmap` subexp)</span>
+<span class="lineno">  220 </span><span class="spaces"></span><span class="istickedoff">&gt;                            , (1, mkBrep1 =&lt;&lt; subexp)</span>
+<span class="lineno">  221 </span><span class="spaces"></span><span class="istickedoff">&gt;                            , (1, mkBrep2 =&lt;&lt; subexp) ]</span>
+<span class="lineno">  222 </span><span class="spaces"></span><span class="istickedoff">&gt;  where</span>
+<span class="lineno">  223 </span><span class="spaces"></span><span class="istickedoff">&gt;   subexp = (($&quot;&quot;) . showParen True . shows)</span>
+<span class="lineno">  224 </span><span class="spaces"></span><span class="istickedoff">&gt;     `fmap` (resize (n-1) arbitrary :: Gen (RegExp Char))</span>
+<span class="lineno">  225 </span><span class="spaces"></span><span class="istickedoff">&gt;</span>
+<span class="lineno">  226 </span><span class="spaces"></span><span class="istickedoff">&gt;   mkBrep1 r = do x &lt;- elements [0..3] :: Gen Int</span>
+<span class="lineno">  227 </span><span class="spaces"></span><span class="istickedoff">&gt;                  return $ r ++ &quot;{&quot; ++ show x ++ &quot;}&quot;</span>
+<span class="lineno">  228 </span><span class="spaces"></span><span class="istickedoff">&gt;</span>
+<span class="lineno">  229 </span><span class="spaces"></span><span class="istickedoff">&gt;   mkBrep2 r = do x &lt;- elements [0..2] :: Gen Int</span>
+<span class="lineno">  230 </span><span class="spaces"></span><span class="istickedoff">&gt;                  y &lt;- elements [0..2] :: Gen Int</span>
+<span class="lineno">  231 </span><span class="spaces"></span><span class="istickedoff">&gt;                  return $ r ++ &quot;{&quot; ++ show x ++ &quot;,&quot; ++ show (x+y) ++ &quot;}&quot;</span></span>
+<span class="lineno">  232 </span>&gt;
+<span class="lineno">  233 </span>&gt; symClass :: Gen String
+<span class="lineno">  234 </span>&gt; <span class="decl"><span class="istickedoff">symClass = frequency [ (1, specialChar)</span>
+<span class="lineno">  235 </span><span class="spaces"></span><span class="istickedoff">&gt;                      , (2, do n &lt;- choose (0,3)</span>
+<span class="lineno">  236 </span><span class="spaces"></span><span class="istickedoff">&gt;                               cs &lt;- replicateM n charClass</span>
+<span class="lineno">  237 </span><span class="spaces"></span><span class="istickedoff">&gt;                               s &lt;- ([&quot;&quot;,&quot;^&quot;]!!) `fmap` choose (0,1)</span>
+<span class="lineno">  238 </span><span class="spaces"></span><span class="istickedoff">&gt;                               return $ &quot;[&quot; ++ s ++ concat cs ++ &quot;]&quot;) ]</span>
+<span class="lineno">  239 </span><span class="spaces"></span><span class="istickedoff">&gt;  where</span>
+<span class="lineno">  240 </span><span class="spaces"></span><span class="istickedoff">&gt;   specialChar = elements (map (:[]) &quot;.&quot; ++</span>
+<span class="lineno">  241 </span><span class="spaces"></span><span class="istickedoff">&gt;                           map (\c -&gt; '\\':[c]) &quot;abcdewWdDsS \\|*+?.[]{}^&quot;)</span>
+<span class="lineno">  242 </span><span class="spaces"></span><span class="istickedoff">&gt;   charClass   = oneof [ (:[]) `fmap` simpleChar</span>
+<span class="lineno">  243 </span><span class="spaces"></span><span class="istickedoff">&gt;                       , specialChar</span>
+<span class="lineno">  244 </span><span class="spaces"></span><span class="istickedoff">&gt;                       , do x &lt;- simpleChar</span>
+<span class="lineno">  245 </span><span class="spaces"></span><span class="istickedoff">&gt;                            y &lt;- simpleChar</span>
+<span class="lineno">  246 </span><span class="spaces"></span><span class="istickedoff">&gt;                            return $ x : '-' : [chr (ord x+ord y-ord 'a')] ]</span></span>
+<span class="lineno">  247 </span>
+<span class="lineno">  248 </span>The specification of the matching function is defined inductively on
+<span class="lineno">  249 </span>the structure of a regular expression. It uses exhaustive search to
+<span class="lineno">  250 </span>find all possibilities to match a regexp against a word.
+<span class="lineno">  251 </span>
+<span class="lineno">  252 </span>&gt; fullMatchSpec :: Semiring s =&gt; RegExp c -&gt; [c] -&gt; s
+<span class="lineno">  253 </span>&gt; <span class="decl"><span class="istickedoff">fullMatchSpec (RegExp r) = matchSpec (reg r)</span></span>
+<span class="lineno">  254 </span>&gt;
+<span class="lineno">  255 </span>&gt; matchSpec :: Semiring s =&gt; Reg s c -&gt; [c] -&gt; s
+<span class="lineno">  256 </span>&gt; <span class="decl"><span class="istickedoff">matchSpec Eps        u  =  if null u then one else zero</span>
+<span class="lineno">  257 </span><span class="spaces"></span><span class="istickedoff">&gt; matchSpec (Sym _ f)  u  =  case u of [c] -&gt; f c; _ -&gt; zero</span>
+<span class="lineno">  258 </span><span class="spaces"></span><span class="istickedoff">&gt; matchSpec (Alt p q)  u  =  matchSpec (reg p) u .+. matchSpec (reg q) u</span>
+<span class="lineno">  259 </span><span class="spaces"></span><span class="istickedoff">&gt; matchSpec (Seq p q)  u  =</span>
+<span class="lineno">  260 </span><span class="spaces"></span><span class="istickedoff">&gt;   sum [ matchSpec (reg p) u1 .*. matchSpec (reg q) u2 | (u1,u2) &lt;- split u ]</span>
+<span class="lineno">  261 </span><span class="spaces"></span><span class="istickedoff">&gt; matchSpec (Rep p)    u  =</span>
+<span class="lineno">  262 </span><span class="spaces"></span><span class="istickedoff">&gt;   sum [ prod [ matchSpec (reg p) ui | ui &lt;- ps] | ps &lt;- parts u ]</span></span>
+<span class="lineno">  263 </span>&gt;
+<span class="lineno">  264 </span>&gt; sum, prod :: Semiring s =&gt; [s] -&gt; s
+<span class="lineno">  265 </span>&gt; <span class="decl"><span class="istickedoff">sum   =  foldr (.+.) zero</span></span>
+<span class="lineno">  266 </span>&gt; <span class="decl"><span class="istickedoff">prod  =  foldr (.*.) one</span></span>
+<span class="lineno">  267 </span>&gt;
+<span class="lineno">  268 </span>&gt; split :: [a] -&gt; [([a],[a])]
+<span class="lineno">  269 </span>&gt; <span class="decl"><span class="istickedoff">split []      =  [([],[])]</span>
+<span class="lineno">  270 </span><span class="spaces"></span><span class="istickedoff">&gt; split (c:cs)  =  ([],c:cs) : [ (c:s1,s2) | (s1,s2) &lt;- split cs ]</span></span>
+<span class="lineno">  271 </span>&gt;
+<span class="lineno">  272 </span>&gt; parts :: [a] -&gt;  [[[a]]]
+<span class="lineno">  273 </span>&gt; <span class="decl"><span class="istickedoff">parts []      =  [[]]</span>
+<span class="lineno">  274 </span><span class="spaces"></span><span class="istickedoff">&gt; parts [c]     =  [[[c]]]</span>
+<span class="lineno">  275 </span><span class="spaces"></span><span class="istickedoff">&gt; parts (c:cs)  =  concat [ [(c:p):ps,[c]:p:ps] | p:ps &lt;- parts cs ]</span></span>
+<span class="lineno">  276 </span>
+<span class="lineno">  277 </span>We can perform a similar test for partial instead of full matches.
+<span class="lineno">  278 </span>
+<span class="lineno">  279 </span>&gt; partialMatchSpec :: Weight c (Int,c) s =&gt; RegExp c -&gt; [c] -&gt; s
+<span class="lineno">  280 </span>&gt; <span class="decl"><span class="istickedoff">partialMatchSpec (RegExp r) =</span>
+<span class="lineno">  281 </span><span class="spaces"></span><span class="istickedoff">&gt;   matchSpec (reg (arb `seqW` weighted r `seqW` arb)) . zip [(0::Int)..]</span>
+<span class="lineno">  282 </span><span class="spaces"></span><span class="istickedoff">&gt;  where arb = repW (symW <span class="nottickedoff">&quot;.&quot;</span> (const one))</span></span>
+<span class="lineno">  283 </span>
+<span class="lineno">  284 </span>As a check for the parser, we check whether the representation
+<span class="lineno">  285 </span>generated by the `Show` instance of regular expressions can be parsed
+<span class="lineno">  286 </span>back and yields the original expression.
+<span class="lineno">  287 </span>
+<span class="lineno">  288 </span>&gt; parse'printed :: RegExp Char -&gt; Bool
+<span class="lineno">  289 </span>&gt; <span class="decl"><span class="istickedoff">parse'printed r = fromString (show r) == r</span></span>
+<span class="lineno">  290 </span>
+<span class="lineno">  291 </span>We can also match infinite regular expressions lazily to recognize
+<span class="lineno">  292 </span>context-free or even context-sensitive languages.
+<span class="lineno">  293 </span>
+<span class="lineno">  294 </span>&gt; infinite'regexp'checks :: Checks Bool
+<span class="lineno">  295 </span>&gt; <span class="decl"><span class="istickedoff">infinite'regexp'checks = Checks [run context'free, run context'sensitive]</span></span>
+<span class="lineno">  296 </span>
+<span class="lineno">  297 </span>As an example for a context-free language, we recognize the language
+<span class="lineno">  298 </span> ${a^nb^n | n &gt;= 0}$.
+<span class="lineno">  299 </span>
+<span class="lineno">  300 </span>&gt; context'free :: String -&gt; Bool
+<span class="lineno">  301 </span>&gt; <span class="decl"><span class="istickedoff">context'free s = isInAnBn s == (anbn =~ s)</span></span>
+<span class="lineno">  302 </span>&gt;
+<span class="lineno">  303 </span>&gt; isInAnBn :: String -&gt; Bool
+<span class="lineno">  304 </span>&gt; <span class="decl"><span class="istickedoff">isInAnBn s = all (=='a') xs &amp;&amp; all (=='b') ys &amp;&amp; length xs == length ys</span>
+<span class="lineno">  305 </span><span class="spaces"></span><span class="istickedoff">&gt;  where (xs,ys) = break (=='b') s</span></span>
+<span class="lineno">  306 </span>&gt;
+<span class="lineno">  307 </span>&gt; anbn :: RegExp Char
+<span class="lineno">  308 </span>&gt; <span class="decl"><span class="istickedoff">anbn = eps `alt` seq_ &quot;a&quot; (anbn `seq_` &quot;b&quot;)</span></span>
+<span class="lineno">  309 </span>
+<span class="lineno">  310 </span>As an example for a context-sensitive language we use the language
+<span class="lineno">  311 </span>${a^nb^nc^n | n &gt;= 0}$. To show that the alphabet cannot only contain
+<span class="lineno">  312 </span>characters, we use numbers instead of characters.
+<span class="lineno">  313 </span>
+<span class="lineno">  314 </span>&gt; context'sensitive :: [Int] -&gt; Bool
+<span class="lineno">  315 </span>&gt; <span class="decl"><span class="istickedoff">context'sensitive s =</span>
+<span class="lineno">  316 </span><span class="spaces"></span><span class="istickedoff">&gt;   fromBool (isInAnBnCn s) == (matchingCount anbncn s :: Numeric Int)</span></span>
+<span class="lineno">  317 </span>&gt;
+<span class="lineno">  318 </span>&gt; isInAnBnCn :: [Int] -&gt; Bool
+<span class="lineno">  319 </span>&gt; <span class="decl"><span class="istickedoff">isInAnBnCn s = all (==1) xs &amp;&amp; all (==2) ys &amp;&amp; all (==3) zs</span>
+<span class="lineno">  320 </span><span class="spaces"></span><span class="istickedoff">&gt;             &amp;&amp; length xs == length ys &amp;&amp; length ys == length zs</span>
+<span class="lineno">  321 </span><span class="spaces"></span><span class="istickedoff">&gt;  where (xs,l)  = break (==2) s</span>
+<span class="lineno">  322 </span><span class="spaces"></span><span class="istickedoff">&gt;        (ys,zs) = break (==3) l</span></span>
+<span class="lineno">  323 </span>&gt;
+<span class="lineno">  324 </span>&gt; anbncn :: RegExp Int
+<span class="lineno">  325 </span>&gt; <span class="decl"><span class="istickedoff">anbncn = mkAnBnCn 0</span>
+<span class="lineno">  326 </span><span class="spaces"></span><span class="istickedoff">&gt;  where</span>
+<span class="lineno">  327 </span><span class="spaces"></span><span class="istickedoff">&gt;   mkAnBnCn n = brep (n,n) (sym 2) `seq_` brep (n,n) (sym <span class="nottickedoff">3</span>)</span>
+<span class="lineno">  328 </span><span class="spaces"></span><span class="istickedoff">&gt;          `alt` seq_ (sym 1) (mkAnBnCn (n+1))</span></span>
+
+</pre>
+</html>

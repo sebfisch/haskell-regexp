@@ -1,0 +1,103 @@
+<html><style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>-- |
+<span class="lineno">    4 </span>-- Module      : Text.RegExp.Matching.LeftLong
+<span class="lineno">    5 </span>-- Copyright   : Thomas Wilke, Frank Huch, and Sebastian Fischer
+<span class="lineno">    6 </span>-- License     : BSD3
+<span class="lineno">    7 </span>-- Maintainer  : Sebastian Fischer &lt;mailto:sebf@informatik.uni-kiel.de&gt;
+<span class="lineno">    8 </span>-- Stability   : experimental
+<span class="lineno">    9 </span>-- 
+<span class="lineno">   10 </span>-- This module implements leftmost longest matching based on weighted
+<span class="lineno">   11 </span>-- regular expressions. It should be imported qualified as the
+<span class="lineno">   12 </span>-- interface resembles that provided by other matching modules.
+<span class="lineno">   13 </span>-- 
+<span class="lineno">   14 </span>module Text.RegExp.Matching.LeftLong (
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>  LeftLong(..), Matching(..),
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>  matching, getLeftLong
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>  ) where
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Text.RegExp
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>-- |
+<span class="lineno">   25 </span>-- Subwords of words that match a regular expression are represented
+<span class="lineno">   26 </span>-- as values of type 'Matching'.
+<span class="lineno">   27 </span>-- 
+<span class="lineno">   28 </span>data Matching = Matching {
+<span class="lineno">   29 </span> 
+<span class="lineno">   30 </span>  -- | Start index of the matching subword in the queried word.
+<span class="lineno">   31 </span>  matchingIndex :: !Int,
+<span class="lineno">   32 </span> 
+<span class="lineno">   33 </span>  -- | Length of the matching subword.
+<span class="lineno">   34 </span>  matchingLength :: !Int
+<span class="lineno">   35 </span> 
+<span class="lineno">   36 </span>  }
+<span class="lineno">   37 </span> deriving <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>instance Show Matching
+<span class="lineno">   40 </span> where
+<span class="lineno">   41 </span>  <span class="decl"><span class="istickedoff">showsPrec _ m = showString &quot;&lt;index:&quot; . shows (matchingIndex m)</span>
+<span class="lineno">   42 </span><span class="spaces">                </span><span class="istickedoff">. showString &quot; length:&quot; . shows (matchingLength m)</span>
+<span class="lineno">   43 </span><span class="spaces">                </span><span class="istickedoff">. showString &quot;&gt;&quot;</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- |
+<span class="lineno">   46 </span>-- Returns the leftmost longest of all non-empty matchings for a
+<span class="lineno">   47 </span>-- regular expression in a given word. If the empty word is the only
+<span class="lineno">   48 </span>-- matching its position is zero.
+<span class="lineno">   49 </span>-- 
+<span class="lineno">   50 </span>matching :: RegExp c -&gt; [c] -&gt; Maybe Matching
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">matching r = getLeftLong . partialMatch r</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>-- | 
+<span class="lineno">   54 </span>-- Semiring used for leftmost longest matching.
+<span class="lineno">   55 </span>-- 
+<span class="lineno">   56 </span>-- The `LeftLong` type satisfies the distributive laws only with a
+<span class="lineno">   57 </span>-- precondition on all involved multiplications: multiplied matches
+<span class="lineno">   58 </span>-- must be adjacent and the start position must be smaller than the
+<span class="lineno">   59 </span>-- end position. This precondition is satisfied for all
+<span class="lineno">   60 </span>-- multiplications during regular expression matching.
+<span class="lineno">   61 </span>-- 
+<span class="lineno">   62 </span>data LeftLong = Zero | One | LeftLong !Int !Int
+<span class="lineno">   63 </span> deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>,<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span>)
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>getLeftLong :: LeftLong -&gt; Maybe Matching
+<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">getLeftLong Zero            =  Nothing</span>
+<span class="lineno">   67 </span><span class="spaces"></span><span class="istickedoff">getLeftLong One             =  Just $ Matching 0 0</span>
+<span class="lineno">   68 </span><span class="spaces"></span><span class="istickedoff">getLeftLong (LeftLong x y)  =  Just $ Matching x (y-x+1)</span></span>
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>instance Semiring LeftLong where
+<span class="lineno">   71 </span>  <span class="decl"><span class="istickedoff">zero = Zero</span></span>; <span class="decl"><span class="istickedoff">one = One</span></span>
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>  <span class="decl"><span class="istickedoff">Zero          .+.  y             =  y</span>
+<span class="lineno">   74 </span><span class="spaces">  </span><span class="istickedoff">x             .+.  Zero          =  x</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">One           .+.  y             =  y</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">x             .+.  One           =  x</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="istickedoff">LeftLong a b  .+.  LeftLong c d</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="istickedoff">| a&lt;c || a==c &amp;&amp; b&gt;=d          =  LeftLong a b</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>                    =  LeftLong c d</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>  <span class="decl"><span class="istickedoff">Zero          .*.  _             =  Zero</span>
+<span class="lineno">   82 </span><span class="spaces">  </span><span class="istickedoff">_             .*.  Zero          =  Zero</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">One           .*.  y             =  y</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">x             .*.  One           =  x</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff">LeftLong a _  .*.  LeftLong _ b  =  LeftLong a b</span></span>
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>instance Weight c (Int,c) LeftLong where
+<span class="lineno">   88 </span>  <span class="decl"><span class="istickedoff">symWeight p (n,c) = p c .*. LeftLong n n</span></span>
+<span class="lineno">   89 </span>
+
+</pre>
+</html>

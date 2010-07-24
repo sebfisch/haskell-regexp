@@ -1,0 +1,6 @@
+.cabal-build
+.coverage
+.microbench
+.hpc
+dist
+*.tix

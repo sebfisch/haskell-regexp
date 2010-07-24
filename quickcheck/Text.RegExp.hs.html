@@ -1,0 +1,116 @@
+<html><style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    2 </span>{-# OPTIONS -fno-warn-orphans #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>-- |
+<span class="lineno">    5 </span>-- Module      : Text.RegExp
+<span class="lineno">    6 </span>-- Copyright   : Thomas Wilke, Frank Huch, and Sebastian Fischer
+<span class="lineno">    7 </span>-- License     : BSD3
+<span class="lineno">    8 </span>-- Maintainer  : Sebastian Fischer &lt;mailto:sebf@informatik.uni-kiel.de&gt;
+<span class="lineno">    9 </span>-- Stability   : experimental
+<span class="lineno">   10 </span>-- 
+<span class="lineno">   11 </span>-- This library provides a simple and fast regular expression matcher
+<span class="lineno">   12 </span>-- that is implemented in Haskell without binding to external
+<span class="lineno">   13 </span>-- libraries.
+<span class="lineno">   14 </span>-- 
+<span class="lineno">   15 </span>-- There are different ways to implement regular expression
+<span class="lineno">   16 </span>-- matching. Backtracking algorithms are simple but need bookkeeping
+<span class="lineno">   17 </span>-- overhead for nondeterministic search. One can use deterministic
+<span class="lineno">   18 </span>-- finite automata (DFA, see
+<span class="lineno">   19 </span>-- &lt;http://swtch.com/~rsc/regexp/regexp1.html&gt;) to match regular
+<span class="lineno">   20 </span>-- expressions faster. But for certain regular expressions these DFA
+<span class="lineno">   21 </span>-- are exponentially large which sometimes leads to prohibitive memory
+<span class="lineno">   22 </span>-- requirements.
+<span class="lineno">   23 </span>-- 
+<span class="lineno">   24 </span>-- We use a smart and simple algorithm to generate a DFA from a
+<span class="lineno">   25 </span>-- regular expression and do not generate the DFA completely but on
+<span class="lineno">   26 </span>-- the fly while parsing. This leads to a linear-time deterministic
+<span class="lineno">   27 </span>-- algorithm with constant space requirements. More specifically, the
+<span class="lineno">   28 </span>-- run time is limited by the product of the sizes of the regular
+<span class="lineno">   29 </span>-- expression and the string and the memory is limited by the size of
+<span class="lineno">   30 </span>-- the regular expression.
+<span class="lineno">   31 </span>-- 
+<span class="lineno">   32 </span>module Text.RegExp (
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>  module Data.Semiring, Weight(..),
+<span class="lineno">   35 </span>
+<span class="lineno">   36 </span>  -- * Constructing regular expressions
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>  RegExp, fromString,
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>  eps, char, sym, psym, anySym, alt, seq_, rep, rep1, opt, brep,
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>  -- * Matching
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>  (=~), accept, matchingCount, fullMatch, partialMatch
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>  ) where
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>import Data.Semiring
+<span class="lineno">   49 </span>import qualified Data.String
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>import Text.RegExp.Data
+<span class="lineno">   52 </span>import Text.RegExp.Parser
+<span class="lineno">   53 </span>import Text.RegExp.Matching
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>-- |
+<span class="lineno">   56 </span>-- Parses a regular expression from its string representation. If the
+<span class="lineno">   57 </span>-- 'OverloadedStrings' language extension is enabled, string literals
+<span class="lineno">   58 </span>-- can be used as regular expressions without using 'fromString'
+<span class="lineno">   59 </span>-- explicitly. Implicit conversion is especially useful in combination
+<span class="lineno">   60 </span>-- with functions like '=~' that take a value of type @RegExp Char@ as
+<span class="lineno">   61 </span>-- argument.
+<span class="lineno">   62 </span>-- 
+<span class="lineno">   63 </span>-- Here are some examples of supported regular expressions along with
+<span class="lineno">   64 </span>-- an explanation what they mean:
+<span class="lineno">   65 </span>-- 
+<span class="lineno">   66 </span>--  * @a@ matches the character @a@
+<span class="lineno">   67 </span>-- 
+<span class="lineno">   68 </span>--  * @[abc]@ matches any of the characters @a@, @b@, or @c@. It is
+<span class="lineno">   69 </span>--    equivalent to @(a|b|c)@, but @|@ can be used to specify
+<span class="lineno">   70 </span>--    alternatives between arbitrary regular expressions, not only
+<span class="lineno">   71 </span>--    characters.
+<span class="lineno">   72 </span>-- 
+<span class="lineno">   73 </span>--  * @[^abc]@ matches anything but the characters @a@, @b@, or @c@.
+<span class="lineno">   74 </span>-- 
+<span class="lineno">   75 </span>--  * @\\d@ matches a digit and is equivalent to @[0-9]@. Moreover,
+<span class="lineno">   76 </span>--    @\\D@ matches any non-digit character, @\\s@ and @\\S@ match
+<span class="lineno">   77 </span>--    space and non-space characters and @\\w@ and @\\W@ match word
+<span class="lineno">   78 </span>--    characters and non-word characters, that is, @\\w@ abbreviates
+<span class="lineno">   79 </span>--    @[a-zA-Z_]@.
+<span class="lineno">   80 </span>-- 
+<span class="lineno">   81 </span>--  * @a?@ matches the empty word or the character @a@, @a*@ matches
+<span class="lineno">   82 </span>--    zero or more occurrences of @a@, and @a+@ matches one or more
+<span class="lineno">   83 </span>--    @a@'s.
+<span class="lineno">   84 </span>-- 
+<span class="lineno">   85 </span>--  * @.@ (the dot) matches one arbitrary character.
+<span class="lineno">   86 </span>-- 
+<span class="lineno">   87 </span>--  * @a{4,7}@ matches four to seven occurrences of @a@, @a{2}@
+<span class="lineno">   88 </span>--    matches two.
+<span class="lineno">   89 </span>-- 
+<span class="lineno">   90 </span>fromString :: String -&gt; RegExp Char
+<span class="lineno">   91 </span><span class="decl"><span class="istickedoff">fromString = Data.String.fromString</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>instance Data.String.IsString (RegExp Char) where
+<span class="lineno">   94 </span>  <span class="decl"><span class="istickedoff">fromString = parse</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>-- | 
+<span class="lineno">   97 </span>-- Alias for 'accept' specialized for Strings. Useful in combination
+<span class="lineno">   98 </span>-- with the 'IsString' instance for 'RegExp' 'Char'
+<span class="lineno">   99 </span>-- 
+<span class="lineno">  100 </span>(=~) :: RegExp Char -&gt; String -&gt; Bool
+<span class="lineno">  101 </span><span class="decl"><span class="istickedoff">(=~) = accept</span></span>
+<span class="lineno">  102 </span>
+
+</pre>
+</html>
