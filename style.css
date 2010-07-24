@@ -3,9 +3,7 @@ body {
     margin-left: 10%; margin-right: 10%;
 }
 
-h1, h2 {
-    font-family: Palatino, serif;
-}
+h1, h2 { font-family: Palatino, serif; }
 
 h1.title {
     text-align: center;
@@ -14,17 +12,18 @@ h1.title {
     color: cornflowerblue;
 }
 
-h1 {
-    font-size: 20pt;
-}
-
-h2 {
-    font-size: 15pt;
-}
+h1 { font-size: 20pt; }
+h2 { font-size: 15pt; }
 
 p {
+    margin: 0; padding: 0;
     font-size: 12pt;
     line-height: 1.5em;
+}
+
+td {
+    vertical-align: top;
+    padding-right: 1em;
 }
 
 #TOC {
@@ -64,10 +63,12 @@ h1 a, h2 a {
 h1 a, h2 a, #TOC a {
     text-decoration: none;
     font-weight: bold;
+}
 
 pre code {
     display: block;
-    margin: 1em; padding: 1em;
+    margin: 0; padding: 0;
+    color: darkslateblue;
     background-color: beige;
 }
 
