@@ -1,3 +1,4 @@
+% Weighted Regular Expression Matching
 
 Efficient regular expression matching can be beautifully
 simple. Revisiting an automata construction from theoretical computer
