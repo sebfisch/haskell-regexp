@@ -1,4 +1,3 @@
-
 % Weighted Regular Expression Matching
 
 Efficient regular expression matching can be beautifully
