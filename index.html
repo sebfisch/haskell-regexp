@@ -11,25 +11,59 @@
 <div id="TOC"
 ><ul
   ><li
-    ><a href="#regular-expressions-in-haskell"
-      >Regular Expressions in Haskell</a
+    ><a href="#background"
+      >Background</a
+      ></li
+    ><li
+    ><a href="#installation"
+      >Installation</a
+      ></li
+    ><li
+    ><a href="#correctness"
+      >Correctness</a
+      ></li
+    ><li
+    ><a href="#performance"
+      >Performance</a
+      ></li
+    ><li
+    ><a href="#collaboration"
+      >Collaboration</a
       ></li
     ></ul
   ></div
 >
-<div id="regular-expressions-in-haskell"
+<p
+>Regular expression matching can be beautifully simple.</p
+><div id="background"
 ><h1
   ><a href="#TOC"
-    >Regular Expressions in Haskell</a
+    >Background</a
     ></h1
-  ><p
-  >This library provides a simple and fast regular expression matcher that is implemented in Haskell without binding to external libraries.</p
-  ><p
-  >There are different ways to implement regular expression matching. Backtracking algorithms are simple but need bookkeeping overhead for nondeterministic search. One can use <a href="http://swtch.com/~rsc/regexp/regexp1.html"
-    >deterministic finite automata (DFA)</a
-    > to match regular expressions faster. But for certain regular expressions these DFA are exponentially large which sometimes leads to prohibitive memory requirements.</p
-  ><p
-  >We use a smart and simple algorithm to generate a DFA from a regular expression and do not generate the DFA completely but on the fly while parsing. This leads to a linear-time deterministic algorithm with constant space requirements. More specifically, the run time is limited by the product of the sizes of the regular expression and the string and the memory is limited by the size of the regular expression.</p
+  ></div
+><div id="installation"
+><h1
+  ><a href="#TOC"
+    >Installation</a
+    ></h1
+  ></div
+><div id="correctness"
+><h1
+  ><a href="#TOC"
+    >Correctness</a
+    ></h1
+  ></div
+><div id="performance"
+><h1
+  ><a href="#TOC"
+    >Performance</a
+    ></h1
+  ></div
+><div id="collaboration"
+><h1
+  ><a href="#TOC"
+    >Collaboration</a
+    ></h1
   ></div
 >
 </body>
