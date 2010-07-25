@@ -75,10 +75,10 @@ science, there is no correctness proof for the equivalence of the
 Haskell implementation of the algorithm with its specification. It is
 therefore confirmed using tests.
 
-Is difficult (and tedious) to write tests manually that cover all
-interesting apsects of regular expression matching. Fortunately,
-[QuickCheck] helps to generate such tests automatically and [Haskell
-Program Coverage (HPC)][HPC] can be used to monitor test coverage.
+It is difficult (and tedious) to write tests manually that cover all
+interesting apsects of regular expression matching. Therefore,
+[QuickCheck] is used to generate tests automatically and [Haskell
+Program Coverage (HPC)][HPC] is used to monitor test coverage.
 
 [QuickCheck]: http://www.cse.chalmers.se/~rjmh/QuickCheck/
 [HPC]: http://www.haskell.org/ghc/docs/latest/html/users_guide/hpc.html
@@ -106,11 +106,64 @@ Moreover, it will test
 
 In order to generate an HPC report you need to download the sources of
 the `weighted-regexp` package. But you may as well consult the
-[pregenerated coverage report][coverage] instead of generating it yourself.
+[pregenerated coverage report][coverage] instead of generating one
+yourself.
 
 [coverage]: quickcheck/hpc_index.html
 
 # Performance
+
+The matching algorithm provided by this library is usually slower than
+other libraries like [pcre] but has a better asymptotic
+complexity. There are no corner cases for which matching takes forever
+or eats all available memory. More specifically, the worst-case run
+time for matching a word against a regular expression is linearly
+bounded by the length of the word and the size of the regular
+expression. It is in *O(nm)* if *n* is the length of the word and *m*
+the size of the expression. The memory requirements are independent of
+the length of the word and linear in the size of the regular
+expression, that is, in *O(m)*. Therefore, this library provides
+similar asymptotic complexity guarantees as Google's [re2].
+
+[pcre]: http://www.pcre.org/
+[re2]: http://code.google.com/p/re2/
+
+Here are timings that have been obtained (on a MacBook) with the
+current version of the library.
+
+       input               regexp            run time     memory
+------------------- --------------------- -------------- --------
+ 100 MB of a's       `.*`                  6s (16 MB/s)    1 MB
+ 5000 a's            `(a?){5000}a{5000}`   12s             5 MB
+ ~2M a's and b's     `.*a.{20}a.*`         3.5s            2 MB
+
+The first example measures the search speed for a simple regular
+expression with a long string. There is room for improvement. No time
+has been invested yet to improve the performance of the library with
+regard to constant factors.
+
+The second example demonstrates the good asymptotic complexity of the
+algorithm. Unlike a backtracking implementation like [pcre] the
+library finishes in reasonable time. However, the memory requirements
+are higher than usual and on closer inspection one can see that 9 out
+of the 12 seconds are spent during garbage collection. This example
+uses a large regular expression which leads to a lot of garbage in the
+matching algorithm.
+
+The third example pushes automata based approaches to the limit
+because the deterministic finite automaton that corresponds to the
+regular expression is exponentially large. The input has been chosen
+to not match the expression but is otherwise random and probably
+explores many different states of the automaton. The matching
+algorithm produces states on the fly and discards them, hence, it is
+fast in this example, in fact, faster than [re2]. The following C++
+program runs for *4.5s* in the third example:
+
+<script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
+
+Unlike the Haskell program, this program keeps the whole input, that
+is, the result of `getline`, in memory. How can processed characters
+be discarded when matching with [re2]?
 
 # Development
 
