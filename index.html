@@ -58,7 +58,7 @@
   >Installation</a
   ></h1
 ><p
->An implementation of the ideas discussed in the Play on Regular Expressions is available as a Haskell library.</p
+>An implementation of the ideas discussed in the Play on Regular Expressions is available as a Haskell library. It is implemented in pure Haskell rather than as a binding to an external library so you do not need to install an external regular expression library to use it.</p
 ><table class="installation">
 
 <tr><td>
@@ -69,7 +69,7 @@
   ></p
 ></td><td>
 <p
->You need to install Haskell in order to use this library. By installing the <a href="http://hackage.haskell.org/platform/"
+>However, you need Haskell in order to use this library. By installing the <a href="http://hackage.haskell.org/platform/"
   >Haskell Platform</a
   > you get a Haskell compiler with an interactive environment as well as the package manager <code
   >cabal-install</code
@@ -91,6 +91,59 @@ bash# cabal install weighted-regexp
 ><a href="#TOC"
   >Correctness</a
   ></h1
+><p
+>The matching algorithm computes the same result as a simple inductive specification (given in the <a href="regexp-play.pdf"
+  >Play on Regular Expressions</a
+  >) but is <a href="#performance"
+  >more efficient</a
+  > than a direct translation of this specification into Haskell. Although the ideas behind the algorithm are not new but based on proven results from theoretical computer science, there is no correctness proof for the equivalence of the Haskell implementation of the algorithm with its specification. It is therefore confirmed using tests.</p
+><p
+>Is difficult (and tedious) to write tests manually that cover all interesting apsects of regular expression matching. Fortunately, <a href="http://www.cse.chalmers.se/~rjmh/QuickCheck/"
+  >QuickCheck</a
+  > helps to generate such tests automatically and <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/hpc.html"
+  >Haskell Program Coverage (HPC)</a
+  > can be used to monitor test coverage.</p
+><p
+>You can install the <code
+  >weighted-regexp</code
+  > library along with a test program as follows:</p
+><pre
+><code
+  >bash# cabal install weighted-regexp -fQuickCheck
+</code
+  ></pre
+><p
+>Using the <code
+  >QuickCheck</code
+  > flag results in an additional program that you can use to test the implementation. It will test</p
+><ul
+><li
+  ><p
+    >the algebraic laws of semirings for all defined semirings,</p
+    ></li
+  ><li
+  ><p
+    >the equivalence of the matching algorithm with the specification both for full and partial matchings.</p
+    ></li
+  ></ul
+><p
+>Moreover, it will test</p
+><ul
+><li
+  ><p
+    >the parser that provides common syntactic sugar like bounded repetitions and character classes, and</p
+    ></li
+  ><li
+  ><p
+    >the use of the library to recognize non-regular languages using infinite regular expressions.</p
+    ></li
+  ></ul
+><p
+>In order to generate an HPC report you need to download the sources of the <code
+  >weighted-regexp</code
+  > package. But you may as well consult the <a href="quickcheck/hpc_index.html"
+  >pregenerated coverage report</a
+  > instead of generating it yourself.</p
 ><h1 id="performance"
 ><a href="#TOC"
   >Performance</a
