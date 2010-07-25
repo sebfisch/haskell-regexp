@@ -16,10 +16,10 @@ ideas. The 15th [International Conference on Functional
 Programming][ICFP] features an article on Regular Expressions written
 as a play, [A Play on Regular Expressions][paper], which is meant to
 be [elegant, instructive, and fun][Pearl]. The play discusses an
-elegant and efficient, purely functional algorithm for matching
-regular expressions. By generalizing from a Boolean matching result to
-arbitrary [semirings], this algorithm can be used to implement various
-matching policies for weighted regular expressions.
+efficient, purely functional algorithm for matching regular
+expressions. By generalizing from Booleans to arbitrary [semirings],
+this algorithm implements various matching policies for weighted
+regular expressions.
 
 [dialogues]: http://en.wikipedia.org/wiki/Socratic_dialogue
 [ICFP]: http://www.icfpconference.org/icfp2010/
