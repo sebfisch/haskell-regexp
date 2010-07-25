@@ -75,10 +75,10 @@ science, there is no correctness proof for the equivalence of the
 Haskell implementation of the algorithm with its specification. It is
 therefore confirmed using tests.
 
-Is difficult (and tedious) to write tests manually that cover all
-interesting apsects of regular expression matching. Fortunately,
-[QuickCheck] helps to generate such tests automatically and [Haskell
-Program Coverage (HPC)][HPC] can be used to monitor test coverage.
+It is difficult (and tedious) to write tests manually that cover all
+interesting apsects of regular expression matching. Therefore,
+[QuickCheck] is used to generate tests automatically and [Haskell
+Program Coverage (HPC)][HPC] is used to monitor test coverage.
 
 [QuickCheck]: http://www.cse.chalmers.se/~rjmh/QuickCheck/
 [HPC]: http://www.haskell.org/ghc/docs/latest/html/users_guide/hpc.html
@@ -106,11 +106,29 @@ Moreover, it will test
 
 In order to generate an HPC report you need to download the sources of
 the `weighted-regexp` package. But you may as well consult the
-[pregenerated coverage report][coverage] instead of generating it yourself.
+[pregenerated coverage report][coverage] instead of generating one
+yourself.
 
 [coverage]: quickcheck/hpc_index.html
 
 # Performance
+
+The matching algorithm provided by this library is usually slower than
+other libraries like [pcre] but has a better asymptotic
+complexity. There are no corner cases for which matching takes forever
+or eats all available memory. More specifically, the worst-case run
+time for matching a word against a regular expression is linearly
+bounded by the length of the word and the size of the regular
+expression, namely, *O(nm)* if *n* is the length of the word and *m*
+the size of the expression. The memory requirements are independent of
+the length of the word and linear in the size of the regular
+expression, that is, *O(m)*. Therefore, this library provides similar
+asymptotic complexity guarantees as [re2].
+
+[pcre]: http://www.pcre.org/
+[re2]: http://code.google.com/p/re2/
+
+
 
 # Development
 
