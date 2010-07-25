@@ -98,11 +98,11 @@ bash# cabal install weighted-regexp
   >more efficient</a
   > than a direct translation of this specification into Haskell. Although the ideas behind the algorithm are not new but based on proven results from theoretical computer science, there is no correctness proof for the equivalence of the Haskell implementation of the algorithm with its specification. It is therefore confirmed using tests.</p
 ><p
->Is difficult (and tedious) to write tests manually that cover all interesting apsects of regular expression matching. Fortunately, <a href="http://www.cse.chalmers.se/~rjmh/QuickCheck/"
+>It is difficult (and tedious) to write tests manually that cover all interesting apsects of regular expression matching. Therefore, <a href="http://www.cse.chalmers.se/~rjmh/QuickCheck/"
   >QuickCheck</a
-  > helps to generate such tests automatically and <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/hpc.html"
+  > is used to generate tests automatically and <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/hpc.html"
   >Haskell Program Coverage (HPC)</a
-  > can be used to monitor test coverage.</p
+  > is used to monitor test coverage.</p
 ><p
 >You can install the <code
   >weighted-regexp</code
@@ -143,11 +143,98 @@ bash# cabal install weighted-regexp
   >weighted-regexp</code
   > package. But you may as well consult the <a href="quickcheck/hpc_index.html"
   >pregenerated coverage report</a
-  > instead of generating it yourself.</p
+  > instead of generating one yourself.</p
 ><h1 id="performance"
 ><a href="#TOC"
   >Performance</a
   ></h1
+><p
+>The matching algorithm provided by this library is usually slower than other libraries like <a href="http://www.pcre.org/"
+  >pcre</a
+  > but has a better asymptotic complexity. There are no corner cases for which matching takes forever or eats all available memory. More specifically, the worst-case run time for matching a word against a regular expression is linearly bounded by the length of the word and the size of the regular expression. It is in <em
+  >O(nm)</em
+  > if <em
+  >n</em
+  > is the length of the word and <em
+  >m</em
+  > the size of the expression. The memory requirements are independent of the length of the word and linear in the size of the regular expression, that is, in <em
+  >O(m)</em
+  >. Therefore, this library provides similar asymptotic complexity guarantees as Google’s <a href="http://code.google.com/p/re2/"
+  >re2</a
+  >.</p
+><p
+>Here are timings that have been obtained (on a MacBook) with the current version of the library.</p
+><table
+><thead
+  ><tr class="header"
+    ><th align="center"
+      >input</th
+      ><th align="center"
+      >regexp</th
+      ><th align="center"
+      >run time</th
+      ><th align="center"
+      >memory</th
+      ></tr
+    ></thead
+  ><tbody
+  ><tr class="odd"
+    ><td align="center"
+      >100 MB of a’s</td
+      ><td align="center"
+      ><code
+	>.*</code
+	></td
+      ><td align="center"
+      >6s (16 MB/s)</td
+      ><td align="center"
+      >1 MB</td
+      ></tr
+    ><tr class="even"
+    ><td align="center"
+      >5000 a’s</td
+      ><td align="center"
+      ><code
+	>(a?){5000}a{5000}</code
+	></td
+      ><td align="center"
+      >12s</td
+      ><td align="center"
+      >5 MB</td
+      ></tr
+    ><tr class="odd"
+    ><td align="center"
+      >~2M a’s and b’s</td
+      ><td align="center"
+      ><code
+	>.*a.{20}a.*</code
+	></td
+      ><td align="center"
+      >3.5s</td
+      ><td align="center"
+      >2 MB</td
+      ></tr
+    ></tbody
+  ></table
+><p
+>The first example measures the search speed for a simple regular expression with a long string. There is room for improvement. No time has been invested yet to improve the performance of the library with regard to constant factors.</p
+><p
+>The second example demonstrates the good asymptotic complexity of the algorithm. Unlike a backtracking implementation like <a href="http://www.pcre.org/"
+  >pcre</a
+  > the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that 9 out of the 12 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p
+><p
+>The third example pushes automata based approaches to the limit because the deterministic finite automaton that corresponds to the regular expression is exponentially large. The input has been chosen to not match the expression but is otherwise random and probably explores many different states of the automaton. The matching algorithm produces states on the fly and discards them, hence, it is fast in this example, in fact, faster than <a href="http://code.google.com/p/re2/"
+  >re2</a
+  >. The following C++ program runs for <em
+  >4.5s</em
+  > in the third example:</p
+><script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
+<p
+>Unlike the Haskell program, this program keeps the whole input, that is, the result of <code
+  >getline</code
+  >, in memory. How can processed characters be discarded when matching with <a href="http://code.google.com/p/re2/"
+  >re2</a
+  >?</p
 ><h1 id="development"
 ><a href="#TOC"
   >Development</a

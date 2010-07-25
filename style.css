@@ -72,3 +72,11 @@ pre code {
     color: darkslateblue;
     background-color: beige;
 }
+
+tr.header th {
+    border-bottom: thin solid;
+}
+
+tr.even td {
+    background-color: gainsboro;
+}
