@@ -7,5 +7,6 @@ index.html: README.markdown
                --sanitize-html \
                --table-of-contents \
                --email-obfuscation=references \
+               --webtex \
                --output=$@ $<
 
