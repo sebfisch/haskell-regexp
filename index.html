@@ -115,7 +115,7 @@ bash# cabal install weighted-regexp
 ><p
 >Using the <code
   >QuickCheck</code
-  > flag results in an additional program that you can use to test the implementation. It will test</p
+  > flag results in an additional program that you can use to test the implementation. The program tests</p
 ><ul
 ><li
   ><p
@@ -127,7 +127,7 @@ bash# cabal install weighted-regexp
     ></li
   ></ul
 ><p
->Moreover, it will test</p
+>Moreover, it tests</p
 ><ul
 ><li
   ><p
@@ -223,22 +223,41 @@ bash# cabal install weighted-regexp
   >pcre</a
   > the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that 9 out of the 12 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p
 ><p
->The third example pushes automata based approaches to the limit because the deterministic finite automaton that corresponds to the regular expression is exponentially large. The input has been chosen to not match the expression but is otherwise random and probably explores many different states of the automaton. The matching algorithm produces states on the fly and discards them, hence, it is fast in this example, in fact, faster than <a href="http://code.google.com/p/re2/"
-  >re2</a
-  >. The following C++ program runs for <em
-  >4.5s</em
-  > in the third example:</p
-><script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
-<p
->Unlike the Haskell program, this program keeps the whole input, that is, the result of <code
-  >getline</code
-  >, in memory. How can processed characters be discarded when matching with <a href="http://code.google.com/p/re2/"
-  >re2</a
-  >?</p
+>The third example pushes automata based approaches to the limit because the deterministic finite automaton that corresponds to the regular expression is exponentially large. The input has been chosen to not match the expression but is otherwise random and probably explores many different states of the automaton. The matching algorithm produces states on the fly and discards them, hence, it is fast in this example, in fact, faster than re2<sup
+  ><a href="#fn1" class="footnoteRef" id="fnref1"
+    >1</a
+    ></sup
+  >.</p
+><p
+>The benchmarks above all use large input and two of them are specifically designed as corner cases of typical matching algorithms. The run time of matching more common regular expressions against short input has been measured using <a href="http://www.serpentine.com/blog/2009/09/29/criterion-a-new-benchmarking-library-for-haskell/"
+  >Criterion</a
+  > in order to get statistically robust results.</p
 ><h1 id="development"
 ><a href="#TOC"
   >Development</a
   ></h1
+><div class="footnotes"
+><hr
+   /><ol
+  ><li id="fn1"
+    ><p
+      >The following C++ program uses the <a href="http://code.google.com/p/re2/"
+	>re2</a
+	> library and needs <em
+	>4.5s</em
+	> to match <code
+	>.*a.{20}a.*</code
+	> against a string of ~2M random a’s ad b’s:</p
+      ><script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
+<p
+      >Unlike the Haskell program, this program keeps the whole input, that is, the result of <code
+	>getline</code
+	>, in memory. Can <a href="http://code.google.com/p/re2/"
+	>re2</a
+	> match input on the fly? <a href="#fnref1" class="footnoteBackLink" title="Jump back to footnote 1">↩</a></p
+      ></li
+    ></ol
+  ></div
 >
 </body>
 </html>

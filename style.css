@@ -74,14 +74,14 @@ pre code {
     background-color: beige;
 }
 
+table {
+    margin: auto;
+}
+
 tr.header th {
     border-bottom: thin solid;
 }
 
 tr.even td {
     background-color: gainsboro;
-}
-
-.centered {
-    text-align: center;
 }
