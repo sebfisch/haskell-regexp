@@ -191,19 +191,28 @@ github][benchsrc].
 
 [benchsrc]: http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs
 
-matching        acceptance  #matchings  leftmost  longest  leftmost longest
---------------- ----------- ----------- --------- -------- -----------------
- unique full
- ambiguous full
- partial
+       matching  acceptance  #matchings  leftmost     longest  leftmost longest
+--------------- ----------- ----------- ---------- ---------- -----------------
+ unique full       [3.8 us]   [34.5 us]
+ ambiguous full   [10.8 us]   [88.5 us]
+ partial           [0.2 us]              [78.4 us]  [76.3 us]         [75.4 us]
 
 Click on the numbers for a more detailed distribution of run times.
+
+[3.8 us]:  criterion/full-accept-phone-densities-800x600.png
+[34.5 us]: criterion/full-count-phone-densities-800x600.png
+[10.8 us]: criterion/full-accept-html-densities-800x600.png
+[88.5 us]: criterion/full-count-html-densities-800x600.png
+[0.2 us]: criterion/partial-accept-rna-densities-800x600.png
+[78.4 us]: criterion/partial-leftmost-rna-densities-800x600.png
+[76.3 us]: criterion/partial-longest-rna-densities-800x600.png
+[75.4 us]: criterion/partial-leftlong-rna-densities-800x600.png
 
 # Collaboration
 
 <table><tr><td>
 
-[![github](https://github.com/images/modules/header/logov3.png)](http://github.com)
+[![github](https://github.com/images/modules/header/logo.png)](http://github.com)
 
 </td><td>
 
