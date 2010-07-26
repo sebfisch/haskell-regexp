@@ -13,7 +13,7 @@ License-File:  LICENSE
 Author:        Thomas Wilke, Frank Huch, Sebastian Fischer
 Maintainer:    Sebastian Fischer
 Bug-Reports:   http://github.com/sebfisch/haskell-regexp/issues
-Homepage:      http://github.com/sebfisch/haskell-regexp
+Homepage:      http://sebfisch.github.com/haskell-regexp
 Build-Type:    Simple
 Stability:     experimental
 
