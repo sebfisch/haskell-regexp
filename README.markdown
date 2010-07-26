@@ -11,15 +11,14 @@ functional programming language [Haskell].
 # Background
 
 Since Plato wrote about philosophy in the form of [dialogues], authors
-have used this literary form in didactic writing to convey their
-ideas. The 15th [International Conference on Functional
-Programming][ICFP] features an article on Regular Expressions written
-as a play, [A Play on Regular Expressions][paper], which is meant to
-be [elegant, instructive, and fun][Pearl]. The play discusses an
-efficient, purely functional algorithm for matching regular
-expressions. By generalizing from Booleans to arbitrary [semirings],
-this algorithm implements various matching policies for weighted
-regular expressions.
+have used this literary form to convey their ideas. The 15th
+[International Conference on Functional Programming][ICFP] features an
+article on Regular Expressions written as a play, [A Play on Regular
+Expressions][paper], which is meant to be [elegant, instructive, and
+fun][Pearl]. The play discusses an efficient, purely functional
+algorithm for matching regular expressions. By generalizing from
+Booleans to arbitrary [semirings], this algorithm implements various
+matching policies for weighted regular expressions.
 
 [dialogues]: http://en.wikipedia.org/wiki/Socratic_dialogue
 [ICFP]: http://www.icfpconference.org/icfp2010/
@@ -33,9 +32,7 @@ Expressions is available as a Haskell library. It is implemented in
 pure Haskell rather than as a binding to an external library so you do
 not need to install an external regular expression library to use it.
 
-<table class="installation">
-
-<tr><td>
+<table><tr><td>
 
 [![Download
 Haskell](http://hackage.haskell.org/platform/icons/button-100.png)](http://hackage.haskell.org/platform)
@@ -60,9 +57,7 @@ into a terminal:
     bash# cabal update
     bash# cabal install weighted-regexp
 
-</td></tr>
-
-</table>
+</td></tr></table>
 
 # Correctness
 
@@ -145,9 +140,9 @@ regard to constant factors.
 The second example demonstrates the good asymptotic complexity of the
 algorithm. Unlike a backtracking implementation like [pcre] the
 library finishes in reasonable time. However, the memory requirements
-are higher than usual and on closer inspection one can see that 9 out
-of the 12 seconds are spent during garbage collection. This example
-uses a large regular expression which leads to a lot of garbage in the
+are higher than usual and on closer inspection one can see that 9 of
+12 seconds are spent during garbage collection. This example uses a
+large regular expression which leads to a lot of garbage in the
 matching algorithm.
 
 The third example pushes automata based approaches to the limit
@@ -180,8 +175,8 @@ You can install the `weighted-regexp` package with the `Criterion` flag to gener
 
     bash# cabal install weighted-regexp -fCriterion
 
-You can pass `--help` to the program to see how to use it. It tests
-three different examples:
+You can call `criterion-re --help` to see how to use the generated
+program. It tests three different examples:
 
   * a unique full match with a regular expression for phone numbers,
 
@@ -192,11 +187,11 @@ three different examples:
     RNA.
 
 For a more detailed explanation consider the [source code on
-Github][benchsrc].
+github][benchsrc].
 
 [benchsrc]: http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs
 
-example         acceptance  #matchings  leftmost  longest  leftmost longest
+matching        acceptance  #matchings  leftmost  longest  leftmost longest
 --------------- ----------- ----------- --------- -------- -----------------
  unique full
  ambiguous full
@@ -204,6 +199,32 @@ example         acceptance  #matchings  leftmost  longest  leftmost longest
 
 Click on the numbers for a more detailed distribution of run times.
 
-# Development
+# Collaboration
 
+<table><tr><td>
 
+[![github](https://github.com/images/modules/header/logov3.png)](http://github.com)
+
+</td><td>
+
+The source code of this library is on [github]. You can collaborate by
+using it in your projects, report bugs and ask for new features in the
+[issue tracker], or provide patches that implement pending issues.
+
+</td></tr></table>
+
+[github]: http://github.com/sebfisch/haskell-regexp
+[issue tracker]: http://github.com/sebfisch/haskell-regexp/issues
+
+The algorithm discussed in the [Play on Regular Expressions][paper]
+has been implemented in different languages. In a series of two
+[blog]\ [posts], Carl Friedrich Bolz describes a Python implementation
+that uses a Just In Time (JIT) compiler to achieve impressive
+performance. He compares his version with corresponding C++ and Java
+programs.
+
+[blog]: http://morepypy.blogspot.com/2010/05/efficient-and-elegant-regular.html
+[posts]: http://morepypy.blogspot.com/2010/06/jit-for-regular-expression-matching.html
+
+For questions and feedback email [Sebastian
+Fischer](mailto:mail@sebfisch.de).
