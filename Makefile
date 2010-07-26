@@ -17,10 +17,10 @@ $(Criterion): .cabal-build
 	touch $@
 
 quickcheck/hpc_index.html: quickcheck/quickcheck-re.tix
-	cd quickcheck; hpc markup --srcdir=.. quickcheck-re
+	mkdir -p quickcheck; cd quickcheck; hpc markup --srcdir=.. quickcheck-re
 
 quickcheck/quickcheck-re.tix:
-	cd quickcheck; $(QuickCheck)
+	mkdir -p quickcheck; cd quickcheck; $(QuickCheck)
 
 .microbench: criterion/full.csv criterion/full.png \
 		criterion/partial.csv criterion/partial.png
@@ -30,4 +30,4 @@ criterion/%.png: criterion/%.csv
 	barchart criterion --title="$* matching" $<
 
 criterion/%.csv:
-	cd criterion; $(Criterion) --summary=$*.csv --plot-kde=png $*
+	mkdir -p criterion; cd criterion; $(Criterion) --summary=$*.csv --plot-kde=png $*
