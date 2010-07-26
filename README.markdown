@@ -89,14 +89,14 @@ program as follows:
     bash# cabal install weighted-regexp -fQuickCheck
 
 Using the `QuickCheck` flag results in an additional program that you
-can use to test the implementation. It will test 
+can use to test the implementation. The program tests 
 
   * the algebraic laws of semirings for all defined semirings,
 
   * the equivalence of the matching algorithm with the specification
     both for full and partial matchings.
 
-Moreover, it will test
+Moreover, it tests
 
   * the parser that provides common syntactic sugar like bounded
     repetitions and character classes, and
@@ -156,14 +156,28 @@ regular expression is exponentially large. The input has been chosen
 to not match the expression but is otherwise random and probably
 explores many different states of the automaton. The matching
 algorithm produces states on the fly and discards them, hence, it is
-fast in this example, in fact, faster than [re2]. The following C++
-program runs for *4.5s* in the third example:
+fast in this example, in fact, faster than re2[^cpp]. 
 
-<script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
+[^cpp]: The following C++ program uses the [re2] library and needs
+*4.5s* to match `.*a.{20}a.*` against a string of ~2M random a's ad
+b's:
 
-Unlike the Haskell program, this program keeps the whole input, that
-is, the result of `getline`, in memory. How can processed characters
-be discarded when matching with [re2]?
+    <script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
+
+    Unlike the Haskell program, this program keeps the whole input,
+    that is, the result of `getline`, in memory. Can [re2] match input
+    on the fly?
+
+The benchmarks above all use large input and two of them are
+specifically designed as corner cases of typical matching
+algorithms. The run time of matching more common regular expressions
+against short input has been measured using [Criterion] in order to
+get statistically robust results.
+
+[Criterion]: http://www.serpentine.com/blog/2009/09/29/criterion-a-new-benchmarking-library-for-haskell/
+
+
+
 
 # Development
 
