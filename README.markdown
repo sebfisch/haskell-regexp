@@ -34,8 +34,9 @@ not need to install an external regular expression library to use it.
 
 <table><tr><td>
 
-[![Download
-Haskell](http://hackage.haskell.org/platform/icons/button-100.png)](http://hackage.haskell.org/platform)
+<a href="http://hackage.haskell.org/platform">
+<img src="http://hackage.haskell.org/platform/icons/button-100.png" />
+</a>
 
 </td><td>
 
