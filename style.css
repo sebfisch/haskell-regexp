@@ -85,3 +85,11 @@ tr.header th {
 tr.even td {
     background-color: gainsboro;
 }
+
+td {
+    margin: 0; padding: 0;
+}
+
+img {
+    margin-right: 1em;
+}

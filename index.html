@@ -27,8 +27,8 @@
       >Performance</a
       ></li
     ><li
-    ><a href="#development"
-      >Development</a
+    ><a href="#collaboration"
+      >Collaboration</a
       ></li
     ></ul
   ></div
@@ -44,7 +44,7 @@
 ><p
 >Since Plato wrote about philosophy in the form of <a href="http://en.wikipedia.org/wiki/Socratic_dialogue"
   >dialogues</a
-  >, authors have used this literary form in didactic writing to convey their ideas. The 15th <a href="http://www.icfpconference.org/icfp2010/"
+  >, authors have used this literary form to convey their ideas. The 15th <a href="http://www.icfpconference.org/icfp2010/"
   >International Conference on Functional Programming</a
   > features an article on Regular Expressions written as a play, <a href="regexp-play.pdf"
   >A Play on Regular Expressions</a
@@ -59,9 +59,7 @@
   ></h1
 ><p
 >An implementation of the ideas discussed in the Play on Regular Expressions is available as a Haskell library. It is implemented in pure Haskell rather than as a binding to an external library so you do not need to install an external regular expression library to use it.</p
-><table class="installation">
-
-<tr><td>
+><table><tr><td>
 <p
 ><a href="http://hackage.haskell.org/platform"
   ><img src="http://hackage.haskell.org/platform/icons/button-100.png" alt="Download Haskell"
@@ -84,9 +82,7 @@
 bash# cabal install weighted-regexp
 </code
   ></pre
-></td></tr>
-
-</table>
+></td></tr></table>
 <h1 id="correctness"
 ><a href="#TOC"
   >Correctness</a
@@ -221,7 +217,7 @@ bash# cabal install weighted-regexp
 ><p
 >The second example demonstrates the good asymptotic complexity of the algorithm. Unlike a backtracking implementation like <a href="http://www.pcre.org/"
   >pcre</a
-  > the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that 9 out of the 12 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p
+  > the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that 9 of 12 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p
 ><p
 >The third example pushes automata based approaches to the limit because the deterministic finite automaton that corresponds to the regular expression is exponentially large. The input has been chosen to not match the expression but is otherwise random and probably explores many different states of the automaton. The matching algorithm produces states on the fly and discards them, hence, it is fast in this example, in fact, faster than re2<sup
   ><a href="#fn1" class="footnoteRef" id="fnref1"
@@ -244,9 +240,9 @@ bash# cabal install weighted-regexp
 </code
   ></pre
 ><p
->You can pass <code
-  >--help</code
-  > to the program to see how to use it. It tests three different examples:</p
+>You can call <code
+  >criterion-re --help</code
+  > to see how to use the generated program. It tests three different examples:</p
 ><ul
 ><li
   ><p
@@ -263,13 +259,13 @@ bash# cabal install weighted-regexp
   ></ul
 ><p
 >For a more detailed explanation consider the <a href="http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs"
-  >source code on Github</a
+  >source code on github</a
   >.</p
 ><table
 ><thead
   ><tr class="header"
     ><th align="left"
-      >example</th
+      >matching</th
       ><th align="left"
       >acceptance</th
       ><th align="left"
@@ -329,10 +325,37 @@ bash# cabal install weighted-regexp
   ></table
 ><p
 >Click on the numbers for a more detailed distribution of run times.</p
-><h1 id="development"
+><h1 id="collaboration"
 ><a href="#TOC"
-  >Development</a
+  >Collaboration</a
   ></h1
+><table><tr><td>
+<p
+><a href="http://github.com"
+  ><img src="https://github.com/images/modules/header/logov3.png" alt="github"
+     /></a
+  ></p
+></td><td>
+<p
+>The source code of this library is on <a href="http://github.com/sebfisch/haskell-regexp"
+  >github</a
+  >. You can collaborate by using it in your projects, report bugs and ask for new features in the <a href="http://github.com/sebfisch/haskell-regexp/issues"
+  >issue tracker</a
+  >, or provide patches that implement pending issues.</p
+></td></tr></table>
+
+
+
+<p
+>The algorithm discussed in the <a href="regexp-play.pdf"
+  >Play on Regular Expressions</a
+  > has been implemented in different languages. In a series of two <a href="http://morepypy.blogspot.com/2010/05/efficient-and-elegant-regular.html"
+  >blog</a
+  > <a href="http://morepypy.blogspot.com/2010/06/jit-for-regular-expression-matching.html"
+  >posts</a
+  >, Carl Friedrich Bolz describes a Python implementation that uses a Just In Time (JIT) compiler to achieve impressive performance. He compares his version with corresponding C++ and Java programs.</p
+><p
+>For questions and feedback email <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x6d;&#x61;&#x69;&#108;&#64;&#x73;&#x65;&#98;&#102;&#x69;&#x73;&#x63;&#104;&#46;&#100;&#x65;">&#x53;&#x65;&#98;&#x61;&#x73;&#116;&#x69;&#x61;&#110;&#32;&#70;&#x69;&#x73;&#x63;&#104;&#x65;&#114;</a>.</p
 ><div class="footnotes"
 ><hr
    /><ol
