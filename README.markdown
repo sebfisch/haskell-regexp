@@ -176,8 +176,33 @@ get statistically robust results.
 
 [Criterion]: http://www.serpentine.com/blog/2009/09/29/criterion-a-new-benchmarking-library-for-haskell/
 
+You can install the `weighted-regexp` package with the `Criterion` flag to generate a program that executes the benchmarks described below:
 
+    bash# cabal install weighted-regexp -fCriterion
 
+You can pass `--help` to the program to see how to use it. It tests
+three different examples:
+
+  * a unique full match with a regular expression for phone numbers,
+
+  * an ambiguous full match with a regular expression for sequences of
+    HTML elements, and
+
+  * a partial match with a regular expression for protein sequences in
+    RNA.
+
+For a more detailed explanation consider the [source code on
+Github][benchsrc].
+
+[benchsrc]: http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs
+
+example         acceptance  #matchings  leftmost  longest  leftmost longest
+--------------- ----------- ----------- --------- -------- -----------------
+ unique full
+ ambiguous full
+ partial
+
+Click on the numbers for a more detailed distribution of run times.
 
 # Development
 
