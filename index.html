@@ -232,6 +232,103 @@ bash# cabal install weighted-regexp
 >The benchmarks above all use large input and two of them are specifically designed as corner cases of typical matching algorithms. The run time of matching more common regular expressions against short input has been measured using <a href="http://www.serpentine.com/blog/2009/09/29/criterion-a-new-benchmarking-library-for-haskell/"
   >Criterion</a
   > in order to get statistically robust results.</p
+><p
+>You can install the <code
+  >weighted-regexp</code
+  > package with the <code
+  >Criterion</code
+  > flag to generate a program that executes the benchmarks described below:</p
+><pre
+><code
+  >bash# cabal install weighted-regexp -fCriterion
+</code
+  ></pre
+><p
+>You can pass <code
+  >--help</code
+  > to the program to see how to use it. It tests three different examples:</p
+><ul
+><li
+  ><p
+    >a unique full match with a regular expression for phone numbers,</p
+    ></li
+  ><li
+  ><p
+    >an ambiguous full match with a regular expression for sequences of HTML elements, and</p
+    ></li
+  ><li
+  ><p
+    >a partial match with a regular expression for protein sequences in RNA.</p
+    ></li
+  ></ul
+><p
+>For a more detailed explanation consider the <a href="http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs"
+  >source code on Github</a
+  >.</p
+><table
+><thead
+  ><tr class="header"
+    ><th align="left"
+      >example</th
+      ><th align="left"
+      >acceptance</th
+      ><th align="left"
+      >#matchings</th
+      ><th align="left"
+      >leftmost</th
+      ><th align="left"
+      >longest</th
+      ><th align="left"
+      >leftmost longest</th
+      ></tr
+    ></thead
+  ><tbody
+  ><tr class="odd"
+    ><td align="left"
+      >unique full</td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ></tr
+    ><tr class="even"
+    ><td align="left"
+      >ambiguous full</td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ></tr
+    ><tr class="odd"
+    ><td align="left"
+      >partial</td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ><td align="left"
+      ></td
+      ></tr
+    ></tbody
+  ></table
+><p
+>Click on the numbers for a more detailed distribution of run times.</p
 ><h1 id="development"
 ><a href="#TOC"
   >Development</a
