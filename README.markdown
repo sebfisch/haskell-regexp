@@ -187,10 +187,10 @@ program. It tests three different examples:
   * a partial match with a regular expression for protein sequences in
     RNA.
 
-For a more detailed explanation consider the [source code on
-github][benchsrc].
+For a more detailed explanation consider the [source code] of the
+benchmark program.
 
-[benchsrc]: http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs
+[source code]: http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs
 
        matching  acceptance  #matchings  leftmost     longest  leftmost longest
 --------------- ----------- ----------- ---------- ---------- -----------------
