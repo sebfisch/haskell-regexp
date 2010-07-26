@@ -105,7 +105,7 @@ the `weighted-regexp` package. But you may as well consult the
 [pregenerated coverage report][coverage] instead of generating one
 yourself.
 
-[coverage]: quickcheck/hpc_index.html
+[coverage]: http://sebfisch.github.com/haskell-regexp/quickcheck/hpc_index.html
 
 # Performance
 
@@ -200,20 +200,22 @@ github][benchsrc].
 
 Click on the numbers for a more detailed distribution of run times.
 
-[3.8 us]:  criterion/full-accept-phone-densities-800x600.png
-[34.5 us]: criterion/full-count-phone-densities-800x600.png
-[10.8 us]: criterion/full-accept-html-densities-800x600.png
-[88.5 us]: criterion/full-count-html-densities-800x600.png
-[0.2 us]: criterion/partial-accept-rna-densities-800x600.png
-[78.4 us]: criterion/partial-leftmost-rna-densities-800x600.png
-[76.3 us]: criterion/partial-longest-rna-densities-800x600.png
-[75.4 us]: criterion/partial-leftlong-rna-densities-800x600.png
+[3.8 us]:  http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png
+[34.5 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png
+[10.8 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-accept-html-densities-800x600.png
+[88.5 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png
+[0.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png
+[78.4 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png
+[76.3 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png
+[75.4 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png
 
 # Collaboration
 
 <table><tr><td>
 
-[![github](https://github.com/images/modules/header/logo.png)](http://github.com)
+<a href="http://github.com">
+<img src="https://github.com/images/modules/header/logo.png" />
+</a>
 
 </td><td>
 
@@ -228,10 +230,10 @@ using it in your projects, report bugs and ask for new features in the
 
 The algorithm discussed in the [Play on Regular Expressions][paper]
 has been implemented in different languages. In a series of two
-[blog]\ [posts], Carl Friedrich Bolz describes a Python implementation
-that uses a Just In Time (JIT) compiler to achieve impressive
-performance. He compares his version with corresponding C++ and Java
-programs.
+[blog][blog] [posts][posts], Carl Friedrich Bolz describes a Python
+implementation that uses a Just In Time (JIT) compiler to achieve
+impressive performance. He compares his version with corresponding C++
+and Java programs.
 
 [blog]: http://morepypy.blogspot.com/2010/05/efficient-and-elegant-regular.html
 [posts]: http://morepypy.blogspot.com/2010/06/jit-for-regular-expression-matching.html
