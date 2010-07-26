@@ -20,7 +20,7 @@ Stability:     experimental
 Library
   Build-Tools:          happy >= 1.17
   Build-Depends:        base >= 3 && < 5,
-                        array >= 0.1 && <= 0.2.0.0
+                        array >= 0.1 && < 0.4
   HS-Source-Dirs:       src
   Exposed-Modules:      Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
