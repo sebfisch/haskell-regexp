@@ -87,7 +87,7 @@ program as follows:
 Using the `QuickCheck` flag results in an additional program that you
 can use to test the implementation. The program tests 
 
-  * the algebraic laws of semirings for all defined semirings,
+  * the algebraic laws of semirings for all defined semirings, and
 
   * the equivalence of the matching algorithm with the specification
     both for full and partial matchings.
