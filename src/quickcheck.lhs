@@ -333,17 +333,17 @@ The library provides a combinator that matches a list of regular
 expressions in sequence, each occurring once in any order.
 
 > perm'parser'check :: String -> Bool
-> perm'parser'check cs = all (accept (eachOnce (map char s))) (permutations s)
+> perm'parser'check cs = all (accept (perm (map char s))) (permutations s)
 >  where s = take 5 cs
 
 We restrict the test to at most 5! (that is five factorial)
 permutations because otherwise there are too many. Note that it is
 possible to match much longer permutations:
 
-    ghci> accept (eachOnce (map char ['a'..'z'])) $ reverse ['a'..'z']
+    ghci> accept (perm (map char ['a'..'z'])) $ reverse ['a'..'z']
     True
     (0.05 secs, 8706356 bytes)
 
-But matching `eachOnce (map char ['a'..'z'])` against *all*
-permutations of ['a'..'z'] takes too long.
+But matching `perm (map char ['a'..'z'])` against *all* permutations
+of ['a'..'z'] takes too long.
 

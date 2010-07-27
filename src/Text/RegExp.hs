@@ -39,7 +39,7 @@ module Text.RegExp (
 
   eps, char, sym, psym, anySym, noMatch, alt, seq_, rep, rep1, opt, brep,
 
-  eachOnce,
+  perm,
 
   -- * Matching
 
@@ -100,7 +100,7 @@ instance Data.String.IsString (RegExp Char) where
 -- order. For example, the regular expression
 -- 
 -- @
--- eachOnce (map char "abc")
+-- perm (map char \"abc\")
 -- @
 -- 
 -- has the same meaning as
@@ -109,19 +109,19 @@ instance Data.String.IsString (RegExp Char) where
 -- abc|acb|bcc|bac|cba|cab
 -- @
 -- 
--- but is represented as
+-- and is represented as
 -- 
 -- @
 -- a(bc|cb)|b(ca|ac)|c(ba|ab)
 -- @
 -- 
-eachOnce :: [RegExp c] -> RegExp c
-eachOnce []  = eps
-eachOnce [r] = r
-eachOnce rs  = go rs []
+perm :: [RegExp c] -> RegExp c
+perm []  = eps
+perm [r] = r
+perm rs  = go rs []
  where
-  go [p]    qs = p `seq_` eachOnce qs
-  go (p:ps) qs = (p `seq_` eachOnce (ps ++ qs)) `alt` go ps (p:qs)
+  go [p]    qs = p `seq_` perm qs
+  go (p:ps) qs = (p `seq_` perm (ps ++ qs)) `alt` go ps (p:qs)
 
 -- | 
 -- Alias for 'accept' specialized for Strings. Useful in combination
