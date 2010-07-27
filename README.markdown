@@ -104,15 +104,13 @@ tests
     infinite regular expressions.
 
 For a more detailed description of the tested properties consider the
-[source code][quickcheck.lhs] of the test program.
-
-[quickcheck.lhs]: http://github.com/sebfisch/haskell-regexp/blob/master/src/quickcheck.lhs
-
-In order to generate an HPC report you need to download the sources of
-the `weighted-regexp` package. But you may as well consult the
+[source code][quickcheck.lhs] of the test program. In order to
+generate an HPC report you need to download the sources of the
+`weighted-regexp` package. But you may as well consult the
 [pregenerated coverage report][coverage] instead of generating one
 yourself.
 
+[quickcheck.lhs]: http://github.com/sebfisch/haskell-regexp/blob/master/src/quickcheck.lhs
 [coverage]: http://sebfisch.github.com/haskell-regexp/quickcheck/hpc_index.html
 
 # Performance
