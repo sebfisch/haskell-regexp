@@ -85,7 +85,7 @@ span.spaces    { background: white }
 <span class="lineno">   74 </span>-- Every numeric type that satisfies the semiring laws (as all
 <span class="lineno">   75 </span>-- predefined numeric types do) is a semiring.
 <span class="lineno">   76 </span>-- 
-<span class="lineno">   77 </span>data Numeric a = Numeric { getNumeric :: a }
+<span class="lineno">   77 </span>data <span class="istickedoff">Numeric</span> a = Numeric { getNumeric :: a }
 <span class="lineno">   78 </span> deriving <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Eq</span></span></span></span>
 <span class="lineno">   79 </span>
 <span class="lineno">   80 </span>instance (Num a, Show a) =&gt; Show (Numeric a) where
