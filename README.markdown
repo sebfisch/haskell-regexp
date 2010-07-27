@@ -68,8 +68,8 @@ is [more efficient](#performance) than a direct translation of this
 specification into Haskell. Although the ideas behind the algorithm
 are not new but based on proven results from theoretical computer
 science, there is no correctness proof for the equivalence of the
-Haskell implementation of the algorithm with its specification. It is
-therefore confirmed using tests.
+Haskell implementation of the algorithm with its specification. The
+equivalence is therefore confirmed by testing.
 
 It is difficult (and tedious) to write tests manually that cover all
 interesting apsects of regular expression matching. Therefore,
@@ -92,13 +92,22 @@ can use to test the implementation. The program tests
   * the equivalence of the matching algorithm with the specification
     both for full and partial matchings.
 
-Moreover, it tests
+For testing the equivalence, QuickCheck generates random regular
+expressions and compares the result of the matching algorithm with the
+result of its specification on random words.
+
+Moreover, the program tests
 
   * the parser that provides common syntactic sugar like bounded
     repetitions and character classes, and
 
   * the use of the library to recognize non-regular languages using
     infinite regular expressions.
+
+For a more detailed description of the tested properties consider the
+[source code][quickcheck.lhs] of the test program.
+
+[quickcheck.lhs]: http://github.com/sebfisch/haskell-regexp/blob/master/src/quickcheck.lhs
 
 In order to generate an HPC report you need to download the sources of
 the `weighted-regexp` package. But you may as well consult the
@@ -187,10 +196,10 @@ program. It tests three different examples:
   * a partial match with a regular expression for protein sequences in
     RNA.
 
-For a more detailed explanation consider the [source code] of the
-benchmark program.
+For a more detailed explanation consider the [source
+code][criterion.lhs] of the benchmark program.
 
-[source code]: http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs
+[criterion.lhs]: http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs
 
        matching  acceptance  #matchings  leftmost     longest  leftmost longest
 --------------- ----------- ----------- ---------- ---------- -----------------
