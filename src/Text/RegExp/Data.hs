@@ -55,15 +55,15 @@ eps = RegExp epsW
 epsW :: Semiring w => RegW w c
 epsW = RegW False one zero Eps
 
--- | Matches the given symbol.
--- 
-sym :: (Eq c, Show c) => c -> RegExp c
-sym c = psym (show c) (c==)
-
 -- | Matches the given character.
 -- 
 char :: Char -> RegExp Char
 char c = psym (quote c) (c==)
+
+-- | Matches the given symbol.
+-- 
+sym :: (Eq c, Show c) => c -> RegExp c
+sym c = psym (show c) (c==)
 
 quote :: Char -> String
 quote c | c `elem` " \\|*+?.[]{}^" = '\\' : [c]
@@ -81,6 +81,11 @@ symW s p = RegW False zero zero $ Sym s p
 -- 
 anySym :: RegExp c
 anySym = psym "." (const True)
+
+-- | Does not match anything. 'noMatch' is an identity for 'alt'.
+-- 
+noMatch :: RegExp c
+noMatch = psym "[]" (const False)
 
 -- |
 -- Matches either of two regular expressions. For example @a+b@

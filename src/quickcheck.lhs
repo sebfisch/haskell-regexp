@@ -16,6 +16,7 @@ used in batch mode.
 > import Test.QuickCheck.Batch
 > import Control.Monad ( ap, replicateM )
 > import Data.Char ( chr, ord )
+> import Data.List ( permutations )
 
 We import the semiring properties in order to check them for the
 defined instances. We also define our own `sum` function for
@@ -59,6 +60,7 @@ The `main` function runs all tests defined in this program.
 >       checks (partial'match'spec LeftLong.matching getLeftLong)
 >     runTests (pad "parse printed regexp") options [run parse'printed]
 >     runChecks "lazy infinite regexps" infinite'regexp'checks
+>     runTests "permutation parsing" options [run perm'parser'check]
 >  where
 >   options = defOpt { no_of_tests = 1000, length_of_tests = 60 }
 >   runChecks s = runTests (pad s) options . checks
@@ -326,3 +328,22 @@ characters, we use numbers instead of characters.
 >  where
 >   mkAnBnCn n = brep (n,n) (sym 2) `seq_` brep (n,n) (sym 3)
 >          `alt` seq_ (sym 1) (mkAnBnCn (n+1))
+
+The library provides a combinator that matches a list of regular
+expressions in sequence, each occurring once in any order.
+
+> perm'parser'check :: String -> Bool
+> perm'parser'check cs = all (accept (eachOnce (map char s))) (permutations s)
+>  where s = take 5 cs
+
+We restrict the test to at most 5! (that is five factorial)
+permutations because otherwise there are too many. Note that it is
+possible to match much longer permutations:
+
+    ghci> accept (eachOnce (map char ['a'..'z'])) $ reverse ['a'..'z']
+    True
+    (0.05 secs, 8706356 bytes)
+
+But matching `eachOnce (map char ['a'..'z'])` against *all*
+permutations of ['a'..'z'] takes too long.
+

@@ -1,6 +1,6 @@
 -- generate parser from happy specification on GHCi startup
 
-:def genparser \_ -> return ":! happy src/lib/Text/RegExp/Parser.y"
+:def genparser \_ -> return ":! happy src/Text/RegExp/Parser.y"
 :genparser
 
 -- enable overloaded strings

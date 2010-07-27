@@ -37,7 +37,9 @@ module Text.RegExp (
 
   RegExp, fromString,
 
-  eps, char, sym, psym, anySym, alt, seq_, rep, rep1, opt, brep,
+  eps, char, sym, psym, anySym, noMatch, alt, seq_, rep, rep1, opt, brep,
+
+  eachOnce,
 
   -- * Matching
 
@@ -92,6 +94,34 @@ fromString = Data.String.fromString
 
 instance Data.String.IsString (RegExp Char) where
   fromString = parse
+
+-- |
+-- Matches a sequence of the given regular expressions in any
+-- order. For example, the regular expression
+-- 
+-- @
+-- eachOnce (map char "abc")
+-- @
+-- 
+-- has the same meaning as
+-- 
+-- @
+-- abc|acb|bcc|bac|cba|cab
+-- @
+-- 
+-- but is represented as
+-- 
+-- @
+-- a(bc|cb)|b(ca|ac)|c(ba|ab)
+-- @
+-- 
+eachOnce :: [RegExp c] -> RegExp c
+eachOnce []  = eps
+eachOnce [r] = r
+eachOnce rs  = go rs []
+ where
+  go [p]    qs = p `seq_` eachOnce qs
+  go (p:ps) qs = (p `seq_` eachOnce (ps ++ qs)) `alt` go ps (p:qs)
 
 -- | 
 -- Alias for 'accept' specialized for Strings. Useful in combination
