@@ -98,10 +98,13 @@ result of its specification on random words. Moreover, the program
 tests
 
   * the parser that provides common syntactic sugar like bounded
-    repetitions and character classes, and
+    repetitions and character classes,
 
   * the use of the library to recognize non-regular languages using
-    infinite regular expressions.
+    infinite regular expressions, and
+
+  * a combinator for parsing permutation sequences, that is, sequences
+    of regular expressions in arbitrary order.
 
 For a more detailed description of the tested properties consider the
 [source code][quickcheck.lhs] of the test program. In order to
