@@ -94,9 +94,8 @@ can use to test the implementation. The program tests
 
 For testing the equivalence, QuickCheck generates random regular
 expressions and compares the result of the matching algorithm with the
-result of its specification on random words.
-
-Moreover, the program tests
+result of its specification on random words. Moreover, the program
+tests
 
   * the parser that provides common syntactic sugar like bounded
     repetitions and character classes, and
