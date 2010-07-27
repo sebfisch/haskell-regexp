@@ -89,7 +89,7 @@ bash# cabal install weighted-regexp
   >Play on Regular Expressions</a
   >) but is <a href="#performance"
   >more efficient</a
-  > than a direct translation of this specification into Haskell. Although the ideas behind the algorithm are not new but based on proven results from theoretical computer science, there is no correctness proof for the equivalence of the Haskell implementation of the algorithm with its specification. It is therefore confirmed using tests.</p
+  > than a direct translation of this specification into Haskell. Although the ideas behind the algorithm are not new but based on proven results from theoretical computer science, there is no correctness proof for the equivalence of the Haskell implementation of the algorithm with its specification. The equivalence is therefore confirmed by testing.</p
 ><p
 >It is difficult (and tedious) to write tests manually that cover all interesting apsects of regular expression matching. Therefore, <a href="http://www.cse.chalmers.se/~rjmh/QuickCheck/"
   >QuickCheck</a
@@ -120,7 +120,7 @@ bash# cabal install weighted-regexp
     ></li
   ></ul
 ><p
->Moreover, it tests</p
+>For testing the equivalence, QuickCheck generates random regular expressions and compares the result of the matching algorithm with the result of its specification on random words. Moreover, the program tests</p
 ><ul
 ><li
   ><p
@@ -132,7 +132,9 @@ bash# cabal install weighted-regexp
     ></li
   ></ul
 ><p
->In order to generate an HPC report you need to download the sources of the <code
+>For a more detailed description of the tested properties consider the <a href="http://github.com/sebfisch/haskell-regexp/blob/master/src/quickcheck.lhs"
+  >source code</a
+  > of the test program. In order to generate an HPC report you need to download the sources of the <code
   >weighted-regexp</code
   > package. But you may as well consult the <a href="http://sebfisch.github.com/haskell-regexp/quickcheck/hpc_index.html"
   >pregenerated coverage report</a
