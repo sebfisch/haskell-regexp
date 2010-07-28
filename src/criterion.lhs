@@ -22,7 +22,7 @@ different regular expressions against strings.
 >         ]
 >       ]
 >     | (mode, call) <-
->       [ ("accept", whnf . accept)
+>       [ ("accept", whnf . acceptFull)
 >       , ("count" , whnf . (matchingCount :: RegExp Char -> String -> Int))
 >       ]
 >     ]
@@ -34,7 +34,7 @@ different regular expressions against strings.
 >         ]
 >       ]
 >     | (mode, call) <-
->       [ ("accept"  , whnf . accept)
+>       [ ("accept"  , whnf . acceptPartial)
 >       , ("leftmost", whnf . Leftmost.matching)
 >       , ("longest" , whnf . Longest.matching)
 >       , ("leftlong", whnf . LeftLong.matching)

@@ -1,5 +1,5 @@
 Name:          weighted-regexp
-Version:       0.1.1.0
+Version:       0.2.0.0
 Cabal-Version: >= 1.6
 Synopsis:      Weighted Regular Expression Matcher
 Description:
@@ -16,6 +16,8 @@ Bug-Reports:   http://github.com/sebfisch/haskell-regexp/issues
 Homepage:      http://sebfisch.github.com/haskell-regexp
 Build-Type:    Simple
 Stability:     experimental
+
+Extra-Source-Files:     README.markdown CHANGES.markdown
 
 Library
   Build-Tools:          happy >= 1.17

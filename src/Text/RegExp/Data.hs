@@ -15,7 +15,7 @@ newtype RegExp c = RegExp (forall w . Semiring w => RegW w c)
 data RegW w c = RegW { active :: !Bool,
                        empty  :: !w, 
                        final_ :: !w, 
-                       reg    :: Reg w c }
+                       reg    :: !(Reg w c) }
 
 final :: Semiring w => RegW w c -> w
 final r = if active r then final_ r else zero
@@ -29,11 +29,14 @@ data Reg w c = Eps
 class Semiring w => Weight a b w where
   symWeight :: (a -> w) -> b -> w
 
-instance Weight c (Int,c) Bool where
-  symWeight p = p . snd
+defaultSymWeight :: (a -> w) -> a -> w
+defaultSymWeight = id
 
-instance Num a => Weight c (Int,c) (Numeric a) where
-  symWeight p = p . snd
+instance Weight c c Bool where
+  symWeight = defaultSymWeight
+
+instance Num a => Weight c c (Numeric a) where
+  symWeight = defaultSymWeight
 
 weighted :: Weight a b w => RegW w a -> RegW w b
 weighted (RegW a e f r) =

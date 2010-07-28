@@ -7,12 +7,20 @@ import Text.RegExp.Data
 
 -- |
 -- Checks whether a regular expression matches the given word. For
--- example, @accept (fromString \"b|abc\") \"b\"@ yields @True@
+-- example, @acceptFull (fromString \"b|abc\") \"b\"@ yields @True@
 -- because the first alternative of @b|abc@ matches the string
 -- @\"b\"@.
 -- 
-accept :: RegExp c -> [c] -> Bool
-accept r = fullMatch r
+acceptFull :: RegExp c -> [c] -> Bool
+acceptFull r = fullMatch r
+
+-- |
+-- Checks whether a regular expression matches a subword of the given
+-- word. For example, @acceptPartial (fromString \"b\") \"abc\"@
+-- yields @True@ because @\"abc\"@ contains the substring @\"b\"@.
+-- 
+acceptPartial :: RegExp c -> [c] -> Bool
+acceptPartial r = partialMatch r
 
 -- |
 -- Computes in how many ways a word can be matched against a regular
@@ -21,27 +29,46 @@ accept r = fullMatch r
 matchingCount :: Num a => RegExp c -> [c] -> a
 matchingCount r = getNumeric . fullMatch r
 
+{-# SPECIALIZE matchingCount :: RegExp c -> [c] -> Int #-}
+
 -- |
 -- Matches a regular expression against a word computing a weight in
 -- an arbitrary semiring.
 -- 
-fullMatch :: Semiring w => RegExp c -> [c] -> w
-fullMatch (RegExp r) = matchW r
+-- The symbols can have associated weights associated by the
+-- 'symWeight' function of the 'Weight' class. This function also
+-- allows to adjust the type of the used alphabet such that, for
+-- example, positional information can be taken into account by
+-- 'zip'ping the word with positions.
+-- 
+fullMatch :: Weight a b w => RegExp a -> [b] -> w
+fullMatch (RegExp r) = matchW (weighted r)
+
+{-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Bool #-}
+{-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Numeric Int #-}
+{-# SPECIALIZE fullMatch :: Num a => RegExp c -> [c] -> Numeric a #-}
 
 -- |
 -- Matches a regular expression against substrings of a word computing
--- a weight in an arbitrary semiring. The 'symWeight' function of
--- 'Weight's is used to report positional information about the
--- matching part of the word to the semiring.
+-- a weight in an arbitrary semiring. Similar to 'fullMatch' the
+-- 'Weight' class is used to associate weights to the symbols of the
+-- regular expression.
 -- 
-partialMatch :: Weight c (Int,c) w => RegExp c -> [c] -> w
-partialMatch (RegExp r) =
-  matchW (arb `seqW` weighted r `seqW` arb) . zip [(0::Int)..]
- where arb = repW (symW "." (const one))
+partialMatch :: Weight a b w => RegExp a -> [b] -> w
+partialMatch (RegExp r) = matchW (arb `seqW` weighted r `seqW` arb)
+ where RegExp arb = rep anySym
+
+{-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Bool #-}
+{-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Numeric Int #-}
+{-# SPECIALIZE partialMatch :: Num a => RegExp c -> [c] -> Numeric a #-}
 
 matchW :: Semiring w => RegW w c -> [c] -> w
 matchW r []     = empty r
 matchW r (c:cs) = final (foldl (shiftW zero) (shiftW one r c) cs)
+
+{-# SPECIALIZE matchW :: RegW Bool c -> [c] -> Bool #-}
+{-# SPECIALIZE matchW :: RegW (Numeric Int) c -> [c] -> Numeric Int #-}
+{-# SPECIALIZE matchW :: Num a => RegW (Numeric a) c -> [c] -> Numeric a #-}
 
 shiftW :: Semiring w => w -> RegW w c -> c -> RegW w c
 shiftW w r c | active r || w /= zero = shift w (reg r) c

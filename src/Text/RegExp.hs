@@ -43,7 +43,7 @@ module Text.RegExp (
 
   -- * Matching
 
-  (=~), accept, matchingCount, fullMatch, partialMatch
+  (=~), acceptFull, acceptPartial, matchingCount, fullMatch, partialMatch
 
   ) where
 
@@ -106,7 +106,7 @@ instance Data.String.IsString (RegExp Char) where
 -- has the same meaning as
 -- 
 -- @
--- abc|acb|bcc|bac|cba|cab
+-- abc|acb|bca|bac|cba|cab
 -- @
 -- 
 -- and is represented as
@@ -124,9 +124,9 @@ perm rs  = go rs []
   go (p:ps) qs = (p `seq_` perm (ps ++ qs)) `alt` go ps (p:qs)
 
 -- | 
--- Alias for 'accept' specialized for Strings. Useful in combination
+-- Alias for 'acceptFull' specialized for Strings. Useful in combination
 -- with the 'IsString' instance for 'RegExp' 'Char'
 -- 
 (=~) :: RegExp Char -> String -> Bool
-(=~) = accept
+(=~) = acceptFull
 

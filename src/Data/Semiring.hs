@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 -- | 
 -- Module      : Data.Semiring
 -- Copyright   : Thomas Wilke, Frank Huch, Sebastian Fischer
@@ -74,32 +76,11 @@ instance Semiring Bool where
 -- Every numeric type that satisfies the semiring laws (as all
 -- predefined numeric types do) is a semiring.
 -- 
-data Numeric a = Numeric { getNumeric :: a }
- deriving Eq
+newtype Numeric a = Numeric { getNumeric :: a }
+ deriving (Eq,Num)
 
-instance (Num a, Show a) => Show (Numeric a) where
+instance Show a => Show (Numeric a) where
   show = show . getNumeric
-
-lift :: Num a => (a -> a) -> Numeric a -> Numeric a
-lift f = Numeric . f . getNumeric
-
-lift2 :: Num a => (a -> a -> a) -> Numeric a -> Numeric a -> Numeric a
-lift2 f x y = Numeric (f (getNumeric x) (getNumeric y))
-
-instance Num a => Num (Numeric a) where
-  fromInteger = Numeric . fromInteger
-  signum      = lift signum
-  abs         = lift abs
-
-  0 + x = x
-  x + 0 = x
-  x + y = lift2 (+) x y
-
-  0 * _ = 0
-  _ * 0 = 0
-  1 * x = x
-  x * 1 = x
-  x * y = lift2 (*) x y
 
 instance Num a => Semiring (Numeric a) where
   zero = 0; one = 1; (.+.) = (+); (.*.) = (*)

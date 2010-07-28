@@ -43,7 +43,7 @@ instance Show Matching
 -- its position is zero.
 -- 
 matching :: RegExp c -> [c] -> Maybe Matching
-matching r = getLeftmost . partialMatch r
+matching r = getLeftmost . partialMatch r . zip [(0::Int)..]
 
 -- | Semiring used for leftmost matching.
 -- 

@@ -69,5 +69,5 @@ instance Semiring Longest where
   x          .*.  One        =  x
   Longest a  .*.  Longest b  =  Longest (a+b)
 
-instance Weight c (Int,c) Longest where
-  symWeight p (_,c) = p c .*. Longest 1
+instance Weight c c Longest where
+  symWeight p c = p c .*. Longest 1

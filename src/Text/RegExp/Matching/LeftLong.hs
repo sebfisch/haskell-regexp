@@ -48,7 +48,7 @@ instance Show Matching
 -- matching its position is zero.
 -- 
 matching :: RegExp c -> [c] -> Maybe Matching
-matching r = getLeftLong . partialMatch r
+matching r = getLeftLong . partialMatch r . zip [(0::Int)..]
 
 -- | 
 -- Semiring used for leftmost longest matching.

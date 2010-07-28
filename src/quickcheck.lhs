@@ -47,17 +47,14 @@ The `main` function runs all tests defined in this program.
 >     runChecks "semiring laws (Longest)" (semiring'laws :: Checks Longest)
 >     runChecks "semiring laws (LeftLong)" semiring'laws'LeftLong
 >     runTests (pad "full match") options $
->       checks (full'match'spec :: Checks Bool) ++
->       checks (full'match'spec :: Checks (Numeric Int)) ++
->       checks (full'match'spec :: Checks Leftmost) ++
->       checks (full'match'spec :: Checks Longest) ++
->       checks (full'match'spec :: Checks LeftLong)
+>       checks (full'match'spec acceptFull id :: Checks Bool) ++
+>       checks (full'match'spec matchingCount getNumeric
+>               :: Checks (Numeric Int))
 >     runTests (pad "partial match") options $
->       checks (partial'match'spec partialMatch id :: Checks Bool) ++
->       checks (partial'match'spec partialMatch id :: Checks (Numeric Int)) ++
->       checks (partial'match'spec Leftmost.matching getLeftmost) ++
+>       checks (partial'match'spec acceptPartial id :: Checks Bool) ++
+>       checks (indexed'match'spec Leftmost.matching getLeftmost) ++
 >       checks (partial'match'spec Longest.matching getLongest) ++
->       checks (partial'match'spec LeftLong.matching getLeftLong)
+>       checks (indexed'match'spec LeftLong.matching getLeftLong)
 >     runTests (pad "parse printed regexp") options [run parse'printed]
 >     runChecks "lazy infinite regexps" infinite'regexp'checks
 >     runTests "permutation parsing" options [run perm'parser'check]
@@ -171,14 +168,23 @@ Now we turn to the correctness of the `match` function. In order to
 check it, we compare it with a executable specification which is
 correct by definition:
 
-> full'match'spec :: (Show s, Semiring s) => Checks s
-> full'match'spec = match'spec fullMatchSpec fullMatch id
+> full'match'spec :: (Show a, Weight Char Char s)
+>                 => (RegExp Char -> String -> a)
+>                 -> (s -> a)
+>                 -> Checks s
+> full'match'spec = match'spec fullMatchSpec
 >
-> partial'match'spec :: (Show a, Weight Char (Int,Char) s)
+> partial'match'spec :: (Show a, Weight Char Char s)
 >                    => (RegExp Char -> String -> a)
 >                    -> (s -> a)
 >                    -> Checks s
 > partial'match'spec = match'spec partialMatchSpec
+>
+> indexed'match'spec :: (Show a, Weight Char (Int,Char) s)
+>                    => (RegExp Char -> String -> a)
+>                    -> (s -> a)
+>                    -> Checks s
+> indexed'match'spec = match'spec (\r -> partialMatchSpec r . zip [(0::Int)..])
 >
 > match'spec :: (Show a, Semiring s)
 >            => (RegExp Char -> String -> s)
@@ -188,13 +194,15 @@ correct by definition:
 > match'spec spec convmatch conv =
 >   Checks [run (check'match'spec spec convmatch conv)]
 >
+
 > check'match'spec :: (Show a, Semiring s)
 >                  => (RegExp Char -> String -> s)
 >                  -> (RegExp Char -> String -> a)
 >                  -> (s -> a)
->                  -> RegExp Char -> String -> Property
+>                  -> RegExp Char -> String -> Bool
 > check'match'spec spec convmatch conv r s =
->   length s < 7 ==> show (convmatch r s) == show (conv (spec r s))
+>   show (convmatch r s') == show (conv (spec r s'))
+>  where s' = take 5 s
 
 To make this work, we need an `Arbitrary` instance for regular
 expressions.
@@ -205,11 +213,11 @@ expressions.
 > regexp :: Int -> Gen (RegExp Char)
 > regexp 0 = frequency [ (1, return eps)
 >                      , (4, char `fmap` simpleChar) ]
-> regexp n = frequency [ (1, regexp 0)
->                      , (3, alt  `fmap` subexp `ap` subexp)
->                      , (6, seq_ `fmap` subexp `ap` subexp)
->                      , (3, rep  `fmap` regexp (n-1))
->                      , (7, fromString `fmap` parsedRegExp n) ]
+> regexp n = frequency [ (3, regexp 0)
+>                      , (1, alt  `fmap` subexp `ap` subexp)
+>                      , (2, seq_ `fmap` subexp `ap` subexp)
+>                      , (1, rep  `fmap` regexp (n-1))
+>                      , (2, fromString `fmap` parsedRegExp n) ]
 >  where subexp = regexp (n `div` 2)
 >
 > simpleChar :: Gen Char
@@ -251,8 +259,8 @@ The specification of the matching function is defined inductively on
 the structure of a regular expression. It uses exhaustive search to
 find all possibilities to match a regexp against a word.
 
-> fullMatchSpec :: Semiring s => RegExp c -> [c] -> s
-> fullMatchSpec (RegExp r) = matchSpec (reg r)
+> fullMatchSpec :: Weight a b s => RegExp a -> [b] -> s
+> fullMatchSpec (RegExp r) = matchSpec (reg (weighted r))
 >
 > matchSpec :: Semiring s => Reg s c -> [c] -> s
 > matchSpec Eps        u  =  if null u then one else zero
@@ -278,10 +286,10 @@ find all possibilities to match a regexp against a word.
 
 We can perform a similar test for partial instead of full matches.
 
-> partialMatchSpec :: Weight c (Int,c) s => RegExp c -> [c] -> s
+> partialMatchSpec :: Weight a b s => RegExp a -> [b] -> s
 > partialMatchSpec (RegExp r) =
->   matchSpec (reg (arb `seqW` weighted r `seqW` arb)) . zip [(0::Int)..]
->  where arb = repW (symW "." (const one))
+>   matchSpec (reg (arb `seqW` weighted r `seqW` arb))
+>  where RegExp arb = rep anySym
 
 As a check for the parser, we check whether the representation
 generated by the `Show` instance of regular expressions can be parsed
@@ -314,8 +322,7 @@ ${a^nb^nc^n | n >= 0}$. To show that the alphabet cannot only contain
 characters, we use numbers instead of characters.
 
 > context'sensitive :: [Int] -> Bool
-> context'sensitive s =
->   fromBool (isInAnBnCn s) == (matchingCount anbncn s :: Numeric Int)
+> context'sensitive s = isInAnBnCn s == acceptFull anbncn s
 >
 > isInAnBnCn :: [Int] -> Bool
 > isInAnBnCn s = all (==1) xs && all (==2) ys && all (==3) zs
@@ -333,7 +340,7 @@ The library provides a combinator that matches a list of regular
 expressions in sequence, each occurring once in any order.
 
 > perm'parser'check :: String -> Bool
-> perm'parser'check cs = all (accept (perm (map char s))) (permutations s)
+> perm'parser'check cs = all (acceptFull (perm (map char s))) (permutations s)
 >  where s = take 5 cs
 
 We restrict the test to at most 5! (that is five factorial)

@@ -60,6 +60,11 @@ into a terminal:
 
 </td></tr></table>
 
+This will install the current version. Differences between versions
+are listed in the [changelog].
+
+[changelog]: http://sebfisch.github.com/haskell-regexp/CHANGES.html
+
 # Correctness
 
 The matching algorithm computes the same result as a simple inductive
