@@ -52,8 +52,10 @@ and various pre-installed packages.
 
 </td><td>
 
-You can install the `weighted-regexp` library by typing the following
+You can install the [`weighted-regexp`] library by typing the following
 into a terminal:
+
+[`weighted-regexp`]: http://hackage.haskell.org/package/weighted-regexp
 
     bash# cabal update
     bash# cabal install weighted-regexp
@@ -169,8 +171,7 @@ algorithm produces states on the fly and discards them, hence, it is
 fast in this example, in fact, faster than re2[^cpp]. 
 
 [^cpp]: The following C++ program uses the [re2] library and needs
-*4.5s* to match `.*a.{20}a.*` against a string of ~2M random a's ad
-b's:
+*4s* to search for `a.{20}a` in a string of ~2M random a's ad b's:
 
     <script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
 
