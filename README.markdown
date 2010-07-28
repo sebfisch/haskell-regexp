@@ -60,8 +60,8 @@ into a terminal:
 
 </td></tr></table>
 
-This will install the current version. The differences between
-versions are listed in the [changelog].
+This will install the current version. Differences between versions
+are listed in the [changelog].
 
 [changelog]: http://sebfisch.github.com/haskell-regexp/CHANGES.html
 
