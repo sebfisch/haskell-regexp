@@ -1,4 +1,6 @@
-# 0.1.0.0 -> 0.1.1.0
+% Changelog for `weighted-regexp`
+
+# 0.1.1.0
 
 ## added `noMatch`
 
@@ -14,7 +16,7 @@ expressions form a semiring with
     (.+.) = alt
     (.*.) = seq_
 
-A corresponding `Semiring` is, however, not defined due to the lack of
+A corresponding `Semiring` instance is not defined due to the lack of
 an appropriate `Eq` instance.
 
 ## added `perm`
@@ -29,5 +31,5 @@ example, the regular expression
 
     perm (map char "abc")
 
-is equivalent to `abc|acb|bcc|bac|cba|cab` and represented as
+is equivalent to `abc|acb|bca|bac|cba|cab` and represented as
 `a(bc|cb)|b(ca|ac)|c(ba|ab)`.

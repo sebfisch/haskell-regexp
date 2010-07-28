@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Changelog for weighted-regexp</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <link rel="stylesheet" href="changes.css" type="text/css" />
+</head>
+<body>
+<h1 class="title">Changelog for <code
+                  >weighted-regexp</code
+                  ></h1>
+<div id="TOC"
+><ul
+  ><li
+    ><a href="#section"
+      >0.1.1.0</a
+      ><ul
+      ><li
+	><a href="#added-nomatch"
+	  >added <code
+	    >noMatch</code
+	    ></a
+	  ></li
+	><li
+	><a href="#added-perm"
+	  >added <code
+	    >perm</code
+	    ></a
+	  ></li
+	></ul
+      ></li
+    ></ul
+  ></div
+>
+<h1 id="section"
+><a href="#TOC"
+  >0.1.1.0</a
+  ></h1
+><h2 id="added-nomatch"
+><a href="#TOC"
+  >added <code
+    >noMatch</code
+    ></a
+  ></h2
+><p
+><code
+  >Text.RegExp</code
+  > now provides a combinator</p
+><pre
+><code
+  >noMatch :: RegExp c
+</code
+  ></pre
+><p
+>which is an identity of <code
+  >alt</code
+  >. With this combinator, regular expressions form a semiring with</p
+><pre
+><code
+  >zero  = noMatch
+one   = eps
+(.+.) = alt
+(.*.) = seq_
+</code
+  ></pre
+><p
+>A corresponding <code
+  >Semiring</code
+  > instance is not defined due to the lack of an appropriate <code
+  >Eq</code
+  > instance.</p
+><h2 id="added-perm"
+><a href="#TOC"
+  >added <code
+    >perm</code
+    ></a
+  ></h2
+><p
+><code
+  >Text.RegExp</code
+  > now provides a combinator</p
+><pre
+><code
+  >perm :: [RegExp c] -&gt; RegExp c
+</code
+  ></pre
+><p
+>that matches the given regular expressions in sequence. Each expression must be matched exactly once but in arbitrary order. For example, the regular expression</p
+><pre
+><code
+  >perm (map char &quot;abc&quot;)
+</code
+  ></pre
+><p
+>is equivalent to <code
+  >abc|acb|bca|bac|cba|cab</code
+  > and represented as <code
+  >a(bc|cb)|b(ca|ac)|c(ba|ab)</code
+  >.</p
+>
+</body>
+</html>

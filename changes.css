@@ -1,0 +1,23 @@
+body {
+    margin-left: 15%; margin-right: 15%;
+    background-color: white;
+    text-align: justify;
+}
+
+h1.title { font-size: 1.5em; }
+h1       { font-size: 1.2em; }
+h2       { font-size: 1em; }
+
+h1 a, h2 a, #TOC a {
+    color: black;
+    text-decoration: none;
+}
+
+#TOC    { margin-bottom: 2em; }
+#TOC>ul { margin: 0; padding: 0; }
+#TOC li { list-style-type: none; }
+
+pre code {
+    display: block;
+    margin-left: 2em;
+}

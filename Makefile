@@ -1,10 +1,10 @@
-.PHONY all: index.html
+PANDOC=pandoc --standalone --smart --table-of-contents \
+	      --email-obfuscation=references
+
+.PHONY all: index.html CHANGES.html
 
 index.html: README.markdown
-	pandoc --standalone \
-               --css=style.css \
-               --smart \
-               --table-of-contents \
-               --email-obfuscation=references \
-               --output=$@ $<
+	$(PANDOC) --css=style.css --output=$@ $<
 
+CHANGES.html: CHANGES.markdown
+	$(PANDOC) --css=changes.css --output=$@ $<
