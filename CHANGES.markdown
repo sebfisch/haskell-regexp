@@ -1,5 +1,22 @@
 % Changelog for `weighted-regexp`
 
+# 0.3.0.0
+
+## Implemented workaround for [GHC bug 4227]
+
+Currently, GHC can SPECIALIZE functions only where they are defined.
+The types `Leftmost`, `Longest`, and `LeftLong` are now defined in
+separate modules to bring them into the scope of the matching
+functions. Specialization makes the matching functions almost three
+times faster for the types mentioned above.
+
+This workaround allows to specialize the matching functions for types
+defined in this package. Users, however, must use the matching
+functions unspecialized for their own types.
+
+Along with this change, the constructors of the matching types are no
+longer exported.
+
 # 0.2.0.0
 
 ## More general types for matching functions
@@ -29,20 +46,22 @@ function has been appropriately renamed.
 ## Strict numeric semiring
 
 The lazy definition of arithmetic operations for the `Numeric`
-semiring has been dropped in favour of the more efficient
-standard implementation. As a consequence, `matchingCount` no
-longer works with infinite regular expressions.
+semiring has been dropped in favour of the more efficient standard
+implementation. As a consequence, `matchingCount` no longer works with
+infinite regular expressions.
 
 ## SPECIALIZE pragmas prevent memory leak
 
-The generalization of the matching functions leads to a memory
-leak that can be avoided by specializing them for concrete
-semirings. Corresponding pragmas have been added for `Bool` and
-for `Numeric` types but not for the more complex semirings defined
-in the extra matching modules. It is unclear what is the best way
-to specialize them too because the pragma must be placed in the
-module where the matching functions are defined but, there, not
-all semirings are in scope.
+The generalization of the matching functions leads to a memory leak
+that can be avoided by specializing them for concrete
+semirings. Corresponding pragmas have been added for `Bool` and for
+`Numeric` types but not for the more complex semirings defined in the
+extra matching modules. It is unclear what is the best way to
+specialize them too because the pragma must be placed in the module
+where the matching functions are defined but, there, not all semirings
+are in scope. See [GHC bug 4227].
+
+[GHC bug 4227]: http://hackage.haskell.org/trac/ghc/ticket/4227
 
 ## Fixed mistake in Criterion benchmarks
 
