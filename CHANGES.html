@@ -14,6 +14,18 @@
 ><ul
   ><li
     ><a href="#section"
+      >0.3.0.0</a
+      ><ul
+      ><li
+	><a href="#implemented-workaround-for-ghc-bug-4227"
+	  >Implemented workaround for <a href="http://hackage.haskell.org/trac/ghc/ticket/4227"
+	    >GHC bug 4227</a
+	    ></a
+	  ></li
+	></ul
+      ></li
+    ><li
+    ><a href="#section-1"
       >0.2.0.0</a
       ><ul
       ><li
@@ -45,7 +57,7 @@
 	></ul
       ></li
     ><li
-    ><a href="#section-1"
+    ><a href="#section-2"
       >0.1.1.0</a
       ><ul
       ><li
@@ -66,6 +78,28 @@
   ></div
 >
 <h1 id="section"
+><a href="#TOC"
+  >0.3.0.0</a
+  ></h1
+><h2 id="implemented-workaround-for-ghc-bug-4227"
+><a href="#TOC"
+  >Implemented workaround for <a href="http://hackage.haskell.org/trac/ghc/ticket/4227"
+    >GHC bug 4227</a
+    ></a
+  ></h2
+><p
+>Currently, GHC can SPECIALIZE functions only where they are defined. The types <code
+  >Leftmost</code
+  >, <code
+  >Longest</code
+  >, and <code
+  >LeftLong</code
+  > are now defined in separate modules to bring them into the scope of the matching functions. Specialization makes the matching functions almost three times faster for the types mentioned above.</p
+><p
+>This workaround allows to specialize the matching functions for types defined in this package. Users, however, must use the matching functions unspecialized for their own types.</p
+><p
+>Along with this change, the constructors of the matching types are no longer exported.</p
+><h1 id="section-1"
 ><a href="#TOC"
   >0.2.0.0</a
   ></h1
@@ -146,7 +180,7 @@ partialMatch :: Weight c (Int,c) w =&gt; RegExp c -&gt; [c] -&gt; w
 >In the group of partial matchings, the benchmark for <code
   >Bool</code
   > accidentally used full matching. It now uses partial matching which, unsurprisingly, is slower.</p
-><h1 id="section-1"
+><h1 id="section-2"
 ><a href="#TOC"
   >0.1.1.0</a
   ></h1
