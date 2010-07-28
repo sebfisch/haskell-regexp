@@ -208,20 +208,20 @@ code][criterion.lhs] of the benchmark program.
 
        matching  acceptance  #matchings  leftmost     longest  leftmost longest
 --------------- ----------- ----------- ---------- ---------- -----------------
- unique full       [4.0 us]   [4.6 us]
- ambiguous full   [11.7 us]   [13.1 us]
- partial          [21.2 us]              [74.2 us]  [68.0 us]         [73.8 us]
+ unique full       [3.8 us]   [4.8 us]
+ ambiguous full   [11.7 us]   [13.4 us]
+ partial          [20.4 us]              [27.2 us]  [26.2 us]         [27.5 us]
 
 Click on the numbers for a more detailed distribution of run times.
 
-[4.0 us]:  http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png
-[4.6 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png
+[3.8 us]:  http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png
+[4.8 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png
 [11.7 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-accept-html-densities-800x600.png
-[13.1 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png
-[21.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png
-[74.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png
-[68.0 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png
-[73.8 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png
+[13.4 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png
+[20.4 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png
+[27.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png
+[26.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png
+[27.5 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png
 
 # Collaboration
 
