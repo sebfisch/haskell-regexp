@@ -13,9 +13,9 @@ h1 a, h2 a, #TOC a {
     text-decoration: none;
 }
 
-#TOC    { margin-bottom: 2em; }
-#TOC>ul { margin: 0; padding: 0; }
-#TOC li { list-style-type: none; }
+#TOC       { margin-bottom: 2em; }
+#TOC>ul    { margin: 0; padding: 0; }
+#TOC li    { list-style-type: none; }
 
 pre code {
     display: block;

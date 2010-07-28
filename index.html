@@ -189,7 +189,7 @@ bash# cabal install weighted-regexp
 	>.*</code
 	></td
       ><td align="center"
-      >6s (16 MB/s)</td
+      >8s (12 MB/s)</td
       ><td align="center"
       >1 MB</td
       ></tr
@@ -201,7 +201,7 @@ bash# cabal install weighted-regexp
 	>(a?){5000}a{5000}</code
 	></td
       ><td align="center"
-      >12s</td
+      >13s</td
       ><td align="center"
       >5 MB</td
       ></tr
@@ -213,9 +213,9 @@ bash# cabal install weighted-regexp
 	>.*a.{20}a.*</code
 	></td
       ><td align="center"
-      >3.5s</td
+      >3.6s</td
       ><td align="center"
-      >2 MB</td
+      >1 MB</td
       ></tr
     ></tbody
   ></table
@@ -224,7 +224,7 @@ bash# cabal install weighted-regexp
 ><p
 >The second example demonstrates the good asymptotic complexity of the algorithm. Unlike a backtracking implementation like <a href="http://www.pcre.org/"
   >pcre</a
-  > the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that 9 of 12 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p
+  > the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that almost 10 of 13 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p
 ><p
 >The third example pushes automata based approaches to the limit because the deterministic finite automaton that corresponds to the regular expression is exponentially large. The input has been chosen to not match the expression but is otherwise random and probably explores many different states of the automaton. The matching algorithm produces states on the fly and discards them, hence, it is fast in this example, in fact, faster than re2<sup
   ><a href="#fn1" class="footnoteRef" id="fnref1"
@@ -291,11 +291,11 @@ bash# cabal install weighted-regexp
       >unique full</td
       ><td align="right"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png"
-	>3.9 us</a
+	>4.0 us</a
 	></td
       ><td align="right"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png"
-	>28.1 us</a
+	>4.6 us</a
 	></td
       ><td align="center"
       ></td
@@ -309,11 +309,11 @@ bash# cabal install weighted-regexp
       >ambiguous full</td
       ><td align="right"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-accept-html-densities-800x600.png"
-	>11.5 us</a
+	>11.7 us</a
 	></td
       ><td align="right"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png"
-	>78.1 us</a
+	>13.1 us</a
 	></td
       ><td align="center"
       ></td
@@ -327,21 +327,21 @@ bash# cabal install weighted-regexp
       >partial</td
       ><td align="right"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png"
-	>0.2 us</a
+	>21.2 us</a
 	></td
       ><td align="right"
       ></td
       ><td align="center"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png"
-	>76.8 us</a
+	>74.2 us</a
 	></td
       ><td align="right"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png"
-	>76.4 us</a
+	>68.0 us</a
 	></td
       ><td align="right"
       ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png"
-	>77.6 us</a
+	>73.8 us</a
 	></td
       ></tr
     ></tbody

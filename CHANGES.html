@@ -14,6 +14,38 @@
 ><ul
   ><li
     ><a href="#section"
+      >0.2.0.0</a
+      ><ul
+      ><li
+	><a href="#more-general-types-for-matching-functions"
+	  >More general types for matching functions</a
+	  ></li
+	><li
+	><a href="#renamed-accept-to-acceptfull-added-acceptpartial"
+	  >Renamed <code
+	    >accept</code
+	    > to <code
+	    >acceptFull</code
+	    >, added <code
+	    >acceptPartial</code
+	    ></a
+	  ></li
+	><li
+	><a href="#strict-numeric-semiring"
+	  >Strict numeric semiring</a
+	  ></li
+	><li
+	><a href="#specialize-pragmas-prevent-memory-leak"
+	  >SPECIALIZE pragmas prevent memory leak</a
+	  ></li
+	><li
+	><a href="#fixed-mistake-in-criterion-benchmarks"
+	  >Fixed mistake in Criterion benchmarks</a
+	  ></li
+	></ul
+      ></li
+    ><li
+    ><a href="#section-1"
       >0.1.1.0</a
       ><ul
       ><li
@@ -34,6 +66,85 @@
   ></div
 >
 <h1 id="section"
+><a href="#TOC"
+  >0.2.0.0</a
+  ></h1
+><h2 id="more-general-types-for-matching-functions"
+><a href="#TOC"
+  >More general types for matching functions</a
+  ></h2
+><p
+>The functions <code
+  >fullMatch</code
+  > and <code
+  >partialMatch</code
+  > now both have the type</p
+><pre
+><code
+  >Weight a b w =&gt; RegExp a -&gt; [b] -&gt; w
+</code
+  ></pre
+><p
+>whereas previously the signatures have been:</p
+><pre
+><code
+  >fullMatch    :: Semiring w         =&gt; RegExp c -&gt; [c] -&gt; w
+partialMatch :: Weight c (Int,c) w =&gt; RegExp c -&gt; [c] -&gt; w
+</code
+  ></pre
+><p
+>The change allows users to provide custom symbol weights in full matchings and to do partial matchings with arbitrary symbols weights instead of having to use only characters and their positions.</p
+><p
+>This generalization leads to a slight performance penalty in small examples but has a negligible effect when matching large inputs.</p
+><h2 id="renamed-accept-to-acceptfull-added-acceptpartial"
+><a href="#TOC"
+  >Renamed <code
+    >accept</code
+    > to <code
+    >acceptFull</code
+    >, added <code
+    >acceptPartial</code
+    ></a
+  ></h2
+><p
+>Based on the more general <code
+  >partialMatch</code
+  > function, the function <code
+  >acceptPartial</code
+  > was added for the <code
+  >Bool</code
+  > semiring. The <code
+  >accept</code
+  > function has been appropriately renamed.</p
+><h2 id="strict-numeric-semiring"
+><a href="#TOC"
+  >Strict numeric semiring</a
+  ></h2
+><p
+>The lazy definition of arithmetic operations for the <code
+  >Numeric</code
+  > semiring has been dropped in favour of the more efficient standard implementation. As a consequence, <code
+  >matchingCount</code
+  > no longer works with infinite regular expressions.</p
+><h2 id="specialize-pragmas-prevent-memory-leak"
+><a href="#TOC"
+  >SPECIALIZE pragmas prevent memory leak</a
+  ></h2
+><p
+>The generalization of the matching functions leads to a memory leak that can be avoided by specializing them for concrete semirings. Corresponding pragmas have been added for <code
+  >Bool</code
+  > and for <code
+  >Numeric</code
+  > types but not for the more complex semirings defined in the extra matching modules. It is unclear what is the best way to specialize them too because the pragma must be placed in the module where the matching functions are defined but, there, not all semirings are in scope.</p
+><h2 id="fixed-mistake-in-criterion-benchmarks"
+><a href="#TOC"
+  >Fixed mistake in Criterion benchmarks</a
+  ></h2
+><p
+>In the group of partial matchings, the benchmark for <code
+  >Bool</code
+  > accidentally used full matching. It now uses partial matching which, unsurprisingly, is slower.</p
+><h1 id="section-1"
 ><a href="#TOC"
   >0.1.1.0</a
   ></h1
