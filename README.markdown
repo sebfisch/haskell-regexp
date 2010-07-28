@@ -143,9 +143,9 @@ current version of the library.
 
        input               regexp            run time     memory
 ------------------- --------------------- -------------- --------
- 100 MB of a's       `.*`                  6s (16 MB/s)    1 MB
- 5000 a's            `(a?){5000}a{5000}`   12s             5 MB
- ~2M a's and b's     `.*a.{20}a.*`         3.5s            2 MB
+ 100 MB of a's       `.*`                  8s (12 MB/s)    1 MB
+ 5000 a's            `(a?){5000}a{5000}`   13s             5 MB
+ ~2M a's and b's     `.*a.{20}a.*`         3.6s            1 MB
 
 The first example measures the search speed for a simple regular
 expression with a long string. There is room for improvement. No time
@@ -155,9 +155,9 @@ regard to constant factors.
 The second example demonstrates the good asymptotic complexity of the
 algorithm. Unlike a backtracking implementation like [pcre] the
 library finishes in reasonable time. However, the memory requirements
-are higher than usual and on closer inspection one can see that 9 of
-12 seconds are spent during garbage collection. This example uses a
-large regular expression which leads to a lot of garbage in the
+are higher than usual and on closer inspection one can see that almost
+10 of 13 seconds are spent during garbage collection. This example
+uses a large regular expression which leads to a lot of garbage in the
 matching algorithm.
 
 The third example pushes automata based approaches to the limit
@@ -208,20 +208,20 @@ code][criterion.lhs] of the benchmark program.
 
        matching  acceptance  #matchings  leftmost     longest  leftmost longest
 --------------- ----------- ----------- ---------- ---------- -----------------
- unique full       [3.9 us]   [28.1 us]
- ambiguous full   [11.5 us]   [78.1 us]
- partial           [0.2 us]              [76.8 us]  [76.4 us]         [77.6 us]
+ unique full       [4.0 us]   [4.6 us]
+ ambiguous full   [11.7 us]   [13.1 us]
+ partial          [21.2 us]              [74.2 us]  [68.0 us]         [73.8 us]
 
 Click on the numbers for a more detailed distribution of run times.
 
-[3.9 us]:  http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png
-[28.1 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png
-[11.5 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-accept-html-densities-800x600.png
-[78.1 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png
-[0.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png
-[76.8 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png
-[76.4 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png
-[77.6 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png
+[4.0 us]:  http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png
+[4.6 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png
+[11.7 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-accept-html-densities-800x600.png
+[13.1 us]: http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png
+[21.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png
+[74.2 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png
+[68.0 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png
+[73.8 us]: http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png
 
 # Collaboration
 
