@@ -52,8 +52,10 @@ and various pre-installed packages.
 
 </td><td>
 
-You can install the `weighted-regexp` library by typing the following
+You can install the [`weighted-regexp`] library by typing the following
 into a terminal:
+
+[`weighted-regexp`]: http://hackage.haskell.org/package/weighted-regexp
 
     bash# cabal update
     bash# cabal install weighted-regexp
