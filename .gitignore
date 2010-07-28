@@ -8,8 +8,6 @@ src/Text/RegExp/Parser.hs
 src/fullmatch
 .hpc/*
 hpc/*
-quickcheck/*
-criterion/*
 .textprogs
 .coverage
 .microbench
