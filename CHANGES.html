@@ -135,7 +135,9 @@ partialMatch :: Weight c (Int,c) w =&gt; RegExp c -&gt; [c] -&gt; w
   >Bool</code
   > and for <code
   >Numeric</code
-  > types but not for the more complex semirings defined in the extra matching modules. It is unclear what is the best way to specialize them too because the pragma must be placed in the module where the matching functions are defined but, there, not all semirings are in scope.</p
+  > types but not for the more complex semirings defined in the extra matching modules. It is unclear what is the best way to specialize them too because the pragma must be placed in the module where the matching functions are defined but, there, not all semirings are in scope. See <a href="http://hackage.haskell.org/trac/ghc/ticket/4227"
+  >GHC bug 4227</a
+  >.</p
 ><h2 id="fixed-mistake-in-criterion-benchmarks"
 ><a href="#TOC"
   >Fixed mistake in Criterion benchmarks</a
