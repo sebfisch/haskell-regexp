@@ -26,7 +26,7 @@ span.spaces    { background: white }
 <span class="lineno">   15 </span>data <span class="istickedoff">RegW</span> w c = RegW { active :: !Bool,
 <span class="lineno">   16 </span>                       empty  :: !w, 
 <span class="lineno">   17 </span>                       final_ :: !w, 
-<span class="lineno">   18 </span>                       reg    :: Reg w c }
+<span class="lineno">   18 </span>                       reg    :: !(Reg w c) }
 <span class="lineno">   19 </span>
 <span class="lineno">   20 </span>final :: Semiring w =&gt; RegW w c -&gt; w
 <span class="lineno">   21 </span><span class="decl"><span class="istickedoff">final r = if active r then final_ r else zero</span></span>
@@ -40,173 +40,176 @@ span.spaces    { background: white }
 <span class="lineno">   29 </span>class Semiring w =&gt; Weight a b w where
 <span class="lineno">   30 </span>  symWeight :: (a -&gt; w) -&gt; b -&gt; w
 <span class="lineno">   31 </span>
-<span class="lineno">   32 </span>instance Weight c (Int,c) Bool where
-<span class="lineno">   33 </span>  <span class="decl"><span class="istickedoff">symWeight p = p . snd</span></span>
+<span class="lineno">   32 </span>defaultSymWeight :: (a -&gt; w) -&gt; a -&gt; w
+<span class="lineno">   33 </span><span class="decl"><span class="istickedoff">defaultSymWeight = id</span></span>
 <span class="lineno">   34 </span>
-<span class="lineno">   35 </span>instance Num a =&gt; Weight c (Int,c) (Numeric a) where
-<span class="lineno">   36 </span>  <span class="decl"><span class="istickedoff">symWeight p = p . snd</span></span>
+<span class="lineno">   35 </span>instance Weight c c Bool where
+<span class="lineno">   36 </span>  <span class="decl"><span class="istickedoff">symWeight = defaultSymWeight</span></span>
 <span class="lineno">   37 </span>
-<span class="lineno">   38 </span>weighted :: Weight a b w =&gt; RegW w a -&gt; RegW w b
-<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">weighted (RegW a e f r) =</span>
-<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">case r of</span>
-<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">Eps     -&gt; RegW a e f Eps</span>
-<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">Sym s p -&gt; RegW a e f (Sym <span class="nottickedoff">s</span> (symWeight p))</span>
-<span class="lineno">   43 </span><span class="spaces">    </span><span class="istickedoff">Alt p q -&gt; RegW a e f (Alt (weighted p) (weighted q))</span>
-<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">Seq p q -&gt; RegW a e f (Seq (weighted p) (weighted q))</span>
-<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">Rep p   -&gt; RegW a e f (Rep (weighted p))</span></span>
-<span class="lineno">   46 </span>
-<span class="lineno">   47 </span>-- |
-<span class="lineno">   48 </span>-- Matches the empty word. 'eps' has no direct string representation
-<span class="lineno">   49 </span>-- but is used to implement other constructs such as optional
-<span class="lineno">   50 </span>-- components like @a?@.
-<span class="lineno">   51 </span>-- 
-<span class="lineno">   52 </span>eps :: RegExp c
-<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">eps = RegExp epsW</span></span>
-<span class="lineno">   54 </span>
-<span class="lineno">   55 </span>epsW :: Semiring w =&gt; RegW w c
-<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">epsW = RegW False one zero Eps</span></span>
+<span class="lineno">   38 </span>instance Num a =&gt; Weight c c (Numeric a) where
+<span class="lineno">   39 </span>  <span class="decl"><span class="istickedoff">symWeight = defaultSymWeight</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>weighted :: Weight a b w =&gt; RegW w a -&gt; RegW w b
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">weighted (RegW a e f r) =</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">case r of</span>
+<span class="lineno">   44 </span><span class="spaces">    </span><span class="istickedoff">Eps     -&gt; RegW a e f Eps</span>
+<span class="lineno">   45 </span><span class="spaces">    </span><span class="istickedoff">Sym s p -&gt; RegW a e f (Sym <span class="nottickedoff">s</span> (symWeight p))</span>
+<span class="lineno">   46 </span><span class="spaces">    </span><span class="istickedoff">Alt p q -&gt; RegW a e f (Alt (weighted p) (weighted q))</span>
+<span class="lineno">   47 </span><span class="spaces">    </span><span class="istickedoff">Seq p q -&gt; RegW a e f (Seq (weighted p) (weighted q))</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="istickedoff">Rep p   -&gt; RegW a e f (Rep (weighted p))</span></span>
+<span class="lineno">   49 </span>
+<span class="lineno">   50 </span>-- |
+<span class="lineno">   51 </span>-- Matches the empty word. 'eps' has no direct string representation
+<span class="lineno">   52 </span>-- but is used to implement other constructs such as optional
+<span class="lineno">   53 </span>-- components like @a?@.
+<span class="lineno">   54 </span>-- 
+<span class="lineno">   55 </span>eps :: RegExp c
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">eps = RegExp epsW</span></span>
 <span class="lineno">   57 </span>
-<span class="lineno">   58 </span>-- | Matches the given character.
-<span class="lineno">   59 </span>-- 
-<span class="lineno">   60 </span>char :: Char -&gt; RegExp Char
-<span class="lineno">   61 </span><span class="decl"><span class="istickedoff">char c = psym (quote c) (c==)</span></span>
-<span class="lineno">   62 </span>
-<span class="lineno">   63 </span>-- | Matches the given symbol.
-<span class="lineno">   64 </span>-- 
-<span class="lineno">   65 </span>sym :: (Eq c, Show c) =&gt; c -&gt; RegExp c
-<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">sym c = psym <span class="nottickedoff">(show c)</span> (c==)</span></span>
-<span class="lineno">   67 </span>
-<span class="lineno">   68 </span>quote :: Char -&gt; String
-<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">quote c | <span class="tickonlyfalse">c `elem` &quot; \\|*+?.[]{}^&quot;</span> = <span class="nottickedoff">'\\' : [c]</span></span>
-<span class="lineno">   70 </span><span class="spaces">        </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>                = [c]</span></span>
-<span class="lineno">   71 </span>
-<span class="lineno">   72 </span>-- | Matches a symbol that satisfies the given predicate.
-<span class="lineno">   73 </span>-- 
-<span class="lineno">   74 </span>psym :: String -&gt; (c -&gt; Bool) -&gt; RegExp c
-<span class="lineno">   75 </span><span class="decl"><span class="istickedoff">psym s p = RegExp (symW s (fromBool . p))</span></span>
-<span class="lineno">   76 </span>
-<span class="lineno">   77 </span>symW :: Semiring w =&gt; String -&gt; (c -&gt; w) -&gt; RegW w c
-<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">symW s p = RegW False zero zero $ Sym s p</span></span>
+<span class="lineno">   58 </span>epsW :: Semiring w =&gt; RegW w c
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">epsW = RegW False one zero Eps</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>-- | Matches the given character.
+<span class="lineno">   62 </span>-- 
+<span class="lineno">   63 </span>char :: Char -&gt; RegExp Char
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">char c = psym (quote c) (c==)</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>-- | Matches the given symbol.
+<span class="lineno">   67 </span>-- 
+<span class="lineno">   68 </span>sym :: (Eq c, Show c) =&gt; c -&gt; RegExp c
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">sym c = psym <span class="nottickedoff">(show c)</span> (c==)</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>quote :: Char -&gt; String
+<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">quote c | <span class="tickonlyfalse">c `elem` &quot; \\|*+?.[]{}^&quot;</span> = <span class="nottickedoff">'\\' : [c]</span></span>
+<span class="lineno">   73 </span><span class="spaces">        </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>                = [c]</span></span>
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>-- | Matches a symbol that satisfies the given predicate.
+<span class="lineno">   76 </span>-- 
+<span class="lineno">   77 </span>psym :: String -&gt; (c -&gt; Bool) -&gt; RegExp c
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">psym s p = RegExp (symW s (fromBool . p))</span></span>
 <span class="lineno">   79 </span>
-<span class="lineno">   80 </span>-- | Matches an arbitrary symbol.
-<span class="lineno">   81 </span>-- 
-<span class="lineno">   82 </span>anySym :: RegExp c
-<span class="lineno">   83 </span><span class="decl"><span class="istickedoff">anySym = psym &quot;.&quot; (const True)</span></span>
-<span class="lineno">   84 </span>
-<span class="lineno">   85 </span>-- | Does not match anything. 'noMatch' is an identity for 'alt'.
-<span class="lineno">   86 </span>-- 
-<span class="lineno">   87 </span>noMatch :: RegExp c
-<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">noMatch = psym &quot;[]&quot; (const False)</span></span>
-<span class="lineno">   89 </span>
-<span class="lineno">   90 </span>-- |
-<span class="lineno">   91 </span>-- Matches either of two regular expressions. For example @a+b@
-<span class="lineno">   92 </span>-- matches either the character @a@ or the character @b@.
-<span class="lineno">   93 </span>-- 
-<span class="lineno">   94 </span>alt :: RegExp c -&gt; RegExp c -&gt; RegExp c
-<span class="lineno">   95 </span><span class="decl"><span class="istickedoff">alt (RegExp p) (RegExp q) =</span>
-<span class="lineno">   96 </span><span class="spaces">  </span><span class="istickedoff">RegExp (RegW False (empty p .+. empty q) zero (Alt p q))</span></span>
-<span class="lineno">   97 </span>
-<span class="lineno">   98 </span>altW :: Semiring w =&gt; RegW w c -&gt; RegW w c -&gt; RegW w c
-<span class="lineno">   99 </span><span class="decl"><span class="istickedoff">altW p q = RegW (active p || active q)</span>
-<span class="lineno">  100 </span><span class="spaces">                </span><span class="istickedoff">(empty p .+. empty q)</span>
-<span class="lineno">  101 </span><span class="spaces">                </span><span class="istickedoff">(final p .+. final q)</span>
-<span class="lineno">  102 </span><span class="spaces">                </span><span class="istickedoff">(Alt p q)</span></span>
-<span class="lineno">  103 </span>
-<span class="lineno">  104 </span>-- |
-<span class="lineno">  105 </span>-- Matches the sequence of two regular expressions. For example the
-<span class="lineno">  106 </span>-- regular expressions @ab@ matches the word @ab@.
-<span class="lineno">  107 </span>-- 
-<span class="lineno">  108 </span>seq_ :: RegExp c -&gt; RegExp c -&gt; RegExp c
-<span class="lineno">  109 </span><span class="decl"><span class="istickedoff">seq_ (RegExp p) (RegExp q) =</span>
-<span class="lineno">  110 </span><span class="spaces">  </span><span class="istickedoff">RegExp (RegW False (empty p .*. empty q) zero (Seq p q))</span></span>
-<span class="lineno">  111 </span>
-<span class="lineno">  112 </span>seqW :: Semiring w =&gt; RegW w c -&gt; RegW w c -&gt; RegW w c
-<span class="lineno">  113 </span><span class="decl"><span class="istickedoff">seqW p q = RegW (active p || active q)</span>
-<span class="lineno">  114 </span><span class="spaces">                </span><span class="istickedoff">(empty p .*. empty q)</span>
-<span class="lineno">  115 </span><span class="spaces">                </span><span class="istickedoff">(final p .*. empty q .+. final q)</span>
-<span class="lineno">  116 </span><span class="spaces">                </span><span class="istickedoff">(Seq p q)</span></span>
-<span class="lineno">  117 </span>
-<span class="lineno">  118 </span>-- | Matches zero or more occurrences of the given regular
-<span class="lineno">  119 </span>--   expression. For example @a*@ matches the character @a@ zero or
-<span class="lineno">  120 </span>--   more times.
-<span class="lineno">  121 </span>-- 
-<span class="lineno">  122 </span>rep :: RegExp c -&gt; RegExp c
-<span class="lineno">  123 </span><span class="decl"><span class="istickedoff">rep (RegExp r) = RegExp (RegW False one zero (Rep r))</span></span>
-<span class="lineno">  124 </span>
-<span class="lineno">  125 </span>repW :: Semiring w =&gt; RegW w c -&gt; RegW w c
-<span class="lineno">  126 </span><span class="decl"><span class="istickedoff">repW r = RegW (active r) one (final r) (Rep r)</span></span>
+<span class="lineno">   80 </span>symW :: Semiring w =&gt; String -&gt; (c -&gt; w) -&gt; RegW w c
+<span class="lineno">   81 </span><span class="decl"><span class="istickedoff">symW s p = RegW False zero zero $ Sym s p</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>-- | Matches an arbitrary symbol.
+<span class="lineno">   84 </span>-- 
+<span class="lineno">   85 </span>anySym :: RegExp c
+<span class="lineno">   86 </span><span class="decl"><span class="istickedoff">anySym = psym &quot;.&quot; (const True)</span></span>
+<span class="lineno">   87 </span>
+<span class="lineno">   88 </span>-- | Does not match anything. 'noMatch' is an identity for 'alt'.
+<span class="lineno">   89 </span>-- 
+<span class="lineno">   90 </span>noMatch :: RegExp c
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">noMatch = psym &quot;[]&quot; (const False)</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>-- |
+<span class="lineno">   94 </span>-- Matches either of two regular expressions. For example @a+b@
+<span class="lineno">   95 </span>-- matches either the character @a@ or the character @b@.
+<span class="lineno">   96 </span>-- 
+<span class="lineno">   97 </span>alt :: RegExp c -&gt; RegExp c -&gt; RegExp c
+<span class="lineno">   98 </span><span class="decl"><span class="istickedoff">alt (RegExp p) (RegExp q) =</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="istickedoff">RegExp (RegW False (empty p .+. empty q) zero (Alt p q))</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>altW :: Semiring w =&gt; RegW w c -&gt; RegW w c -&gt; RegW w c
+<span class="lineno">  102 </span><span class="decl"><span class="istickedoff">altW p q = RegW (active p || active q)</span>
+<span class="lineno">  103 </span><span class="spaces">                </span><span class="istickedoff">(empty p .+. empty q)</span>
+<span class="lineno">  104 </span><span class="spaces">                </span><span class="istickedoff">(final p .+. final q)</span>
+<span class="lineno">  105 </span><span class="spaces">                </span><span class="istickedoff">(Alt p q)</span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>-- |
+<span class="lineno">  108 </span>-- Matches the sequence of two regular expressions. For example the
+<span class="lineno">  109 </span>-- regular expressions @ab@ matches the word @ab@.
+<span class="lineno">  110 </span>-- 
+<span class="lineno">  111 </span>seq_ :: RegExp c -&gt; RegExp c -&gt; RegExp c
+<span class="lineno">  112 </span><span class="decl"><span class="istickedoff">seq_ (RegExp p) (RegExp q) =</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="istickedoff">RegExp (RegW False (empty p .*. empty q) zero (Seq p q))</span></span>
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>seqW :: Semiring w =&gt; RegW w c -&gt; RegW w c -&gt; RegW w c
+<span class="lineno">  116 </span><span class="decl"><span class="istickedoff">seqW p q = RegW (active p || active q)</span>
+<span class="lineno">  117 </span><span class="spaces">                </span><span class="istickedoff">(empty p .*. empty q)</span>
+<span class="lineno">  118 </span><span class="spaces">                </span><span class="istickedoff">(final p .*. empty q .+. final q)</span>
+<span class="lineno">  119 </span><span class="spaces">                </span><span class="istickedoff">(Seq p q)</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>-- | Matches zero or more occurrences of the given regular
+<span class="lineno">  122 </span>--   expression. For example @a*@ matches the character @a@ zero or
+<span class="lineno">  123 </span>--   more times.
+<span class="lineno">  124 </span>-- 
+<span class="lineno">  125 </span>rep :: RegExp c -&gt; RegExp c
+<span class="lineno">  126 </span><span class="decl"><span class="istickedoff">rep (RegExp r) = RegExp (RegW False one zero (Rep r))</span></span>
 <span class="lineno">  127 </span>
-<span class="lineno">  128 </span>-- | Matches one or more occurrences of the given regular
-<span class="lineno">  129 </span>--   expression. For example @a+@ matches the character @a@ one or
-<span class="lineno">  130 </span>--   more times.
-<span class="lineno">  131 </span>-- 
-<span class="lineno">  132 </span>rep1 :: RegExp c -&gt; RegExp c
-<span class="lineno">  133 </span><span class="decl"><span class="istickedoff">rep1 r = r `seq_` rep r</span></span>
-<span class="lineno">  134 </span>
-<span class="lineno">  135 </span>-- |
-<span class="lineno">  136 </span>-- Matches the given regular expression or the empty word. Optional
-<span class="lineno">  137 </span>-- expressions are usually written @a?@ but could also be written
-<span class="lineno">  138 </span>-- @(|a)@, that is, as alternative between 'eps' and @a@.
-<span class="lineno">  139 </span>-- 
-<span class="lineno">  140 </span>opt :: RegExp c -&gt; RegExp c
-<span class="lineno">  141 </span><span class="decl"><span class="istickedoff">opt r = eps `alt` r</span></span>
-<span class="lineno">  142 </span>
-<span class="lineno">  143 </span>-- |
-<span class="lineno">  144 </span>-- Matches a regular expression a given number of times. For example,
-<span class="lineno">  145 </span>-- the regular expression @a{4,7}@ matches the character @a@ four to
-<span class="lineno">  146 </span>-- seven times. If the minimal and maximal occurences are identical,
-<span class="lineno">  147 </span>-- one can be left out, that is, @a{2}@ matches two occurrences of the
-<span class="lineno">  148 </span>-- character @a@.
-<span class="lineno">  149 </span>-- 
-<span class="lineno">  150 </span>-- Numerical bounds are implemented via translation into ordinary
-<span class="lineno">  151 </span>-- regular expressions. For example, @a{4,7}@ is translated into
-<span class="lineno">  152 </span>-- @aaaa(a(a(a)?)?)?@.
-<span class="lineno">  153 </span>-- 
-<span class="lineno">  154 </span>brep :: (Int,Int) -&gt; RegExp c -&gt; RegExp c
-<span class="lineno">  155 </span><span class="decl"><span class="istickedoff">brep (n,m) r</span>
-<span class="lineno">  156 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">n &lt; 0 || m &lt; 0 || n &gt; m</span>  =  <span class="nottickedoff">error msg</span></span>
-<span class="lineno">  157 </span><span class="spaces">  </span><span class="istickedoff">| n == 0 &amp;&amp; m == 0         =  eps</span>
-<span class="lineno">  158 </span><span class="spaces">  </span><span class="istickedoff">| n == m                   =  foldr1 seq_ (replicate n r)</span>
-<span class="lineno">  159 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>                =  foldr seq_ rest (replicate n r)</span>
-<span class="lineno">  160 </span><span class="spaces"> </span><span class="istickedoff">where</span>
-<span class="lineno">  161 </span><span class="spaces">  </span><span class="istickedoff">rest = foldr nestopt (opt r) (replicate (m-n-1) r)</span>
-<span class="lineno">  162 </span><span class="spaces">  </span><span class="istickedoff">nestopt p q = opt (seq_ p q)</span>
-<span class="lineno">  163 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">msg = &quot;Text.RegExp.brep: invalid repetition bounds: &quot; ++ show (n,m)</span></span></span>
-<span class="lineno">  164 </span>
-<span class="lineno">  165 </span>regW :: Semiring w =&gt; RegExp c -&gt; RegW w c
-<span class="lineno">  166 </span><span class="decl"><span class="istickedoff">regW (RegExp r) = r</span></span>
+<span class="lineno">  128 </span>repW :: Semiring w =&gt; RegW w c -&gt; RegW w c
+<span class="lineno">  129 </span><span class="decl"><span class="istickedoff">repW r = RegW (active r) one (final r) (Rep r)</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>-- | Matches one or more occurrences of the given regular
+<span class="lineno">  132 </span>--   expression. For example @a+@ matches the character @a@ one or
+<span class="lineno">  133 </span>--   more times.
+<span class="lineno">  134 </span>-- 
+<span class="lineno">  135 </span>rep1 :: RegExp c -&gt; RegExp c
+<span class="lineno">  136 </span><span class="decl"><span class="istickedoff">rep1 r = r `seq_` rep r</span></span>
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>-- |
+<span class="lineno">  139 </span>-- Matches the given regular expression or the empty word. Optional
+<span class="lineno">  140 </span>-- expressions are usually written @a?@ but could also be written
+<span class="lineno">  141 </span>-- @(|a)@, that is, as alternative between 'eps' and @a@.
+<span class="lineno">  142 </span>-- 
+<span class="lineno">  143 </span>opt :: RegExp c -&gt; RegExp c
+<span class="lineno">  144 </span><span class="decl"><span class="istickedoff">opt r = eps `alt` r</span></span>
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>-- |
+<span class="lineno">  147 </span>-- Matches a regular expression a given number of times. For example,
+<span class="lineno">  148 </span>-- the regular expression @a{4,7}@ matches the character @a@ four to
+<span class="lineno">  149 </span>-- seven times. If the minimal and maximal occurences are identical,
+<span class="lineno">  150 </span>-- one can be left out, that is, @a{2}@ matches two occurrences of the
+<span class="lineno">  151 </span>-- character @a@.
+<span class="lineno">  152 </span>-- 
+<span class="lineno">  153 </span>-- Numerical bounds are implemented via translation into ordinary
+<span class="lineno">  154 </span>-- regular expressions. For example, @a{4,7}@ is translated into
+<span class="lineno">  155 </span>-- @aaaa(a(a(a)?)?)?@.
+<span class="lineno">  156 </span>-- 
+<span class="lineno">  157 </span>brep :: (Int,Int) -&gt; RegExp c -&gt; RegExp c
+<span class="lineno">  158 </span><span class="decl"><span class="istickedoff">brep (n,m) r</span>
+<span class="lineno">  159 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlyfalse">n &lt; 0 || m &lt; 0 || n &gt; m</span>  =  <span class="nottickedoff">error msg</span></span>
+<span class="lineno">  160 </span><span class="spaces">  </span><span class="istickedoff">| n == 0 &amp;&amp; m == 0         =  eps</span>
+<span class="lineno">  161 </span><span class="spaces">  </span><span class="istickedoff">| n == m                   =  foldr1 seq_ (replicate n r)</span>
+<span class="lineno">  162 </span><span class="spaces">  </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>                =  foldr seq_ rest (replicate n r)</span>
+<span class="lineno">  163 </span><span class="spaces"> </span><span class="istickedoff">where</span>
+<span class="lineno">  164 </span><span class="spaces">  </span><span class="istickedoff">rest = foldr nestopt (opt r) (replicate (m-n-1) r)</span>
+<span class="lineno">  165 </span><span class="spaces">  </span><span class="istickedoff">nestopt p q = opt (seq_ p q)</span>
+<span class="lineno">  166 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">msg = &quot;Text.RegExp.brep: invalid repetition bounds: &quot; ++ show (n,m)</span></span></span>
 <span class="lineno">  167 </span>
-<span class="lineno">  168 </span>instance Show (RegExp Char) where
-<span class="lineno">  169 </span>  <span class="decl"><span class="istickedoff">showsPrec n r = showsPrec n (regW r :: RegW Bool Char)</span></span>
+<span class="lineno">  168 </span>regW :: Semiring w =&gt; RegExp c -&gt; RegW w c
+<span class="lineno">  169 </span><span class="decl"><span class="istickedoff">regW (RegExp r) = r</span></span>
 <span class="lineno">  170 </span>
-<span class="lineno">  171 </span>instance Show (RegW Bool Char) where
-<span class="lineno">  172 </span>  <span class="decl"><span class="istickedoff">showsPrec n r = showsPrec n (reg r)</span></span>
+<span class="lineno">  171 </span>instance Show (RegExp Char) where
+<span class="lineno">  172 </span>  <span class="decl"><span class="istickedoff">showsPrec n r = showsPrec n (regW r :: RegW Bool Char)</span></span>
 <span class="lineno">  173 </span>
-<span class="lineno">  174 </span>instance Show (Reg Bool Char) where
-<span class="lineno">  175 </span>  <span class="decl"><span class="istickedoff">showsPrec _ Eps        =  showString &quot;()&quot;</span>
-<span class="lineno">  176 </span><span class="spaces">  </span><span class="istickedoff">showsPrec _ (Sym s _)  =  showString s</span>
-<span class="lineno">  177 </span><span class="spaces">  </span><span class="istickedoff">showsPrec n (Alt p q)  =  showParen (n &gt; 0)</span>
-<span class="lineno">  178 </span><span class="spaces">                         </span><span class="istickedoff">$  showsPrec 1 p</span>
-<span class="lineno">  179 </span><span class="spaces">                         </span><span class="istickedoff">.  showString &quot;|&quot;</span>
-<span class="lineno">  180 </span><span class="spaces">                         </span><span class="istickedoff">.  shows q</span>
-<span class="lineno">  181 </span><span class="spaces">  </span><span class="istickedoff">showsPrec n (Seq p q)  =  showParen (n &gt; 1)</span>
-<span class="lineno">  182 </span><span class="spaces">                         </span><span class="istickedoff">$  showsPrec 2 p</span>
-<span class="lineno">  183 </span><span class="spaces">                         </span><span class="istickedoff">.  showsPrec 1 q</span>
-<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">showsPrec _ (Rep r)    =  showsPrec 2 r . showString &quot;*&quot;</span></span>
-<span class="lineno">  185 </span>
-<span class="lineno">  186 </span>instance Eq (RegExp Char) where
-<span class="lineno">  187 </span>  <span class="decl"><span class="istickedoff">p == q  =  regW p == (regW q :: RegW Bool Char)</span></span>
+<span class="lineno">  174 </span>instance Show (RegW Bool Char) where
+<span class="lineno">  175 </span>  <span class="decl"><span class="istickedoff">showsPrec n r = showsPrec n (reg r)</span></span>
+<span class="lineno">  176 </span>
+<span class="lineno">  177 </span>instance Show (Reg Bool Char) where
+<span class="lineno">  178 </span>  <span class="decl"><span class="istickedoff">showsPrec _ Eps        =  showString &quot;()&quot;</span>
+<span class="lineno">  179 </span><span class="spaces">  </span><span class="istickedoff">showsPrec _ (Sym s _)  =  showString s</span>
+<span class="lineno">  180 </span><span class="spaces">  </span><span class="istickedoff">showsPrec n (Alt p q)  =  showParen (n &gt; 0)</span>
+<span class="lineno">  181 </span><span class="spaces">                         </span><span class="istickedoff">$  showsPrec 1 p</span>
+<span class="lineno">  182 </span><span class="spaces">                         </span><span class="istickedoff">.  showString &quot;|&quot;</span>
+<span class="lineno">  183 </span><span class="spaces">                         </span><span class="istickedoff">.  shows q</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="istickedoff">showsPrec n (Seq p q)  =  showParen (n &gt; 1)</span>
+<span class="lineno">  185 </span><span class="spaces">                         </span><span class="istickedoff">$  showsPrec 2 p</span>
+<span class="lineno">  186 </span><span class="spaces">                         </span><span class="istickedoff">.  showsPrec 1 q</span>
+<span class="lineno">  187 </span><span class="spaces">  </span><span class="istickedoff">showsPrec _ (Rep r)    =  showsPrec 2 r . showString &quot;*&quot;</span></span>
 <span class="lineno">  188 </span>
-<span class="lineno">  189 </span>instance Eq (RegW Bool Char) where
-<span class="lineno">  190 </span>  <span class="decl"><span class="istickedoff">p == q  =  reg p == reg q</span></span>
+<span class="lineno">  189 </span>instance Eq (RegExp Char) where
+<span class="lineno">  190 </span>  <span class="decl"><span class="istickedoff">p == q  =  regW p == (regW q :: RegW Bool Char)</span></span>
 <span class="lineno">  191 </span>
-<span class="lineno">  192 </span>instance Eq (Reg Bool Char) where
-<span class="lineno">  193 </span>  <span class="decl"><span class="istickedoff">Eps     == Eps      =  True</span>
-<span class="lineno">  194 </span><span class="spaces">  </span><span class="istickedoff">Sym s _ == Sym t _  =  s==t</span>
-<span class="lineno">  195 </span><span class="spaces">  </span><span class="istickedoff">Alt a b == Alt c d  =  a==c &amp;&amp; b==d</span>
-<span class="lineno">  196 </span><span class="spaces">  </span><span class="istickedoff">Seq a b == Seq c d  =  a==c &amp;&amp; b==d</span>
-<span class="lineno">  197 </span><span class="spaces">  </span><span class="istickedoff">Rep a   == Rep b    =  a==b</span>
-<span class="lineno">  198 </span><span class="spaces">  </span><span class="istickedoff">_       == _        =  <span class="nottickedoff">False</span></span></span>
+<span class="lineno">  192 </span>instance Eq (RegW Bool Char) where
+<span class="lineno">  193 </span>  <span class="decl"><span class="istickedoff">p == q  =  reg p == reg q</span></span>
+<span class="lineno">  194 </span>
+<span class="lineno">  195 </span>instance Eq (Reg Bool Char) where
+<span class="lineno">  196 </span>  <span class="decl"><span class="istickedoff">Eps     == Eps      =  True</span>
+<span class="lineno">  197 </span><span class="spaces">  </span><span class="istickedoff">Sym s _ == Sym t _  =  s==t</span>
+<span class="lineno">  198 </span><span class="spaces">  </span><span class="istickedoff">Alt a b == Alt c d  =  a==c &amp;&amp; b==d</span>
+<span class="lineno">  199 </span><span class="spaces">  </span><span class="istickedoff">Seq a b == Seq c d  =  a==c &amp;&amp; b==d</span>
+<span class="lineno">  200 </span><span class="spaces">  </span><span class="istickedoff">Rep a   == Rep b    =  a==b</span>
+<span class="lineno">  201 </span><span class="spaces">  </span><span class="istickedoff">_       == _        =  <span class="nottickedoff">False</span></span></span>
 
 </pre>
 </html>

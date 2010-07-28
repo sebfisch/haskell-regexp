@@ -54,7 +54,7 @@ span.spaces    { background: white }
 <span class="lineno">   43 </span>
 <span class="lineno">   44 </span>  -- * Matching
 <span class="lineno">   45 </span>
-<span class="lineno">   46 </span>  (=~), accept, matchingCount, fullMatch, partialMatch
+<span class="lineno">   46 </span>  (=~), acceptFull, acceptPartial, matchingCount, fullMatch, partialMatch
 <span class="lineno">   47 </span>
 <span class="lineno">   48 </span>  ) where
 <span class="lineno">   49 </span>
@@ -117,7 +117,7 @@ span.spaces    { background: white }
 <span class="lineno">  106 </span>-- has the same meaning as
 <span class="lineno">  107 </span>-- 
 <span class="lineno">  108 </span>-- @
-<span class="lineno">  109 </span>-- abc|acb|bcc|bac|cba|cab
+<span class="lineno">  109 </span>-- abc|acb|bca|bac|cba|cab
 <span class="lineno">  110 </span>-- @
 <span class="lineno">  111 </span>-- 
 <span class="lineno">  112 </span>-- and is represented as
@@ -135,11 +135,11 @@ span.spaces    { background: white }
 <span class="lineno">  124 </span><span class="spaces">  </span><span class="istickedoff">go (p:ps) qs = (p `seq_` perm (ps ++ qs)) `alt` go ps (p:qs)</span></span>
 <span class="lineno">  125 </span>
 <span class="lineno">  126 </span>-- | 
-<span class="lineno">  127 </span>-- Alias for 'accept' specialized for Strings. Useful in combination
+<span class="lineno">  127 </span>-- Alias for 'acceptFull' specialized for Strings. Useful in combination
 <span class="lineno">  128 </span>-- with the 'IsString' instance for 'RegExp' 'Char'
 <span class="lineno">  129 </span>-- 
 <span class="lineno">  130 </span>(=~) :: RegExp Char -&gt; String -&gt; Bool
-<span class="lineno">  131 </span><span class="decl"><span class="istickedoff">(=~) = accept</span></span>
+<span class="lineno">  131 </span><span class="decl"><span class="istickedoff">(=~) = acceptFull</span></span>
 <span class="lineno">  132 </span>
 
 </pre>

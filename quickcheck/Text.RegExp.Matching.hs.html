@@ -18,54 +18,81 @@ span.spaces    { background: white }
 <span class="lineno">    7 </span>
 <span class="lineno">    8 </span>-- |
 <span class="lineno">    9 </span>-- Checks whether a regular expression matches the given word. For
-<span class="lineno">   10 </span>-- example, @accept (fromString \&quot;b|abc\&quot;) \&quot;b\&quot;@ yields @True@
+<span class="lineno">   10 </span>-- example, @acceptFull (fromString \&quot;b|abc\&quot;) \&quot;b\&quot;@ yields @True@
 <span class="lineno">   11 </span>-- because the first alternative of @b|abc@ matches the string
 <span class="lineno">   12 </span>-- @\&quot;b\&quot;@.
 <span class="lineno">   13 </span>-- 
-<span class="lineno">   14 </span>accept :: RegExp c -&gt; [c] -&gt; Bool
-<span class="lineno">   15 </span><span class="decl"><span class="istickedoff">accept r = fullMatch r</span></span>
+<span class="lineno">   14 </span>acceptFull :: RegExp c -&gt; [c] -&gt; Bool
+<span class="lineno">   15 </span><span class="decl"><span class="istickedoff">acceptFull r = fullMatch r</span></span>
 <span class="lineno">   16 </span>
 <span class="lineno">   17 </span>-- |
-<span class="lineno">   18 </span>-- Computes in how many ways a word can be matched against a regular
-<span class="lineno">   19 </span>-- expression.
-<span class="lineno">   20 </span>-- 
-<span class="lineno">   21 </span>matchingCount :: Num a =&gt; RegExp c -&gt; [c] -&gt; a
-<span class="lineno">   22 </span><span class="decl"><span class="istickedoff">matchingCount r = getNumeric . fullMatch r</span></span>
-<span class="lineno">   23 </span>
-<span class="lineno">   24 </span>-- |
-<span class="lineno">   25 </span>-- Matches a regular expression against a word computing a weight in
-<span class="lineno">   26 </span>-- an arbitrary semiring.
-<span class="lineno">   27 </span>-- 
-<span class="lineno">   28 </span>fullMatch :: Semiring w =&gt; RegExp c -&gt; [c] -&gt; w
-<span class="lineno">   29 </span><span class="decl"><span class="istickedoff">fullMatch (RegExp r) = matchW r</span></span>
-<span class="lineno">   30 </span>
-<span class="lineno">   31 </span>-- |
-<span class="lineno">   32 </span>-- Matches a regular expression against substrings of a word computing
-<span class="lineno">   33 </span>-- a weight in an arbitrary semiring. The 'symWeight' function of
-<span class="lineno">   34 </span>-- 'Weight's is used to report positional information about the
-<span class="lineno">   35 </span>-- matching part of the word to the semiring.
-<span class="lineno">   36 </span>-- 
-<span class="lineno">   37 </span>partialMatch :: Weight c (Int,c) w =&gt; RegExp c -&gt; [c] -&gt; w
-<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">partialMatch (RegExp r) =</span>
-<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">matchW (arb `seqW` weighted r `seqW` arb) . zip [(0::Int)..]</span>
-<span class="lineno">   40 </span><span class="spaces"> </span><span class="istickedoff">where arb = repW (symW <span class="nottickedoff">&quot;.&quot;</span> (const one))</span></span>
-<span class="lineno">   41 </span>
-<span class="lineno">   42 </span>matchW :: Semiring w =&gt; RegW w c -&gt; [c] -&gt; w
-<span class="lineno">   43 </span><span class="decl"><span class="istickedoff">matchW r []     = empty r</span>
-<span class="lineno">   44 </span><span class="spaces"></span><span class="istickedoff">matchW r (c:cs) = final (foldl (shiftW zero) (shiftW one r c) cs)</span></span>
-<span class="lineno">   45 </span>
-<span class="lineno">   46 </span>shiftW :: Semiring w =&gt; w -&gt; RegW w c -&gt; c -&gt; RegW w c
-<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">shiftW w r c | active r || w /= zero = shift w (reg r) c</span>
-<span class="lineno">   48 </span><span class="spaces">             </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>             = r</span></span>
-<span class="lineno">   49 </span>
-<span class="lineno">   50 </span>shift :: Semiring w =&gt; w -&gt; Reg w c -&gt; c -&gt; RegW w c
-<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">shift _ Eps       _ = epsW</span>
-<span class="lineno">   52 </span><span class="spaces"></span><span class="istickedoff">shift w (Sym s f) c = let w' = w .*. f c</span>
-<span class="lineno">   53 </span><span class="spaces">                       </span><span class="istickedoff">in (symW <span class="nottickedoff">s</span> f) { active = w' /= zero, final_ = w' }</span>
-<span class="lineno">   54 </span><span class="spaces"></span><span class="istickedoff">shift w (Alt p q) c = altW (shiftW w p c) (shiftW w q c)</span>
-<span class="lineno">   55 </span><span class="spaces"></span><span class="istickedoff">shift w (Seq p q) c = seqW (shiftW w p c)</span>
-<span class="lineno">   56 </span><span class="spaces">                           </span><span class="istickedoff">(shiftW (w .*. empty p .+. final p) q c)</span>
-<span class="lineno">   57 </span><span class="spaces"></span><span class="istickedoff">shift w (Rep r)   c = repW (shiftW (w .+. final r) r c)</span></span>
+<span class="lineno">   18 </span>-- Checks whether a regular expression matches a subword of the given
+<span class="lineno">   19 </span>-- word. For example, @acceptPartial (fromString \&quot;b\&quot;) \&quot;abc\&quot;@
+<span class="lineno">   20 </span>-- yields @True@ because @\&quot;abc\&quot;@ contains the substring @\&quot;b\&quot;@.
+<span class="lineno">   21 </span>-- 
+<span class="lineno">   22 </span>acceptPartial :: RegExp c -&gt; [c] -&gt; Bool
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">acceptPartial r = partialMatch r</span></span>
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- |
+<span class="lineno">   26 </span>-- Computes in how many ways a word can be matched against a regular
+<span class="lineno">   27 </span>-- expression.
+<span class="lineno">   28 </span>-- 
+<span class="lineno">   29 </span>matchingCount :: Num a =&gt; RegExp c -&gt; [c] -&gt; a
+<span class="lineno">   30 </span><span class="decl"><span class="istickedoff">matchingCount r = getNumeric . fullMatch r</span></span>
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>{-# SPECIALIZE matchingCount :: RegExp c -&gt; [c] -&gt; Int #-}
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>-- |
+<span class="lineno">   35 </span>-- Matches a regular expression against a word computing a weight in
+<span class="lineno">   36 </span>-- an arbitrary semiring.
+<span class="lineno">   37 </span>-- 
+<span class="lineno">   38 </span>-- The symbols can have associated weights associated by the
+<span class="lineno">   39 </span>-- 'symWeight' function of the 'Weight' class. This function also
+<span class="lineno">   40 </span>-- allows to adjust the type of the used alphabet such that, for
+<span class="lineno">   41 </span>-- example, positional information can be taken into account by
+<span class="lineno">   42 </span>-- 'zip'ping the word with positions.
+<span class="lineno">   43 </span>-- 
+<span class="lineno">   44 </span>fullMatch :: Weight a b w =&gt; RegExp a -&gt; [b] -&gt; w
+<span class="lineno">   45 </span><span class="decl"><span class="istickedoff">fullMatch (RegExp r) = matchW (weighted r)</span></span>
+<span class="lineno">   46 </span>
+<span class="lineno">   47 </span>{-# SPECIALIZE fullMatch :: RegExp c -&gt; [c] -&gt; Bool #-}
+<span class="lineno">   48 </span>{-# SPECIALIZE fullMatch :: RegExp c -&gt; [c] -&gt; Numeric Int #-}
+<span class="lineno">   49 </span>{-# SPECIALIZE fullMatch :: Num a =&gt; RegExp c -&gt; [c] -&gt; Numeric a #-}
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>-- |
+<span class="lineno">   52 </span>-- Matches a regular expression against substrings of a word computing
+<span class="lineno">   53 </span>-- a weight in an arbitrary semiring. Similar to 'fullMatch' the
+<span class="lineno">   54 </span>-- 'Weight' class is used to associate weights to the symbols of the
+<span class="lineno">   55 </span>-- regular expression.
+<span class="lineno">   56 </span>-- 
+<span class="lineno">   57 </span>partialMatch :: Weight a b w =&gt; RegExp a -&gt; [b] -&gt; w
+<span class="lineno">   58 </span><span class="decl"><span class="istickedoff">partialMatch (RegExp r) = matchW (arb `seqW` weighted r `seqW` arb)</span>
+<span class="lineno">   59 </span><span class="spaces"> </span><span class="istickedoff">where RegExp arb = rep anySym</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>{-# SPECIALIZE partialMatch :: RegExp c -&gt; [c] -&gt; Bool #-}
+<span class="lineno">   62 </span>{-# SPECIALIZE partialMatch :: RegExp c -&gt; [c] -&gt; Numeric Int #-}
+<span class="lineno">   63 </span>{-# SPECIALIZE partialMatch :: Num a =&gt; RegExp c -&gt; [c] -&gt; Numeric a #-}
+<span class="lineno">   64 </span>
+<span class="lineno">   65 </span>matchW :: Semiring w =&gt; RegW w c -&gt; [c] -&gt; w
+<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">matchW r []     = empty r</span>
+<span class="lineno">   67 </span><span class="spaces"></span><span class="istickedoff">matchW r (c:cs) = final (foldl (shiftW zero) (shiftW one r c) cs)</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>{-# SPECIALIZE matchW :: RegW Bool c -&gt; [c] -&gt; Bool #-}
+<span class="lineno">   70 </span>{-# SPECIALIZE matchW :: RegW (Numeric Int) c -&gt; [c] -&gt; Numeric Int #-}
+<span class="lineno">   71 </span>{-# SPECIALIZE matchW :: Num a =&gt; RegW (Numeric a) c -&gt; [c] -&gt; Numeric a #-}
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>shiftW :: Semiring w =&gt; w -&gt; RegW w c -&gt; c -&gt; RegW w c
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">shiftW w r c | active r || w /= zero = shift w (reg r) c</span>
+<span class="lineno">   75 </span><span class="spaces">             </span><span class="istickedoff">| <span class="tickonlytrue">otherwise</span>             = r</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>shift :: Semiring w =&gt; w -&gt; Reg w c -&gt; c -&gt; RegW w c
+<span class="lineno">   78 </span><span class="decl"><span class="istickedoff">shift _ Eps       _ = epsW</span>
+<span class="lineno">   79 </span><span class="spaces"></span><span class="istickedoff">shift w (Sym s f) c = let w' = w .*. f c</span>
+<span class="lineno">   80 </span><span class="spaces">                       </span><span class="istickedoff">in (symW <span class="nottickedoff">s</span> f) { active = w' /= zero, final_ = w' }</span>
+<span class="lineno">   81 </span><span class="spaces"></span><span class="istickedoff">shift w (Alt p q) c = altW (shiftW w p c) (shiftW w q c)</span>
+<span class="lineno">   82 </span><span class="spaces"></span><span class="istickedoff">shift w (Seq p q) c = seqW (shiftW w p c)</span>
+<span class="lineno">   83 </span><span class="spaces">                           </span><span class="istickedoff">(shiftW (w .*. empty p .+. final p) q c)</span>
+<span class="lineno">   84 </span><span class="spaces"></span><span class="istickedoff">shift w (Rep r)   c = repW (shiftW (w .+. final r) r c)</span></span>
 
 </pre>
 </html>
