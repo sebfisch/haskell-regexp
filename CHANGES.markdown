@@ -42,7 +42,9 @@ for `Numeric` types but not for the more complex semirings defined
 in the extra matching modules. It is unclear what is the best way
 to specialize them too because the pragma must be placed in the
 module where the matching functions are defined but, there, not
-all semirings are in scope.
+all semirings are in scope. See [GHC bug 4227].
+
+[GHC bug 4227]: http://hackage.haskell.org/trac/ghc/ticket/4227
 
 ## Fixed mistake in Criterion benchmarks
 
