@@ -1,5 +1,55 @@
 % Changelog for `weighted-regexp`
 
+# 0.2.0.0
+
+## More general types for matching functions
+
+The functions `fullMatch` and `partialMatch` now both have the type
+
+    Weight a b w => RegExp a -> [b] -> w
+
+whereas previously the signatures have been:
+
+    fullMatch    :: Semiring w         => RegExp c -> [c] -> w
+    partialMatch :: Weight c (Int,c) w => RegExp c -> [c] -> w
+
+The change allows users to provide custom symbol weights in full
+matchings and to do partial matchings with arbitrary symbols weights
+instead of having to use only characters and their positions.
+
+This generalization leads to a slight performance penalty in small
+examples but has a negligible effect when matching large inputs.
+
+## Renamed `accept` to `acceptFull`, added `acceptPartial`
+
+Based on the more general `partialMatch` function, the function
+`acceptPartial` was added for the `Bool` semiring. The `accept`
+function has been appropriately renamed.
+
+## Strict numeric semiring
+
+The lazy definition of arithmetic operations for the `Numeric`
+semiring has been dropped in favour of the more efficient
+standard implementation. As a consequence, `matchingCount` no
+longer works with infinite regular expressions.
+
+## SPECIALIZE pragmas prevent memory leak
+
+The generalization of the matching functions leads to a memory
+leak that can be avoided by specializing them for concrete
+semirings. Corresponding pragmas have been added for `Bool` and
+for `Numeric` types but not for the more complex semirings defined
+in the extra matching modules. It is unclear what is the best way
+to specialize them too because the pragma must be placed in the
+module where the matching functions are defined but, there, not
+all semirings are in scope.
+
+## Fixed mistake in Criterion benchmarks
+
+In the group of partial matchings, the benchmark for `Bool`
+accidentally used full matching. It now uses partial matching which,
+unsurprisingly, is slower.
+
 # 0.1.1.0
 
 ## added `noMatch`
