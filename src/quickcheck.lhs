@@ -30,9 +30,12 @@ the `Weight` class, and the different semirings used for matching.
 
 > import Text.RegExp
 > import Text.RegExp.Data
-> import Text.RegExp.Matching.Leftmost ( Leftmost(..), getLeftmost )
-> import Text.RegExp.Matching.Longest  ( Longest(..), getLongest )
-> import Text.RegExp.Matching.LeftLong ( LeftLong(..), getLeftLong )
+> import Text.RegExp.Matching.Leftmost.Type ( Leftmost(..) )
+> import Text.RegExp.Matching.Longest.Type  ( Longest(..) )
+> import Text.RegExp.Matching.LeftLong.Type ( LeftLong(..) )
+> import Text.RegExp.Matching.Leftmost ( getLeftmost )
+> import Text.RegExp.Matching.Longest  ( getLongest )
+> import Text.RegExp.Matching.LeftLong ( getLeftLong )
 > import qualified Text.RegExp.Matching.Leftmost as Leftmost
 > import qualified Text.RegExp.Matching.Longest  as Longest
 > import qualified Text.RegExp.Matching.LeftLong as LeftLong

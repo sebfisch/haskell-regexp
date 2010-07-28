@@ -5,6 +5,10 @@ module Text.RegExp.Matching where
 import Data.Semiring
 import Text.RegExp.Data
 
+import Text.RegExp.Matching.Leftmost.Type
+import Text.RegExp.Matching.Longest.Type
+import Text.RegExp.Matching.LeftLong.Type
+
 -- |
 -- Checks whether a regular expression matches the given word. For
 -- example, @acceptFull (fromString \"b|abc\") \"b\"@ yields @True@
@@ -47,6 +51,9 @@ fullMatch (RegExp r) = matchW (weighted r)
 {-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Bool #-}
 {-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Numeric Int #-}
 {-# SPECIALIZE fullMatch :: Num a => RegExp c -> [c] -> Numeric a #-}
+{-# SPECIALIZE fullMatch :: RegExp c -> [(Int,c)] -> Leftmost #-}
+{-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Longest #-}
+{-# SPECIALIZE fullMatch :: RegExp c -> [(Int,c)] -> LeftLong #-}
 
 -- |
 -- Matches a regular expression against substrings of a word computing
@@ -61,6 +68,9 @@ partialMatch (RegExp r) = matchW (arb `seqW` weighted r `seqW` arb)
 {-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Bool #-}
 {-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Numeric Int #-}
 {-# SPECIALIZE partialMatch :: Num a => RegExp c -> [c] -> Numeric a #-}
+{-# SPECIALIZE partialMatch :: RegExp c -> [(Int,c)] -> Leftmost #-}
+{-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Longest #-}
+{-# SPECIALIZE partialMatch :: RegExp c -> [(Int,c)] -> LeftLong #-}
 
 matchW :: Semiring w => RegW w c -> [c] -> w
 matchW r []     = empty r
@@ -69,6 +79,9 @@ matchW r (c:cs) = final (foldl (shiftW zero) (shiftW one r c) cs)
 {-# SPECIALIZE matchW :: RegW Bool c -> [c] -> Bool #-}
 {-# SPECIALIZE matchW :: RegW (Numeric Int) c -> [c] -> Numeric Int #-}
 {-# SPECIALIZE matchW :: Num a => RegW (Numeric a) c -> [c] -> Numeric a #-}
+{-# SPECIALIZE matchW :: RegW Leftmost (Int,c) -> [(Int,c)] -> Leftmost #-}
+{-# SPECIALIZE matchW :: RegW Longest c -> [c] -> Longest #-}
+{-# SPECIALIZE matchW :: RegW LeftLong (Int,c) -> [(Int,c)] -> LeftLong #-}
 
 shiftW :: Semiring w => w -> RegW w c -> c -> RegW w c
 shiftW w r c | active r || w /= zero = shift w (reg r) c

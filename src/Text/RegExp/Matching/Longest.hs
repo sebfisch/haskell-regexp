@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 -- |
 -- Module      : Text.RegExp.Matching.Longest
@@ -13,16 +13,19 @@
 -- 
 module Text.RegExp.Matching.Longest (
 
-  Longest(..), Matching(..),
+  matching, 
 
-  matching, getLongest
+  Matching, matchingLength,
+
+  Longest, getLongest
 
   ) where
 
 import Text.RegExp
+import Text.RegExp.Matching.Longest.Type
 
 -- |
--- A 'Matching' records the leftmost start index of a matching subword.
+-- A 'Matching' records the largest length of a matching subword.
 -- 
 data Matching = Matching {
  
@@ -44,30 +47,7 @@ instance Show Matching
 matching :: RegExp c -> [c] -> Maybe Matching
 matching r = getLongest . partialMatch r
 
--- | Semiring used for longest matching.
--- 
-data Longest = Zero | One | Longest !Int
- deriving (Eq,Show)
-
 getLongest :: Longest -> Maybe Matching
 getLongest Zero         =  Nothing
 getLongest One          =  Just $ Matching 0 
 getLongest (Longest x)  =  Just $ Matching x
-
-instance Semiring Longest where
-  zero = Zero; one = One
-
-  Zero       .+.  y          =  y
-  x          .+.  Zero       =  x
-  One        .+.  y          =  y
-  x          .+.  One        =  x
-  Longest a  .+.  Longest b  =  Longest (max a b)
-
-  Zero       .*.  _          =  Zero
-  _          .*.  Zero       =  Zero
-  One        .*.  y          =  y
-  x          .*.  One        =  x
-  Longest a  .*.  Longest b  =  Longest (a+b)
-
-instance Weight c c Longest where
-  symWeight p c = p c .*. Longest 1

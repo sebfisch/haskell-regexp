@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
-
 -- |
 -- Module      : Text.RegExp.Matching.Leftmost
 -- Copyright   : Thomas Wilke, Frank Huch, and Sebastian Fischer
@@ -13,13 +11,16 @@
 -- 
 module Text.RegExp.Matching.Leftmost (
 
-  Leftmost(..), Matching(..),
+  matching, 
 
-  matching, getLeftmost
+  Matching, matchingIndex,
+
+  Leftmost, getLeftmost
 
   ) where
 
 import Text.RegExp
+import Text.RegExp.Matching.Leftmost.Type
 
 -- |
 -- A 'Matching' records the leftmost start index of a matching subword.
@@ -45,30 +46,7 @@ instance Show Matching
 matching :: RegExp c -> [c] -> Maybe Matching
 matching r = getLeftmost . partialMatch r . zip [(0::Int)..]
 
--- | Semiring used for leftmost matching.
--- 
-data Leftmost = Zero | One | Leftmost !Int
- deriving (Eq,Show)
-
 getLeftmost :: Leftmost -> Maybe Matching
 getLeftmost Zero          =  Nothing
 getLeftmost One           =  Just $ Matching 0 
 getLeftmost (Leftmost x)  =  Just $ Matching x
-
-instance Semiring Leftmost where
-  zero = Zero; one = One
-
-  Zero        .+.  y           =  y
-  x           .+.  Zero        =  x
-  One         .+.  y           =  y
-  x           .+.  One         =  x
-  Leftmost a  .+.  Leftmost b  =  Leftmost (min a b)
-
-  Zero        .*.  _           =  Zero
-  _           .*.  Zero        =  Zero
-  One         .*.  y           =  y
-  x           .*.  One         =  x
-  Leftmost a  .*.  Leftmost b  =  Leftmost (min a b)
-
-instance Weight c (Int,c) Leftmost where
-  symWeight p (n,c) = p c .*. Leftmost n
