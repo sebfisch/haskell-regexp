@@ -1,4 +1,6 @@
-% Changelog for `weighted-regexp`
+% Changelog for [`weighted-regexp`]
+
+[`weighted-regexp`]: http://hackage.haskell.org/package/weighted-regexp
 
 # 0.3.0.0
 
