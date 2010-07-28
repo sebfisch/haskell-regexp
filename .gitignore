@@ -13,3 +13,6 @@ criterion/*
 .coverage
 .microbench
 .cabal-build
+genrandom
+fullmatch
+partialmatch
