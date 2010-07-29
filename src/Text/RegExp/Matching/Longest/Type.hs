@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+
 module Text.RegExp.Matching.Longest.Type where
 
 import Data.Semiring

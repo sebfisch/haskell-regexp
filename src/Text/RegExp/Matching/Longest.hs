@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
-
 -- |
 -- Module      : Text.RegExp.Matching.Longest
 -- Copyright   : Thomas Wilke, Frank Huch, and Sebastian Fischer
