@@ -4,7 +4,7 @@
 
 # 0.3.0.0
 
-## Implemented workaround for [GHC bug 4227]
+## Implemented workaround for [GHC ticket 4227]
 
 Currently, GHC can SPECIALIZE functions only where they are defined.
 The types `Leftmost`, `Longest`, and `LeftLong` are now defined in
@@ -61,9 +61,9 @@ semirings. Corresponding pragmas have been added for `Bool` and for
 extra matching modules. It is unclear what is the best way to
 specialize them too because the pragma must be placed in the module
 where the matching functions are defined but, there, not all semirings
-are in scope. See [GHC bug 4227].
+are in scope. See [GHC ticket 4227].
 
-[GHC bug 4227]: http://hackage.haskell.org/trac/ghc/ticket/4227
+[GHC ticket 4227]: http://hackage.haskell.org/trac/ghc/ticket/4227
 
 ## Fixed mistake in Criterion benchmarks
 
