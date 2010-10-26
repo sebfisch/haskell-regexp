@@ -1,5 +1,5 @@
 Name:          weighted-regexp
-Version:       0.3.0.0
+Version:       0.3.0.1
 Cabal-Version: >= 1.6
 Synopsis:      Weighted Regular Expression Matcher
 Description:
@@ -49,7 +49,10 @@ Flag QuickCheck
 
 Executable quickcheck-re
   Main-Is:              quickcheck.lhs
-  Build-Depends:        base >= 3 && < 5, QuickCheck < 2
+  If flag(QuickCheck)
+    Build-Depends:      base >= 3 && < 5, QuickCheck < 2
+  Else
+    Buildable:          False
   HS-Source-Dirs:       src
   Other-Modules:        Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
@@ -72,8 +75,6 @@ Executable quickcheck-re
                         OverloadedStrings,
                         ScopedTypeVariables
   GHC-Options:          -fhpc -fno-warn-missing-methods -fno-warn-orphans
-  If !flag(QuickCheck)
-    Buildable:          False
 
 Flag Criterion
   Description:          Build executable to run Criterion benchmarks
@@ -81,7 +82,10 @@ Flag Criterion
 
 Executable criterion-re
   Main-Is:              criterion.lhs
-  Build-Depends:        base >= 3 && < 5, criterion >= 0.5 && < 0.6
+  If flag(Criterion)
+    Build-Depends:      base >= 3 && < 5, criterion >= 0.5 && < 0.6
+  Else
+    Buildable:          False
   HS-Source-Dirs:       src
   Other-Modules:        Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
@@ -102,8 +106,6 @@ Executable criterion-re
                         GeneralizedNewtypeDeriving,
                         OverloadedStrings
   GHC-Options:          
-  If !flag(Criterion)
-    Buildable:          False
 
 Source-Repository head
   type:     git
