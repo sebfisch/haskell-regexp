@@ -2,6 +2,13 @@
 
 [`weighted-regexp`]: http://hackage.haskell.org/package/weighted-regexp
 
+# 0.3.0.1
+
+Moved build dependencies for QuickCheck and Criterion test programs
+under a conditional so they are only pulled in if one actually
+compiles these programs using the flags `-fQuickCheck` or
+`-fCriterion`. (Thank you Brent!)
+
 # 0.3.0.0
 
 ## Implemented workaround for [GHC ticket 4227]
