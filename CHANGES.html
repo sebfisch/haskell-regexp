@@ -16,6 +16,10 @@
 ><ul
   ><li
     ><a href="#section"
+      >0.3.0.1</a
+      ></li
+    ><li
+    ><a href="#section-1"
       >0.3.0.0</a
       ><ul
       ><li
@@ -27,7 +31,7 @@
 	></ul
       ></li
     ><li
-    ><a href="#section-1"
+    ><a href="#section-2"
       >0.2.0.0</a
       ><ul
       ><li
@@ -59,7 +63,7 @@
 	></ul
       ></li
     ><li
-    ><a href="#section-2"
+    ><a href="#section-3"
       >0.1.1.0</a
       ><ul
       ><li
@@ -81,6 +85,16 @@
 >
 <h1 id="section"
 ><a href="#TOC"
+  >0.3.0.1</a
+  ></h1
+><p
+>Moved build dependencies for QuickCheck and Criterion test programs under a conditional so they are only pulled in if one actually compiles these programs using the flags <code
+  >-fQuickCheck</code
+  > or <code
+  >-fCriterion</code
+  >. (Thank you Brent!)</p
+><h1 id="section-1"
+><a href="#TOC"
   >0.3.0.0</a
   ></h1
 ><h2 id="implemented-workaround-for-ghc-ticket-4227"
@@ -101,7 +115,7 @@
 >This workaround allows to specialize the matching functions for types defined in this package. Users, however, must use the matching functions unspecialized for their own types.</p
 ><p
 >Along with this change, the constructors of the matching types are no longer exported.</p
-><h1 id="section-1"
+><h1 id="section-2"
 ><a href="#TOC"
   >0.2.0.0</a
   ></h1
@@ -182,7 +196,7 @@ partialMatch :: Weight c (Int,c) w =&gt; RegExp c -&gt; [c] -&gt; w
 >In the group of partial matchings, the benchmark for <code
   >Bool</code
   > accidentally used full matching. It now uses partial matching which, unsurprisingly, is slower.</p
-><h1 id="section-2"
+><h1 id="section-3"
 ><a href="#TOC"
   >0.1.1.0</a
   ></h1
