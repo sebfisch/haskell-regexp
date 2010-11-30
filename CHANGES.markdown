@@ -2,9 +2,17 @@
 
 [`weighted-regexp`]: http://hackage.haskell.org/package/weighted-regexp
 
+# 0.3.1
+
+## Expose internal data types and matching functions
+
+Added new module `Text.RegExp.Internal` that exposes internal data
+types and matching functions. Users probably don't want to use it
+unless they implement their own matching functions.
+
 # 0.3.0.1
 
-## Conditional Build Dependencies
+## Conditional build dependencies
 
 Moved build dependencies for QuickCheck and Criterion test programs
 under a conditional so they are only pulled in if one actually
