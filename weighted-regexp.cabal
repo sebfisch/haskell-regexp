@@ -1,5 +1,5 @@
 Name:          weighted-regexp
-Version:       0.3.0.1
+Version:       0.3.1
 Cabal-Version: >= 1.6
 Synopsis:      Weighted Regular Expression Matcher
 Description:
@@ -28,6 +28,7 @@ Library
                         Text.RegExp.Matching.Leftmost,
                         Text.RegExp.Matching.Longest,
                         Text.RegExp.Matching.LeftLong,
+                        Text.RegExp.Internal,
                         Data.Semiring,
                         Data.Semiring.Properties
   Other-Modules:        Text.RegExp.Data,
@@ -60,6 +61,7 @@ Executable quickcheck-re
                         Text.RegExp.Matching.LeftLong,
                         Data.Semiring,
                         Data.Semiring.Properties
+                        Text.RegExp.Internal,
                         Text.RegExp.Data,
                         Text.RegExp.Parser,
                         Text.RegExp.Matching,
@@ -92,6 +94,7 @@ Executable criterion-re
                         Text.RegExp.Matching.Longest,
                         Text.RegExp.Matching.LeftLong,
                         Data.Semiring,
+                        Text.RegExp.Internal,
                         Text.RegExp.Data,
                         Text.RegExp.Parser,
                         Text.RegExp.Matching,
