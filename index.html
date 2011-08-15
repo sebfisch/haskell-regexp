@@ -1,403 +1,172 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Weighted RegExp Matching</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="generator" content="pandoc" />
+  <title>Weighted RegExp Matching</title>
   <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 <body>
 <h1 class="title">Weighted RegExp Matching</h1>
-<div id="TOC"
-><ul
-  ><li
-    ><a href="#background"
-      >Background</a
-      ></li
-    ><li
-    ><a href="#installation"
-      >Installation</a
-      ></li
-    ><li
-    ><a href="#correctness"
-      >Correctness</a
-      ></li
-    ><li
-    ><a href="#performance"
-      >Performance</a
-      ></li
-    ><li
-    ><a href="#collaboration"
-      >Collaboration</a
-      ></li
-    ></ul
-  ></div
->
-<p
->Efficient regular expression matching can be beautifully simple. Revisiting ideas from theoretical computer science, it can be implemented with linear worst-case time and space bounds in the purely functional programming language <a href="http://hackage.haskell.org/platform/"
-  >Haskell</a
-  >.</p
-><h1 id="background"
-><a href="#TOC"
-  >Background</a
-  ></h1
-><p
->Since Plato wrote about philosophy in the form of <a href="http://en.wikipedia.org/wiki/Socratic_dialogue"
-  >dialogues</a
-  >, authors have used this literary form to convey their ideas. The 15th <a href="http://www.icfpconference.org/icfp2010/"
-  >International Conference on Functional Programming</a
-  > features an article on Regular Expressions written as a play, <a href="regexp-play.pdf"
-  >A Play on Regular Expressions</a
-  >, which is meant to be <a href="http://web.cecs.pdx.edu/~apt/icfp09_cfp.html#pearls"
-  >elegant, instructive, and fun</a
-  >. The play discusses an efficient, purely functional algorithm for matching regular expressions. By generalizing from Booleans to arbitrary <a href="http://en.wikipedia.org/wiki/Semiring"
-  >semirings</a
-  >, this algorithm implements various matching policies for weighted regular expressions.</p
-><h1 id="installation"
-><a href="#TOC"
-  >Installation</a
-  ></h1
-><p
->An implementation of the ideas discussed in the Play on Regular Expressions is available as a Haskell library. It is implemented in pure Haskell rather than as a binding to an external library so you do not need to install an external regular expression library to use it.</p
-><table><tr><td>
-<a href="http://hackage.haskell.org/platform"> <img src="http://hackage.haskell.org/platform/icons/button-100.png" /> </a></td><td>
-<p
->However, you need Haskell in order to use this library. By installing the <a href="http://hackage.haskell.org/platform/"
-  >Haskell Platform</a
-  > you get a Haskell compiler with an interactive environment as well as the package manager <code
-  >cabal-install</code
-  > and various pre-installed packages.</p
-></td></tr><tr><td>
-<img src="http://hackage.haskell.org/images/Cabal-light.png" alt="Cabal" width="195" height="71" /></td><td>
-<p
->You can install the <a href="http://hackage.haskell.org/package/weighted-regexp"
-  ><code
-    >weighted-regexp</code
-    ></a
-  > library by typing the following into a terminal:</p
-><pre
-><code
-  >bash# cabal update
+<div id="TOC">
+<ul>
+<li><a href="#background">Background</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#correctness">Correctness</a></li>
+<li><a href="#performance">Performance</a></li>
+<li><a href="#collaboration">Collaboration</a></li>
+</ul>
+</div>
+<p>Efficient regular expression matching can be beautifully simple. Revisiting ideas from theoretical computer science, it can be implemented with linear worst-case time and space bounds in the purely functional programming language <a href="http://hackage.haskell.org/platform/">Haskell</a>.</p>
+<h1 id="background"><a href="#TOC">Background</a></h1>
+<p>Since Plato wrote about philosophy in the form of <a href="http://en.wikipedia.org/wiki/Socratic_dialogue">dialogues</a>, authors have used this literary form to convey their ideas. The 15th <a href="http://www.icfpconference.org/icfp2010/">International Conference on Functional Programming</a> features an article on Regular Expressions written as a play, <a href="regexp-play.pdf">A Play on Regular Expressions</a>, which is meant to be <a href="http://web.cecs.pdx.edu/~apt/icfp09_cfp.html#pearls">elegant, instructive, and fun</a>. The play discusses an efficient, purely functional algorithm for matching regular expressions. By generalizing from Booleans to arbitrary <a href="http://en.wikipedia.org/wiki/Semiring">semirings</a>, this algorithm implements various matching policies for weighted regular expressions.</p>
+<h1 id="installation"><a href="#TOC">Installation</a></h1>
+<p>An implementation of the ideas discussed in the Play on Regular Expressions is available as a Haskell library. It is implemented in pure Haskell rather than as a binding to an external library so you do not need to install an external regular expression library to use it.</p>
+<table><tr><td>
+
+<a href="http://hackage.haskell.org/platform"> <img src="http://hackage.haskell.org/platform/icons/button-100.png" /> </a>
+</td><td>
+
+<p>However, you need Haskell in order to use this library. By installing the <a href="http://hackage.haskell.org/platform/">Haskell Platform</a> you get a Haskell compiler with an interactive environment as well as the package manager <code>cabal-install</code> and various pre-installed packages.</p>
+</td></tr><tr><td>
+
+<img src="http://hackage.haskell.org/images/Cabal-light.png"
+     alt="Cabal" width="195" height="71" />
+</td><td>
+
+<p>You can install the <a href="http://hackage.haskell.org/package/weighted-regexp"><code>weighted-regexp</code></a> library by typing the following into a terminal:</p>
+<pre><code>bash# cabal update
 bash# cabal install weighted-regexp
-</code
-  ></pre
-></td></tr></table>
-<p
->This will install the current version. Differences between versions are listed in the <a href="http://sebfisch.github.com/haskell-regexp/CHANGES.html"
-  >changelog</a
-  >.</p
-><h1 id="correctness"
-><a href="#TOC"
-  >Correctness</a
-  ></h1
-><p
->The matching algorithm computes the same result as a simple inductive specification (given in the <a href="regexp-play.pdf"
-  >Play on Regular Expressions</a
-  >) but is <a href="#performance"
-  >more efficient</a
-  > than a direct translation of this specification into Haskell. Although the ideas behind the algorithm are not new but based on proven results from theoretical computer science, there is no correctness proof for the equivalence of the Haskell implementation of the algorithm with its specification. The equivalence is therefore confirmed by testing.</p
-><p
->It is difficult (and tedious) to write tests manually that cover all interesting apsects of regular expression matching. Therefore, <a href="http://www.cse.chalmers.se/~rjmh/QuickCheck/"
-  >QuickCheck</a
-  > is used to generate tests automatically and <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/hpc.html"
-  >Haskell Program Coverage (HPC)</a
-  > is used to monitor test coverage.</p
-><p
->You can install the <code
-  >weighted-regexp</code
-  > library along with a test program as follows:</p
-><pre
-><code
-  >bash# cabal install weighted-regexp -fQuickCheck
-</code
-  ></pre
-><p
->Using the <code
-  >QuickCheck</code
-  > flag results in an additional program that you can use to test the implementation. The program tests</p
-><ul
-><li
-  ><p
-    >the algebraic laws of semirings for all defined semirings, and</p
-    ></li
-  ><li
-  ><p
-    >the equivalence of the matching algorithm with the specification both for full and partial matchings.</p
-    ></li
-  ></ul
-><p
->For testing the equivalence, QuickCheck generates random regular expressions and compares the result of the matching algorithm with the result of its specification on random words. Moreover, the program tests</p
-><ul
-><li
-  ><p
-    >the parser that provides common syntactic sugar like bounded repetitions and character classes,</p
-    ></li
-  ><li
-  ><p
-    >the use of the library to recognize non-regular languages using infinite regular expressions, and</p
-    ></li
-  ><li
-  ><p
-    >a combinator for parsing permutation sequences, that is, sequences of regular expressions in arbitrary order.</p
-    ></li
-  ></ul
-><p
->For a more detailed description of the tested properties consider the <a href="http://github.com/sebfisch/haskell-regexp/blob/master/src/quickcheck.lhs"
-  >source code</a
-  > of the test program. In order to generate an HPC report you need to download the sources of the <code
-  >weighted-regexp</code
-  > package. But you may as well consult the <a href="http://sebfisch.github.com/haskell-regexp/quickcheck/hpc_index.html"
-  >pregenerated coverage report</a
-  > instead of generating one yourself.</p
-><h1 id="performance"
-><a href="#TOC"
-  >Performance</a
-  ></h1
-><p
->The matching algorithm provided by this library is usually slower than other libraries like <a href="http://www.pcre.org/"
-  >pcre</a
-  > but has a better asymptotic complexity. There are no corner cases for which matching takes forever or eats all available memory. More specifically, the worst-case run time for matching a word against a regular expression is linearly bounded by the length of the word and the size of the regular expression. It is in <em
-  >O(nm)</em
-  > if <em
-  >n</em
-  > is the length of the word and <em
-  >m</em
-  > the size of the expression. The memory requirements are independent of the length of the word and linear in the size of the regular expression, that is, in <em
-  >O(m)</em
-  >. Therefore, this library provides similar asymptotic complexity guarantees as Google’s <a href="http://code.google.com/p/re2/"
-  >re2</a
-  >.</p
-><p
->Here are timings that have been obtained (on a MacBook) with the current version of the library.</p
-><table
-><thead
-  ><tr class="header"
-    ><th align="center"
-      >input</th
-      ><th align="center"
-      >regexp</th
-      ><th align="center"
-      >run time</th
-      ><th align="center"
-      >memory</th
-      ></tr
-    ></thead
-  ><tbody
-  ><tr class="odd"
-    ><td align="center"
-      >100 MB of a’s</td
-      ><td align="center"
-      ><code
-	>.*</code
-	></td
-      ><td align="center"
-      >8s (12 MB/s)</td
-      ><td align="center"
-      >1 MB</td
-      ></tr
-    ><tr class="even"
-    ><td align="center"
-      >5000 a’s</td
-      ><td align="center"
-      ><code
-	>(a?){5000}a{5000}</code
-	></td
-      ><td align="center"
-      >13s</td
-      ><td align="center"
-      >5 MB</td
-      ></tr
-    ><tr class="odd"
-    ><td align="center"
-      >~2M a’s and b’s</td
-      ><td align="center"
-      ><code
-	>.*a.{20}a.*</code
-	></td
-      ><td align="center"
-      >3.6s</td
-      ><td align="center"
-      >1 MB</td
-      ></tr
-    ></tbody
-  ></table
-><p
->The first example measures the search speed for a simple regular expression with a long string. There is room for improvement. No time has been invested yet to improve the performance of the library with regard to constant factors.</p
-><p
->The second example demonstrates the good asymptotic complexity of the algorithm. Unlike a backtracking implementation like <a href="http://www.pcre.org/"
-  >pcre</a
-  > the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that almost 10 of 13 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p
-><p
->The third example pushes automata based approaches to the limit because the deterministic finite automaton that corresponds to the regular expression is exponentially large. The input has been chosen to not match the expression but is otherwise random and probably explores many different states of the automaton. The matching algorithm produces states on the fly and discards them, hence, it is fast in this example, in fact, faster than re2<sup
-  ><a href="#fn1" class="footnoteRef" id="fnref1"
-    >1</a
-    ></sup
-  >.</p
-><p
->The benchmarks above all use large input and two of them are specifically designed as corner cases of typical matching algorithms. The run time of matching more common regular expressions against short input has been measured using <a href="http://www.serpentine.com/blog/2009/09/29/criterion-a-new-benchmarking-library-for-haskell/"
-  >Criterion</a
-  > in order to get statistically robust results.</p
-><p
->You can install the <code
-  >weighted-regexp</code
-  > package with the <code
-  >Criterion</code
-  > flag to generate a program that executes the benchmarks described below:</p
-><pre
-><code
-  >bash# cabal install weighted-regexp -fCriterion
-</code
-  ></pre
-><p
->You can call <code
-  >criterion-re --help</code
-  > to see how to use the generated program. It tests three different examples:</p
-><ul
-><li
-  ><p
-    >a unique full match with a regular expression for phone numbers,</p
-    ></li
-  ><li
-  ><p
-    >an ambiguous full match with a regular expression for sequences of HTML elements, and</p
-    ></li
-  ><li
-  ><p
-    >a partial match with a regular expression for protein sequences in RNA.</p
-    ></li
-  ></ul
-><p
->For a more detailed explanation consider the <a href="http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs"
-  >source code</a
-  > of the benchmark program.</p
-><table
-><thead
-  ><tr class="header"
-    ><th align="right"
-      >matching</th
-      ><th align="right"
-      >acceptance</th
-      ><th align="right"
-      >#matchings</th
-      ><th align="center"
-      >leftmost</th
-      ><th align="right"
-      >longest</th
-      ><th align="right"
-      >leftmost longest</th
-      ></tr
-    ></thead
-  ><tbody
-  ><tr class="odd"
-    ><td align="right"
-      >unique full</td
-      ><td align="right"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png"
-	>3.8 us</a
-	></td
-      ><td align="right"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png"
-	>4.8 us</a
-	></td
-      ><td align="center"
-      ></td
-      ><td align="right"
-      ></td
-      ><td align="right"
-      ></td
-      ></tr
-    ><tr class="even"
-    ><td align="right"
-      >ambiguous full</td
-      ><td align="right"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-accept-html-densities-800x600.png"
-	>11.7 us</a
-	></td
-      ><td align="right"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png"
-	>13.4 us</a
-	></td
-      ><td align="center"
-      ></td
-      ><td align="right"
-      ></td
-      ><td align="right"
-      ></td
-      ></tr
-    ><tr class="odd"
-    ><td align="right"
-      >partial</td
-      ><td align="right"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png"
-	>20.4 us</a
-	></td
-      ><td align="right"
-      ></td
-      ><td align="center"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png"
-	>27.2 us</a
-	></td
-      ><td align="right"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png"
-	>26.2 us</a
-	></td
-      ><td align="right"
-      ><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png"
-	>27.5 us</a
-	></td
-      ></tr
-    ></tbody
-  ></table
-><p
->Click on the numbers for a more detailed distribution of run times.</p
-><h1 id="collaboration"
-><a href="#TOC"
-  >Collaboration</a
-  ></h1
-><table><tr><td>
-<a href="http://github.com"> <img src="https://github.com/images/modules/header/logo.png" /> </a></td><td>
-<p
->The source code of this library is on <a href="http://github.com/sebfisch/haskell-regexp"
-  >github</a
-  >. You can collaborate by using it in your projects, report bugs and ask for new features in the <a href="http://github.com/sebfisch/haskell-regexp/issues"
-  >issue tracker</a
-  >, or provide patches that implement pending issues.</p
-></td></tr></table>
+</code></pre>
+</td></tr></table>
+
+<p>This will install the current version. Differences between versions are listed in the <a href="http://sebfisch.github.com/haskell-regexp/CHANGES.html">changelog</a>.</p>
+<h1 id="correctness"><a href="#TOC">Correctness</a></h1>
+<p>The matching algorithm computes the same result as a simple inductive specification (given in the <a href="regexp-play.pdf">Play on Regular Expressions</a>) but is <a href="#performance">more efficient</a> than a direct translation of this specification into Haskell. Although the ideas behind the algorithm are not new but based on proven results from theoretical computer science, there is no correctness proof for the equivalence of the Haskell implementation of the algorithm with its specification. The equivalence is therefore confirmed by testing.</p>
+<p>It is difficult (and tedious) to write tests manually that cover all interesting apsects of regular expression matching. Therefore, <a href="http://www.cse.chalmers.se/~rjmh/QuickCheck/">QuickCheck</a> is used to generate tests automatically and <a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/hpc.html">Haskell Program Coverage (HPC)</a> is used to monitor test coverage.</p>
+<p>You can install the <code>weighted-regexp</code> library along with a test program as follows:</p>
+<pre><code>bash# cabal install weighted-regexp -fQuickCheck
+</code></pre>
+<p>Using the <code>QuickCheck</code> flag results in an additional program that you can use to test the implementation. The program tests</p>
+<ul>
+<li><p>the algebraic laws of semirings for all defined semirings, and</p></li>
+<li><p>the equivalence of the matching algorithm with the specification both for full and partial matchings.</p></li>
+</ul>
+<p>For testing the equivalence, QuickCheck generates random regular expressions and compares the result of the matching algorithm with the result of its specification on random words. Moreover, the program tests</p>
+<ul>
+<li><p>the parser that provides common syntactic sugar like bounded repetitions and character classes,</p></li>
+<li><p>the use of the library to recognize non-regular languages using infinite regular expressions, and</p></li>
+<li><p>a combinator for parsing permutation sequences, that is, sequences of regular expressions in arbitrary order.</p></li>
+</ul>
+<p>For a more detailed description of the tested properties consider the <a href="http://github.com/sebfisch/haskell-regexp/blob/master/src/quickcheck.lhs">source code</a> of the test program. In order to generate an HPC report you need to download the sources of the <code>weighted-regexp</code> package. But you may as well consult the <a href="http://sebfisch.github.com/haskell-regexp/quickcheck/hpc_index.html">pregenerated coverage report</a> instead of generating one yourself.</p>
+<h1 id="performance"><a href="#TOC">Performance</a></h1>
+<p>The matching algorithm provided by this library is usually slower than other libraries like <a href="http://www.pcre.org/">pcre</a> but has a better asymptotic complexity. There are no corner cases for which matching takes forever or eats all available memory. More specifically, the worst-case run time for matching a word against a regular expression is linearly bounded by the length of the word and the size of the regular expression. It is in <em>O(nm)</em> if <em>n</em> is the length of the word and <em>m</em> the size of the expression. The memory requirements are independent of the length of the word and linear in the size of the regular expression, that is, in <em>O(m)</em>. Therefore, this library provides similar asymptotic complexity guarantees as Google’s <a href="http://code.google.com/p/re2/">re2</a>.</p>
+<p>Here are timings that have been obtained (on a MacBook) with the current version of the library.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">input</th>
+<th align="center">regexp</th>
+<th align="center">run time</th>
+<th align="center">memory</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">100 MB of a’s</td>
+<td align="center"><code>.*</code></td>
+<td align="center">8s (12 MB/s)</td>
+<td align="center">1 MB</td>
+</tr>
+<tr class="even">
+<td align="center">5000 a’s</td>
+<td align="center"><code>(a?){5000}a{5000}</code></td>
+<td align="center">13s</td>
+<td align="center">5 MB</td>
+</tr>
+<tr class="odd">
+<td align="center">~2M a’s and b’s</td>
+<td align="center"><code>.*a.{20}a.*</code></td>
+<td align="center">3.6s</td>
+<td align="center">1 MB</td>
+</tr>
+</tbody>
+</table>
+<p>The first example measures the search speed for a simple regular expression with a long string. There is room for improvement. No time has been invested yet to improve the performance of the library with regard to constant factors.</p>
+<p>The second example demonstrates the good asymptotic complexity of the algorithm. Unlike a backtracking implementation like <a href="http://www.pcre.org/">pcre</a> the library finishes in reasonable time. However, the memory requirements are higher than usual and on closer inspection one can see that almost 10 of 13 seconds are spent during garbage collection. This example uses a large regular expression which leads to a lot of garbage in the matching algorithm.</p>
+<p>The third example pushes automata based approaches to the limit because the deterministic finite automaton that corresponds to the regular expression is exponentially large. The input has been chosen to not match the expression but is otherwise random and probably explores many different states of the automaton. The matching algorithm produces states on the fly and discards them, hence, it is fast in this example, in fact, faster than re2<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup>.</p>
+<p>The benchmarks above all use large input and two of them are specifically designed as corner cases of typical matching algorithms. The run time of matching more common regular expressions against short input has been measured using <a href="http://www.serpentine.com/blog/2009/09/29/criterion-a-new-benchmarking-library-for-haskell/">Criterion</a> in order to get statistically robust results.</p>
+<p>You can install the <code>weighted-regexp</code> package with the <code>Criterion</code> flag to generate a program that executes the benchmarks described below:</p>
+<pre><code>bash# cabal install weighted-regexp -fCriterion
+</code></pre>
+<p>You can call <code>criterion-re --help</code> to see how to use the generated program. It tests three different examples:</p>
+<ul>
+<li><p>a unique full match with a regular expression for phone numbers,</p></li>
+<li><p>an ambiguous full match with a regular expression for sequences of HTML elements, and</p></li>
+<li><p>a partial match with a regular expression for protein sequences in RNA.</p></li>
+</ul>
+<p>For a more detailed explanation consider the <a href="http://github.com/sebfisch/haskell-regexp/blob/master/src/criterion.lhs">source code</a> of the benchmark program.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">matching</th>
+<th align="right">acceptance</th>
+<th align="right">#matchings</th>
+<th align="center">leftmost</th>
+<th align="right">longest</th>
+<th align="right">leftmost longest</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">unique full</td>
+<td align="right"><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-accept-phone-densities-800x600.png">3.8 us</a></td>
+<td align="right"><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-count-phone-densities-800x600.png">4.8 us</a></td>
+<td align="center"></td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr class="even">
+<td align="right">ambiguous full</td>
+<td align="right"><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-accept-html-densities-800x600.png">11.7 us</a></td>
+<td align="right"><a href="http://sebfisch.github.com/haskell-regexp/criterion/full-count-html-densities-800x600.png">13.4 us</a></td>
+<td align="center"></td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr class="odd">
+<td align="right">partial</td>
+<td align="right"><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-accept-rna-densities-800x600.png">20.4 us</a></td>
+<td align="right"></td>
+<td align="center"><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-leftmost-rna-densities-800x600.png">27.2 us</a></td>
+<td align="right"><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-longest-rna-densities-800x600.png">26.2 us</a></td>
+<td align="right"><a href="http://sebfisch.github.com/haskell-regexp/criterion/partial-leftlong-rna-densities-800x600.png">27.5 us</a></td>
+</tr>
+</tbody>
+</table>
+<p>Click on the numbers for a more detailed distribution of run times.</p>
+<h1 id="collaboration"><a href="#TOC">Collaboration</a></h1>
+<table><tr><td>
+
+<a href="http://github.com"> <img src="https://github.com/images/modules/header/logo.png" /> </a>
+</td><td>
+
+<p>The source code of this library is on <a href="http://github.com/sebfisch/haskell-regexp">github</a>. You can collaborate by using it in your projects, report bugs and ask for new features in the <a href="http://github.com/sebfisch/haskell-regexp/issues">issue tracker</a>, or provide patches that implement pending issues.</p>
+</td></tr></table>
 
 
 
-<p
->The algorithm discussed in the <a href="regexp-play.pdf"
-  >Play on Regular Expressions</a
-  > has been implemented in different languages. In a series of two <a href="http://morepypy.blogspot.com/2010/05/efficient-and-elegant-regular.html"
-  >blog</a
-  > <a href="http://morepypy.blogspot.com/2010/06/jit-for-regular-expression-matching.html"
-  >posts</a
-  >, Carl Friedrich Bolz describes a Python implementation that uses a Just In Time (JIT) compiler to achieve impressive performance. He compares his version with corresponding C++ and Java programs.</p
-><p
->For questions and feedback email <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x6d;&#x61;&#x69;&#108;&#64;&#x73;&#x65;&#98;&#102;&#x69;&#x73;&#x63;&#104;&#46;&#100;&#x65;">&#x53;&#x65;&#98;&#x61;&#x73;&#116;&#x69;&#x61;&#110;&#32;&#70;&#x69;&#x73;&#x63;&#104;&#x65;&#114;</a>.</p
-><div class="footnotes"
-><hr
-   /><ol
-  ><li id="fn1"
-    ><p
-      >The following C++ program uses the <a href="http://code.google.com/p/re2/"
-	>re2</a
-	> library and needs <em
-	>4s</em
-	> to search for <code
-	>a.{20}a</code
-	> in a string of ~2M random a’s ad b’s:</p
-      ><script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
-<p
-      >Unlike the Haskell program, this program keeps the whole input, that is, the result of <code
-	>getline</code
-	>, in memory. Can <a href="http://code.google.com/p/re2/"
-	>re2</a
-	> match input on the fly? <a href="#fnref1" class="footnoteBackLink" title="Jump back to footnote 1">↩</a></p
-      ></li
-    ></ol
-  ></div
->
+
+<p>The algorithm discussed in the <a href="regexp-play.pdf">Play on Regular Expressions</a> has been implemented in different languages. In a series of two <a href="http://morepypy.blogspot.com/2010/05/efficient-and-elegant-regular.html">blog</a> <a href="http://morepypy.blogspot.com/2010/06/jit-for-regular-expression-matching.html">posts</a>, Carl Friedrich Bolz describes a Python implementation that uses a Just In Time (JIT) compiler to achieve impressive performance. He compares his version with corresponding C++ and Java programs.</p>
+<p>For questions and feedback email <a href="&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x6d;&#x61;&#x69;&#108;&#64;&#x73;&#x65;&#98;&#102;&#x69;&#x73;&#x63;&#104;&#46;&#100;&#x65;">&#x53;&#x65;&#98;&#x61;&#x73;&#116;&#x69;&#x61;&#110;&#32;&#70;&#x69;&#x73;&#x63;&#104;&#x65;&#114;</a>.</p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>The following C++ program uses the <a href="http://code.google.com/p/re2/">re2</a> library and needs <em>4s</em> to search for <code>a.{20}a</code> in a string of ~2M random a’s ad b’s:</p>
+<script src="http://gist.github.com/488543.js?file=re2.cpp"></script>
+
+<p>Unlike the Haskell program, this program keeps the whole input, that is, the result of <code>getline</code>, in memory. Can <a href="http://code.google.com/p/re2/">re2</a> match input on the fly? <a href="#fnref1" class="footnoteBackLink" title="Jump back to footnote 1">↩</a></p></li>
+</ol>
+</div>
 </body>
 </html>

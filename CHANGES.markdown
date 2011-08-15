@@ -2,6 +2,13 @@
 
 [`weighted-regexp`]: http://hackage.haskell.org/package/weighted-regexp
 
+# 0.3.1.1
+
+## Use `BangPatterns` language extension
+
+Added the `BangPatterns` language extension to the cabal file because
+without it the generated parser fails to build using GHC 7.2.
+
 # 0.3.1
 
 ## Expose internal data types and matching functions
