@@ -30,7 +30,7 @@ acceptPartial r = partialMatch r
 -- Computes in how many ways a word can be matched against a regular
 -- expression.
 -- 
-matchingCount :: Num a => RegExp c -> [c] -> a
+matchingCount :: (Eq a, Num a) => RegExp c -> [c] -> a
 matchingCount r = getNumeric . fullMatch r
 
 {-# SPECIALIZE matchingCount :: RegExp c -> [c] -> Int #-}
@@ -50,7 +50,7 @@ fullMatch (RegExp r) = matchW (weighted r)
 
 {-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Bool #-}
 {-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Numeric Int #-}
-{-# SPECIALIZE fullMatch :: Num a => RegExp c -> [c] -> Numeric a #-}
+{-# SPECIALIZE fullMatch :: (Eq a, Num a) => RegExp c -> [c] -> Numeric a #-}
 {-# SPECIALIZE fullMatch :: RegExp c -> [(Int,c)] -> Leftmost #-}
 {-# SPECIALIZE fullMatch :: RegExp c -> [c] -> Longest #-}
 {-# SPECIALIZE fullMatch :: RegExp c -> [(Int,c)] -> LeftLong #-}
@@ -67,7 +67,7 @@ partialMatch (RegExp r) = matchW (arb `seqW` weighted r `seqW` arb)
 
 {-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Bool #-}
 {-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Numeric Int #-}
-{-# SPECIALIZE partialMatch :: Num a => RegExp c -> [c] -> Numeric a #-}
+{-# SPECIALIZE partialMatch :: (Eq a, Num a) => RegExp c -> [c] -> Numeric a #-}
 {-# SPECIALIZE partialMatch :: RegExp c -> [(Int,c)] -> Leftmost #-}
 {-# SPECIALIZE partialMatch :: RegExp c -> [c] -> Longest #-}
 {-# SPECIALIZE partialMatch :: RegExp c -> [(Int,c)] -> LeftLong #-}
@@ -78,7 +78,7 @@ matchW r (c:cs) = final (foldl (shiftW zero) (shiftW one r c) cs)
 
 {-# SPECIALIZE matchW :: RegW Bool c -> [c] -> Bool #-}
 {-# SPECIALIZE matchW :: RegW (Numeric Int) c -> [c] -> Numeric Int #-}
-{-# SPECIALIZE matchW :: Num a => RegW (Numeric a) c -> [c] -> Numeric a #-}
+{-# SPECIALIZE matchW :: (Eq a, Num a) => RegW (Numeric a) c -> [c] -> Numeric a #-}
 {-# SPECIALIZE matchW :: RegW Leftmost (Int,c) -> [(Int,c)] -> Leftmost #-}
 {-# SPECIALIZE matchW :: RegW Longest c -> [c] -> Longest #-}
 {-# SPECIALIZE matchW :: RegW LeftLong (Int,c) -> [(Int,c)] -> LeftLong #-}

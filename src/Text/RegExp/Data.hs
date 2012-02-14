@@ -35,7 +35,7 @@ defaultSymWeight = id
 instance Weight c c Bool where
   symWeight = defaultSymWeight
 
-instance Num a => Weight c c (Numeric a) where
+instance (Eq a, Num a) => Weight c c (Numeric a) where
   symWeight = defaultSymWeight
 
 weighted :: Weight a b w => RegW w a -> RegW w b
