@@ -2,6 +2,13 @@
 
 [`weighted-regexp`]: http://hackage.haskell.org/package/weighted-regexp
 
+# 0.3.1.2
+
+## Relax dependency on `array` library
+
+Relaxed dependency on array library from `< 0.4` to `< 0.5` to support
+building with `array-0.4` shipped with GHC 7.4.1.
+
 # 0.3.1.1
 
 ## Use `BangPatterns` language extension

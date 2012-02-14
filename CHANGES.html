@@ -10,46 +10,52 @@
 <h1 class="title">Changelog for <a href="http://hackage.haskell.org/package/weighted-regexp"><code>weighted-regexp</code></a></h1>
 <div id="TOC">
 <ul>
-<li><a href="#section">0.3.1.1</a><ul>
+<li><a href="#section">0.3.1.2</a><ul>
+<li><a href="#relax-dependency-on-array-library">Relax dependency on <code>array</code> library</a></li>
+</ul></li>
+<li><a href="#section-1">0.3.1.1</a><ul>
 <li><a href="#use-bangpatterns-language-extension">Use <code>BangPatterns</code> language extension</a></li>
 </ul></li>
-<li><a href="#section-1">0.3.1</a><ul>
+<li><a href="#section-2">0.3.1</a><ul>
 <li><a href="#expose-internal-data-types-and-matching-functions">Expose internal data types and matching functions</a></li>
 </ul></li>
-<li><a href="#section-2">0.3.0.1</a><ul>
+<li><a href="#section-3">0.3.0.1</a><ul>
 <li><a href="#conditional-build-dependencies">Conditional build dependencies</a></li>
 </ul></li>
-<li><a href="#section-3">0.3.0.0</a><ul>
+<li><a href="#section-4">0.3.0.0</a><ul>
 <li><a href="#implemented-workaround-for-ghc-ticket-4227">Implemented workaround for <a href="http://hackage.haskell.org/trac/ghc/ticket/4227">GHC ticket 4227</a></a></li>
 </ul></li>
-<li><a href="#section-4">0.2.0.0</a><ul>
+<li><a href="#section-5">0.2.0.0</a><ul>
 <li><a href="#more-general-types-for-matching-functions">More general types for matching functions</a></li>
 <li><a href="#renamed-accept-to-acceptfull-added-acceptpartial">Renamed <code>accept</code> to <code>acceptFull</code>, added <code>acceptPartial</code></a></li>
 <li><a href="#strict-numeric-semiring">Strict numeric semiring</a></li>
 <li><a href="#specialize-pragmas-prevent-memory-leak">SPECIALIZE pragmas prevent memory leak</a></li>
 <li><a href="#fixed-mistake-in-criterion-benchmarks">Fixed mistake in Criterion benchmarks</a></li>
 </ul></li>
-<li><a href="#section-5">0.1.1.0</a><ul>
+<li><a href="#section-6">0.1.1.0</a><ul>
 <li><a href="#added-nomatch">added <code>noMatch</code></a></li>
 <li><a href="#added-perm">added <code>perm</code></a></li>
 </ul></li>
 </ul>
 </div>
-<h1 id="section"><a href="#TOC">0.3.1.1</a></h1>
+<h1 id="section"><a href="#TOC">0.3.1.2</a></h1>
+<h2 id="relax-dependency-on-array-library"><a href="#TOC">Relax dependency on <code>array</code> library</a></h2>
+<p>Relaxed dependency on array library from <code>&lt; 0.4</code> to <code>&lt; 0.5</code> to support building with <code>array-0.4</code> shipped with GHC 7.4.1.</p>
+<h1 id="section-1"><a href="#TOC">0.3.1.1</a></h1>
 <h2 id="use-bangpatterns-language-extension"><a href="#TOC">Use <code>BangPatterns</code> language extension</a></h2>
 <p>Added the <code>BangPatterns</code> language extension to the cabal file because without it the generated parser fails to build using GHC 7.2.</p>
-<h1 id="section-1"><a href="#TOC">0.3.1</a></h1>
+<h1 id="section-2"><a href="#TOC">0.3.1</a></h1>
 <h2 id="expose-internal-data-types-and-matching-functions"><a href="#TOC">Expose internal data types and matching functions</a></h2>
 <p>Added new module <code>Text.RegExp.Internal</code> that exposes internal data types and matching functions. Users probably don’t want to use it unless they implement their own matching functions.</p>
-<h1 id="section-2"><a href="#TOC">0.3.0.1</a></h1>
+<h1 id="section-3"><a href="#TOC">0.3.0.1</a></h1>
 <h2 id="conditional-build-dependencies"><a href="#TOC">Conditional build dependencies</a></h2>
 <p>Moved build dependencies for QuickCheck and Criterion test programs under a conditional so they are only pulled in if one actually compiles these programs using the flags <code>-fQuickCheck</code> or <code>-fCriterion</code>. (Thank you Brent!)</p>
-<h1 id="section-3"><a href="#TOC">0.3.0.0</a></h1>
+<h1 id="section-4"><a href="#TOC">0.3.0.0</a></h1>
 <h2 id="implemented-workaround-for-ghc-ticket-4227"><a href="#TOC">Implemented workaround for <a href="http://hackage.haskell.org/trac/ghc/ticket/4227">GHC ticket 4227</a></a></h2>
 <p>Currently, GHC can SPECIALIZE functions only where they are defined. The types <code>Leftmost</code>, <code>Longest</code>, and <code>LeftLong</code> are now defined in separate modules to bring them into the scope of the matching functions. Specialization makes the matching functions almost three times faster for the types mentioned above.</p>
 <p>This workaround allows to specialize the matching functions for types defined in this package. Users, however, must use the matching functions unspecialized for their own types.</p>
 <p>Along with this change, the constructors of the matching types are no longer exported.</p>
-<h1 id="section-4"><a href="#TOC">0.2.0.0</a></h1>
+<h1 id="section-5"><a href="#TOC">0.2.0.0</a></h1>
 <h2 id="more-general-types-for-matching-functions"><a href="#TOC">More general types for matching functions</a></h2>
 <p>The functions <code>fullMatch</code> and <code>partialMatch</code> now both have the type</p>
 <pre><code>Weight a b w =&gt; RegExp a -&gt; [b] -&gt; w
@@ -68,7 +74,7 @@ partialMatch :: Weight c (Int,c) w =&gt; RegExp c -&gt; [c] -&gt; w
 <p>The generalization of the matching functions leads to a memory leak that can be avoided by specializing them for concrete semirings. Corresponding pragmas have been added for <code>Bool</code> and for <code>Numeric</code> types but not for the more complex semirings defined in the extra matching modules. It is unclear what is the best way to specialize them too because the pragma must be placed in the module where the matching functions are defined but, there, not all semirings are in scope. See <a href="http://hackage.haskell.org/trac/ghc/ticket/4227">GHC ticket 4227</a>.</p>
 <h2 id="fixed-mistake-in-criterion-benchmarks"><a href="#TOC">Fixed mistake in Criterion benchmarks</a></h2>
 <p>In the group of partial matchings, the benchmark for <code>Bool</code> accidentally used full matching. It now uses partial matching which, unsurprisingly, is slower.</p>
-<h1 id="section-5"><a href="#TOC">0.1.1.0</a></h1>
+<h1 id="section-6"><a href="#TOC">0.1.1.0</a></h1>
 <h2 id="added-nomatch"><a href="#TOC">added <code>noMatch</code></a></h2>
 <p><code>Text.RegExp</code> now provides a combinator</p>
 <pre><code>noMatch :: RegExp c
