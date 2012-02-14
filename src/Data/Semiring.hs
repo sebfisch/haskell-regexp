@@ -82,5 +82,5 @@ newtype Numeric a = Numeric { getNumeric :: a }
 instance Show a => Show (Numeric a) where
   show = show . getNumeric
 
-instance Num a => Semiring (Numeric a) where
+instance (Eq a, Num a) => Semiring (Numeric a) where
   zero = 0; one = 1; (.+.) = (+); (.*.) = (*)
