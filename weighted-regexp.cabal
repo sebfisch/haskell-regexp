@@ -1,5 +1,5 @@
 Name:          weighted-regexp
-Version:       0.3.1.1
+Version:       0.3.1.2
 Cabal-Version: >= 1.6
 Synopsis:      Weighted Regular Expression Matcher
 Description:
@@ -22,7 +22,7 @@ Extra-Source-Files:     README.markdown CHANGES.markdown
 Library
   Build-Tools:          happy >= 1.17
   Build-Depends:        base >= 3 && < 5,
-                        array >= 0.1 && < 0.4
+                        array >= 0.1 && < 0.5
   HS-Source-Dirs:       src
   Exposed-Modules:      Text.RegExp,
                         Text.RegExp.Matching.Leftmost,
